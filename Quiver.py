@@ -282,6 +282,102 @@ class Quiver():
 
         return len(self.sources()) + len(self.sinks()) > 0     
 
+    def chordless_cycles(self):
+        # Iterator for all chordless cycles in the quiver. Formatted as list of vertex indices.
+        
+        def neighbors(v):
+            return [j for j in range(self.n) if self.matrix[v][j] != 0]
+        
+        def chordless_cycles_at(v):
+            # Iterator for chordless cycles with minimal element v
+            paths = []
+            ends = [u for u in neighbors(v) if u > v]
+            for u in ends[:-1]:
+                paths.append([[v,u], [v,u]])
+            
+            while len(paths)!=0:
+                P, chord = paths.pop()
+                N = [u for u in neighbors(P[-1]) if u not in chord and u > v]
+                for u in N:
+                    if u in ends:
+                        if u > P[1]: #deduplication
+                            yield P+[u]
+                        continue
+                    paths.append([P+[u], chord + N])   
+
+        for i in range(self.n):
+            for C in chordless_cycles_at(i):
+                yield C
+
+    def winding_data(self, sigma):
+        # Using linear order sigma (a permutation of the indices), return winding numbers and edges against direction of traversal of the chordless cycles.
+        winding_dict = dict()
+        for C in self.chordless_cycles():
+            wind = 0 #times orbited
+            lefts = 0 #arrows against flow
+            for i in range(len(C)):
+                wind += (sigma[C[(i+1)%len(C)]] < sigma[C[i]])
+                lefts += self.matrix[C[i]][C[(i+1)%len(C)]] < 0
+            winding_dict[tuple(C)] = (wind - lefts, lefts)
+        return winding_dict
+
+
+    def cyclic_order(self):
+        # Return the cyclic ordering of the quiver with all chordless cycles having winding number 1 (if oriented) or 0 (if acyclic). 
+        #  Returns False if no such order exists. Only implemented for 4 vertex quivers.
+        if self.n != 4:
+            raise Exception("Not implemented for other than four vertices")
+        if self.vortex():
+            return False
+        for sigma_p in permutations(3): #[[0,1,2,3], [0,2,1,3], [0,1,3,2], [0,2,3,1], [0,3,1,2], [0,3,2,1]]:
+            sigma = sigma_p + [3]
+            W = self.winding_data(sigma)
+            good = True
+            for C in W.keys():
+                wind, left = W[C]
+                if left > len(C)/2:
+                    wind = -wind
+                    left = len(C) - left
+                if wind not in [0,1]:
+                    good=False
+                    break
+                if wind==0 and left ==0:
+                    good=False
+                    break
+                if wind==1 and left > 0:
+                    good=False
+                    break
+            if not good:
+                continue
+            return sigma
+        return False
+
+    def Umatrix(self):
+        # Compute a unipotent companion. 
+        #  Return False if this quiver has no potentailly totally proper order.
+        
+        sigma = self.cyclic_order()
+        if sigma==False:
+            return False
+        U = [[-(i<j)*self.matrix[sigma[i]][sigma[j]] for j in range(self.n)] for i in range(self.n)]
+        for i in range(self.n):
+            U[i][i]=1
+        return U
+
+
+    def markov(self):
+        #computes the markov invariant. Return False if this quiver has no potentailly totally proper order.
+        U = self.Umatrix()
+        if U == False:
+            return False
+        #compute trace of U U^-1 (= U (I + N + N^2 + ...))
+        raise Exception("Not implemented; no matrix inverse/multiplication yet.")
+
+        
+
+        
+
+
 class mutationClass():
     def __init__(self, Q, perms, fast = False):
         # Takes in a quiver Q as the first member of our mutation class
