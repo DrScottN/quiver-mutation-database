@@ -174,10 +174,6 @@ class QuiverHashing(unittest.TestCase):
         for i in self.quiver.vertices:
             assert hash(self.quiver.mutate(i)) != hash(self.quiver), f"mutation at {i} fixed the hash"
         
-    def testSetChanges(self):
-        assert self.quiver.updateWeight(0,0,1).matrix[0,1] == 0, "update weight does not update the weight"
-        assert hash(self.quiver.updateWeight(0,0,1)) != hash(self.quiver_dup), f"setting a weight doesn't change hash"
-        assert hash(self.quiver.updateWeight(0,0,1)) != hash(self.quiver), f"update weight changes the original quiver"
 
 
 if __name__ == "__main__":

@@ -63,14 +63,6 @@ class Quiver():
             return sum([pow(-1,j+1) * matrixAsList[0][j] * pfaffian([[matrixAsList[i][k] for i in range(1,n) if i != j] for k in range(1,n) if k != j]) for j in range(1,n)])
 
         return pfaffian(self.matrix.tolist())**2
-
-    def updateWeight(self, w, i, j):
-        # Updates the weight at index (i,j) and (j,i)
-        # Returns the resulting modified quiver
-        # Doesn't seem to modify the hash value though, which is concerning
-        self.matrix[i,j] = w
-        self.matrix[j,i] = -w
-        return self
     
     def subquiverRemoveOneVertex(self, v):
         # Takes the subquiver by removing the vertex v
@@ -256,7 +248,8 @@ class Quiver():
         return Q.threeCycle()
 
     def oppositeQuiver(self):
-        return Quiver([[-self.matrix[i,j] for i in range(self.n)] for j in range(self.n)])
+        #return Quiver([[-self.matrix[j,i] for i in range(self.n)] for j in range(self.n)])
+        return Quiver(-1*self.matrix)
     
     def mutate(self, k):
         # Gives the quiver formed by mutating at vertex k
@@ -363,7 +356,7 @@ class Quiver():
         if U == False:
             return False
         #compute trace of U U^-1 (= U (I + N + N^2 + ...))
-        N = np.matlib.identity(self.n, dtype='object') - U
+        N = numpy.transpose(np.matlib.identity(self.n, dtype='object') - U)
         Uinverse = copy.deepcopy(U)
         for e in range(1,self.n):
             Uinverse += U * N**e
