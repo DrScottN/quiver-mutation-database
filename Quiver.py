@@ -4,8 +4,6 @@ import numpy as np
 
 class Quiver():
     def __init__(self, matrix, validate = True):
-        # matrix is just a list of lists
-
         if validate and not isinstance(matrix, np.matrix):
             if len(matrix) != len(matrix[0]):
                 raise Exception("Not a square matrix")
