@@ -319,12 +319,8 @@ class Quiver():
     def cyclic_order(self):
         # Return the cyclic ordering of the quiver with all chordless cycles having winding number 1 (if oriented) or 0 (if acyclic). 
         #  Returns False if no such order exists. Only implemented for 4 vertex quivers.
-        if self.n != 4:
-            raise Exception("Not implemented for other than four vertices")
-        if self.vortex():
-            return False
-        for sigma_p in permutations(3): #[[0,1,2,3], [0,2,1,3], [0,1,3,2], [0,2,3,1], [0,3,1,2], [0,3,2,1]]:
-            sigma = sigma_p + [3]
+        for sigma_p in permutations(self.n-1): #[[0,1,2,3], [0,2,1,3], [0,1,3,2], [0,2,3,1], [0,3,1,2], [0,3,2,1]]:
+            sigma = sigma_p + [self.n-1]
             W = self.winding_data(sigma)
             good = True
             for C in W.keys():
@@ -365,8 +361,11 @@ class Quiver():
         if U == False:
             return False
         #compute trace of U U^-1 (= U (I + N + N^2 + ...))
-        raise Exception("Not implemented; no matrix inverse/multiplication yet.")
-
+        N = np.matlib.identity(self.n, dtype='object') - U
+        Uinverse = copy.deepcopy(U)
+        for e in range(1,self.n):
+            Uinverse += U * N**e
+        return np.trace(Uinverse)
         
 
         

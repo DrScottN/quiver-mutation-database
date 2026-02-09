@@ -122,38 +122,43 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         
 class QuiverInvariants3TestCase(unittest.TestCase):
     def setUp(self):
+        #These are disconnected quivers with only oriented cycles on 0,2,1.
         self.quiver_c1 = Quiver([[0,-3,6,0], [3,0,-5,0], [-6,5,0,0], [0,0,0,0]])
         self.quiver_c2 = Quiver([[0,3,-6,0], [-3,0,5,0], [6,-5,0,0], [0,0,0,0]])
-        self.quiver_a2 = Quiver([[0,2,-6,0], [-2,0,5,0], [6,-5,0,0], [0,0,0,0]])
         self.quiver_a1 = Quiver([[0,-2,6,0], [2,0,-5,0], [-6,5,0,0], [0,0,0,0]])
+        self.quiver_a2 = Quiver([[0,2,-6,0], [-2,0,5,0], [6,-5,0,0], [0,0,0,0]])
+        self.quivers = [self.quiver_c1, self.quiver_c2, self.quiver_a1, self.quiver_a2]
+        self.areMutCyclic = [True, True, False, False]
+        self.orientedCycles = [(0,2,1), (0,1,2), (0,2,1), (0,1,2)]
 
     def testAcyclic(self):
-        assert not self.quiver_a1.acyclic()
-        assert not self.quiver_a2.acyclic()
-        assert not self.quiver_c1.acyclic()
-        assert not self.quiver_c2.acyclic()
-    
+        for q in self.quivers:
+            assert not q.acyclic()
+
     def testConnected(self):
-        assert not self.quiver_a1.connected()
-        assert not self.quiver_a2.connected()
-        assert not self.quiver_c1.connected()
-        assert not self.quiver_c2.connected()
+        for q in self.quivers:
+            assert not q.connected()
 
     def testCyclicSubquiver(self):
-        assert not self.quiver_a1.hasMutCyclicSubquiver(), 'mutation acyclic quiver is incorrectly marked as mutation cyclic'
-        assert not self.quiver_a2.hasMutCyclicSubquiver(), 'mutation acyclic quiver is incorrectly marked as mutation cyclic'
-        assert self.quiver_c1.hasMutCyclicSubquiver(), 'mutation cyclic subquiver is incorrectly unnoticed'
-        assert self.quiver_c2.hasMutCyclicSubquiver(), 'mutation cyclic subquiver is incorrectly unnoticed'
-
+        for i in range(len(self.quivers)):
+            if self.areMutCyclic[i]:
+                assert self.quivers[i].hasMutCyclicSubquiver(), 'mutation cyclic subquiver is incorrectly unnoticed'
+            else:
+                assert not self.quivers[i].hasMutCyclicSubquiver(), 'mutation acyclic quiver is incorrectly marked as mutation cyclic'
+        
     def testCycles(self):
-        assert [0,1,2] in list(self.quiver_a1.chordless_cycles()) or [0,2,1] in list(self.quiver_a1.chordless_cycles()), 'missing chordless cycle'
-        assert [0,1,2] in list(self.quiver_a2.chordless_cycles()) or [0,2,1] in list(self.quiver_a2.chordless_cycles()), 'missing chordless cycle'
-        assert [0,1,2] in list(self.quiver_c1.chordless_cycles()) or [0,2,1] in list(self.quiver_c1.chordless_cycles()), 'missing chordless cycle'
-        assert [0,1,2] in list(self.quiver_c2.chordless_cycles()) or [0,2,1] in list(self.quiver_c2.chordless_cycles()), 'missing chordless cycle'
-        assert len(list(self.quiver_a1.chordless_cycles()))==1, 'incorrectly found more cycles'
-        assert len(list(self.quiver_a2.chordless_cycles()))==1, 'incorrectly found more cycles'
-        assert len(list(self.quiver_c1.chordless_cycles()))==1, 'incorrectly found more cycles'
-        assert len(list(self.quiver_c2.chordless_cycles()))==1, 'incorrectly found more cycles'
+        for q in self.quivers:
+            assert [0,1,2] in list(q.chordless_cycles()) or [0,2,1] in list(q.chordless_cycles()), 'missing chordless cycle'
+            assert len(list(q.chordless_cycles()))==1, 'incorrectly found more cycles'
+
+    def testCyclicOrdering(self):
+        sigmas = [q.cyclic_order() for q in self.quivers]
+        assert False not in sigmas, "incorrectly failed to find a cyclic ordering"
+        for i in range(len(self.quivers)):
+            sigma = sigmas[i]
+            c = self.orientedCycles[i]
+            order_respected = [sigma[c[i]] < sigma[c[(i+1)%len(c)]] for i in range(len(c))]
+            assert order_respected.count(False)==1, f"incorrect winding number ({order_respected.count(False)}) from cyclic ordering ({sigma}) for quiver {i}"
 
 
 class QuiverHashing(unittest.TestCase):
