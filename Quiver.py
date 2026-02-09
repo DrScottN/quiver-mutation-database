@@ -6,7 +6,7 @@ class Quiver():
     def __init__(self, matrix, validate = True):
         # matrix is just a list of lists
 
-        if validate:
+        if validate and not isinstance(matrix, np.matrix):
             if len(matrix) != len(matrix[0]):
                 raise Exception("Not a square matrix")
             else:
@@ -15,20 +15,20 @@ class Quiver():
                         if a != -matrix[j][i]:
                             raise Exception("Not a skew-symmetric matrix")
 
-        self.matrix = matrix
+        self.matrix = np.matrix(matrix, dtype='object') #matrix # type 'object' lets us put arbitrary python in there.
         self.n = len(matrix)
         self.vertices = [v for v in range(self.n)]
-        self.numEdges = sum(self.matrix[i][j] for i in self.vertices for j in self.vertices if self.matrix[i][j] > 0)
+        self.numEdges = sum(self.matrix[i,j] for i in self.vertices for j in self.vertices if self.matrix[i,j] > 0)
 
     def __hash__(self):
-        t = tuple([self.matrix[i][j] for i in range(self.n) for j in range(i+1,self.n)])
+        t = tuple(self.matrix[i,j] for i in range(self.n) for j in range(i+1,self.n))
         return hash(t)
 
     def __str__(self):
         return '\n'.join(str(r) for r in self.matrix)
 
     def __eq__(self, other):
-        return self.matrix == other.matrix
+        return (self.matrix == other.matrix).all() #previously no .all
 
     def __lt__(self, other):
         # Lexicographical order on matrix elements
@@ -39,58 +39,52 @@ class Quiver():
 
         for i in range(self.n):
             for j in range(self.n):
-                if self.matrix[i][j] < other.matrix[i][j]:
+                if self.matrix[i,j] < other.matrix[i,j]:
                     return True
-                elif self.matrix[i][j] > other.matrix[i][j]:
+                elif self.matrix[i,j] > other.matrix[i,j]:
                     return False
 
         return False
 
     def __deepcopy__(self, memo):
-        newMatrix = [[0 for i in range(self.n)] for j in range(self.n)]
-
-        for i in range(self.n):
-            for j in range(self.n):
-                newMatrix[i][j] = self.matrix[i][j]
-
-        return Quiver(newMatrix, validate=False)
+        return Quiver(copy.deepcopy(self.matrix), validate=False)
 
     def determinant(self):
         if self.n % 2 == 1:
             return 0
         
-        def pfaffian(matrix):
-            n = len(matrix)
+        def pfaffian(matrixAsList):
+            n = len(matrixAsList)
 
             if n == 0:
                 return 1
             
             #print(n)
-            return sum([pow(-1,j+1) * matrix[0][j] * pfaffian([[matrix[i][k] for i in range(1,n) if i != j] for k in range(1,n) if k != j]) for j in range(1,n)])
+            return sum([pow(-1,j+1) * matrixAsList[0][j] * pfaffian([[matrixAsList[i][k] for i in range(1,n) if i != j] for k in range(1,n) if k != j]) for j in range(1,n)])
 
-        return pfaffian(self.matrix)**2
+        return pfaffian(self.matrix.tolist())**2
 
     def updateWeight(self, w, i, j):
         # Updates the weight at index (i,j) and (j,i)
         # Returns the resulting modified quiver
         # Doesn't seem to modify the hash value though, which is concerning
-        self.matrix[i][j] = w
-        self.matrix[j][i] = -w
+        self.matrix[i,j] = w
+        self.matrix[j,i] = -w
         return self
     
     def subquiverRemoveOneVertex(self, v):
         # Takes the subquiver by removing the vertex v
-        return Quiver([[self.matrix[i][j] for i in range(self.n) if i != v] for j in range(self.n) if j != v])
+        return Quiver([[self.matrix[i,j] for i in range(self.n) if i != v] for j in range(self.n) if j != v])
 
     def connected(self):
         # Finds if the quiver is connected as a simple graph
-        seen = [0] + [j for j in range(1,self.n) if self.matrix[0][j] != 0]
+        seen = [0] + [j for j in range(1,self.n) if self.matrix[0,j] != 0]
         numSeen = 1
 
         while numSeen < len(seen):
             extension = []
             for j in seen[numSeen:]:
-                extension.extend([k for k in range(self.n) if self.matrix[j][k] != 0 and k not in extension])
+                extension.extend([k for k in range(self.n) if self.matrix[j,k] != 0 and k not in extension])
 
             numSeen = len(seen)
             seen.extend([k for k in extension if k not in seen])
@@ -100,19 +94,20 @@ class Quiver():
     def sources(self):
         # Get the sources in a quiver
 
-        return [i for i in range(self.n) if sum(self.matrix[i]) == sum([abs(self.matrix[i][j]) for j in range(self.n)])]
+        return [i for i in range(self.n) if np.sum(self.matrix[i,:]) == np.sum([abs(self.matrix[i,j]) for j in range(self.n)])]
     
     def sinks(self):
         # Get the sources in a quiver
 
-        return [i for i in range(self.n) if -sum(self.matrix[i]) == sum([abs(self.matrix[i][j]) for j in range(self.n)])]
+        return [i for i in range(self.n) if -np.sum(self.matrix[i,:]) == np.sum([abs(self.matrix[i,j]) for j in range(self.n)])]
 
     def acyclic(self):
-        # Finds if hte quiver is acyclic or not
+        # Finds if the quiver is acyclic or not
         if self.n < 3:
             return True
 
-        sources = [i for i in range(self.n) if sum(self.matrix[i]) == sum([abs(self.matrix[i][j]) for j in range(self.n)])]
+        #sources = [i for i in range(self.n) if sum(self.matrix[i]) == sum([abs(self.matrix[i,j]) for j in range(self.n)])]
+        sources = self.sources() 
 
         if len(sources) == 0:
             return False
@@ -121,13 +116,13 @@ class Quiver():
         
         vertices = [i for i in range(self.n) if i not in sources]
 
-        newMatrix = [[self.matrix[i][j] for i in vertices] for j in vertices]
+        newMatrix = [[self.matrix[i,j] for i in vertices] for j in vertices]
 
         return Quiver(newMatrix).acyclic()
 
     def complete(self):
         # Finds if the quiver is complete or not
-        terms = [self.matrix[i][j] for i in range(self.n) for j in range(i+1,self.n)]
+        terms = [self.matrix[i,j] for i in range(self.n) for j in range(i+1,self.n)]
 
         s = 1
 
@@ -140,7 +135,7 @@ class Quiver():
         # Finds if the quiver is abundant
         for i in range(self.n):
             for j in range(i+1, self.n):
-                if abs(self.matrix[i][j]) < 2:
+                if abs(self.matrix[i,j]) < 2:
                     return False
 
         return True 
@@ -158,28 +153,28 @@ class Quiver():
             if i == r:
                 continue
 
-            if self.matrix[i][r] > 0:
+            if self.matrix[i,r] > 0:
                 for j in range(self.n):
                     if j == r or j == i:
                         continue
 
-                    if self.matrix[r][j] > 0:
-                        value = self.matrix[j][i] > 0
-                        value = value and self.matrix[i][r] < self.matrix[j][i]
-                        value = value and self.matrix[r][j] < self.matrix[j][i]
+                    if self.matrix[r,j] > 0:
+                        value = self.matrix[j,i] > 0
+                        value = value and self.matrix[i,r] < self.matrix[j,i]
+                        value = value and self.matrix[r,j] < self.matrix[j,i]
 
                         if not value:
                             return False
                         
-            if self.matrix[i][r] < 0:
+            if self.matrix[i,r] < 0:
                 for j in range(self.n):
                     if j == r or j == i:
                         continue
 
-                    if self.matrix[r][j] < 0:
-                        value = self.matrix[i][r] > self.matrix[j][i]
-                        value = value and self.matrix[r][j] > self.matrix[j][i]
-                        value = value and self.matrix[j][i] < 0
+                    if self.matrix[r,j] < 0:
+                        value = self.matrix[i,r] > self.matrix[j,i]
+                        value = value and self.matrix[r,j] > self.matrix[j,i]
+                        value = value and self.matrix[j,i] < 0
 
                         if not value:
                             return False
@@ -199,7 +194,7 @@ class Quiver():
             return False
 
         for k in self.vertices:
-            if self.matrix[i][k]*self.matrix[k][j] > 0:
+            if self.matrix[i,k]*self.matrix[k,j] > 0:
                 return False
 
         return True
@@ -213,7 +208,7 @@ class Quiver():
                 if j == i or r in [i,j]:
                     continue
 
-                if self.matrix[i][j] > 1:
+                if self.matrix[i,j] > 1:
                     continue
 
                 if self.preForkWithVertices(r, i, j):
@@ -237,7 +232,7 @@ class Quiver():
             if len(matrix) != 3:
                 raise Exception("Not implemented yet")
             
-            return (matrix[0][1]**2) + (matrix[1][2]**2) + (matrix[2][0]**2) - abs(matrix[0][1]*matrix[1][2]*matrix[2][0])
+            return (matrix[0,1]**2) + (matrix[1,2]**2) + (matrix[2,0]**2) - abs(matrix[0,1]*matrix[1,2]*matrix[2,0])
 
         return any(Q.threeCycle() and markovInvariant(Q.matrix) <= 4 and Q.abundant() for Q in [self.subquiverRemoveOneVertex(i) for i in self.vertices])
 
@@ -253,7 +248,7 @@ class Quiver():
         
         vertex = vertices[0]
         
-        if 0 in self.matrix[vertex][:vertex] or 0 in self.matrix[vertex][vertex+1:]:
+        if 0 in self.matrix[vertex,:vertex] or 0 in self.matrix[vertex,vertex+1:]:
             return False
         
         Q = self.subquiverRemoveOneVertex(vertices[0])
@@ -261,7 +256,7 @@ class Quiver():
         return Q.threeCycle()
 
     def oppositeQuiver(self):
-        return Quiver([[-self.matrix[i][j] for i in range(self.n)] for j in range(self.n)])
+        return Quiver([[-self.matrix[i,j] for i in range(self.n)] for j in range(self.n)])
     
     def mutate(self, k):
         # Gives the quiver formed by mutating at vertex k
@@ -271,10 +266,10 @@ class Quiver():
         for i in range(self.n):
             for j in range(self.n):
                 if k in [i,j]:
-                    newMatrix[i][j] = -newMatrix[i][j]
-                elif self.matrix[i][k]*self.matrix[k][j] > 0:
-                    add = self.matrix[i][k]*self.matrix[k][j] if self.matrix[i][k] > 0 else -self.matrix[i][k]*self.matrix[k][j]
-                    newMatrix[i][j] += add
+                    newMatrix[i,j] = -newMatrix[i,j]
+                elif self.matrix[i,k]*self.matrix[k,j] > 0:
+                    add = self.matrix[i,k]*self.matrix[k,j] if self.matrix[i,k] > 0 else -self.matrix[i,k]*self.matrix[k,j]
+                    newMatrix[i,j] += add
 
         return Quiver(newMatrix)
 
@@ -287,7 +282,7 @@ class Quiver():
         # Iterator for all chordless cycles in the quiver. Formatted as list of vertex indices.
         
         def neighbors(v):
-            return [j for j in range(self.n) if self.matrix[v][j] != 0]
+            return [j for j in range(self.n) if self.matrix[v,j] != 0]
         
         def chordless_cycles_at(v):
             # Iterator for chordless cycles with minimal element v
@@ -318,7 +313,7 @@ class Quiver():
             lefts = 0 #arrows against flow
             for i in range(len(C)):
                 wind += (sigma[C[(i+1)%len(C)]] < sigma[C[i]])
-                lefts += self.matrix[C[i]][C[(i+1)%len(C)]] < 0
+                lefts += self.matrix[C[i],C[(i+1)%len(C)]] < 0
             winding_dict[tuple(C)] = (wind - lefts, lefts)
         return winding_dict
 
@@ -360,9 +355,9 @@ class Quiver():
         sigma = self.cyclic_order()
         if sigma==False:
             return False
-        U = [[-(i<j)*self.matrix[sigma[i]][sigma[j]] for j in range(self.n)] for i in range(self.n)]
+        U = [[-(i<j)*self.matrix[sigma[i],sigma[j]] for j in range(self.n)] for i in range(self.n)]
         for i in range(self.n):
-            U[i][i]=1
+            U[i,i]=1
         return U
 
 
@@ -557,8 +552,8 @@ def isomorphicQuiver(quiver, p):
 
     for i in range(n):
         for j in range(i+1,n):
-            newMatrix[i][j] = quiver.matrix[p[i]][p[j]]
-            newMatrix[j][i] = quiver.matrix[p[j]][p[i]]
+            newMatrix[i][j] = quiver.matrix[p[i],p[j]]
+            newMatrix[j][i] = quiver.matrix[p[j],p[i]]
 
     return Quiver(newMatrix, False)
 
