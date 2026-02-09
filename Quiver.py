@@ -1,5 +1,6 @@
 import copy
 from collections import Counter
+import numpy as np 
 
 class Quiver():
     def __init__(self, matrix, validate = True):
@@ -20,7 +21,7 @@ class Quiver():
         self.numEdges = sum(self.matrix[i][j] for i in self.vertices for j in self.vertices if self.matrix[i][j] > 0)
 
     def __hash__(self):
-        t = tuple(self.matrix[i][j] for i in range(self.n) for j in range(i+1,self.n))
+        t = tuple([self.matrix[i][j] for i in range(self.n) for j in range(i+1,self.n)])
         return hash(t)
 
     def __str__(self):

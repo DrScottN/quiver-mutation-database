@@ -155,5 +155,25 @@ class QuiverInvariants3TestCase(unittest.TestCase):
         assert len(list(self.quiver_c1.chordless_cycles()))==1, 'incorrectly found more cycles'
         assert len(list(self.quiver_c2.chordless_cycles()))==1, 'incorrectly found more cycles'
 
+
+class QuiverHashing(unittest.TestCase):
+    def setUp(self):
+        self.quiver = Quiver([[0,-3,6,8], [3,0,-5,9], [-6,5,0,-11], [-8,-9,11,0]])
+        self.quiver_dup = copy.deepcopy(self.quiver)
+
+    def testHash(self):
+        assert hash(self.quiver) == hash(self.quiver_dup), "hashing cares about data besides the weights"
+        assert hash(self.quiver.mutate(1)) == hash(self.quiver_dup.mutate(1)), "hashing cares about data besides the weights"
+
+    def testMutChanges(self):
+        for i in self.quiver.vertices:
+            assert hash(self.quiver.mutate(i)) != hash(self.quiver), f"mutation at {i} fixed the hash"
+        
+    def testSetChanges(self):
+        assert self.quiver.updateWeight(0,0,1).matrix[0][1] == 0, "update weight does not update the weight"
+        assert hash(self.quiver.updateWeight(0,0,1)) != hash(self.quiver_dup), f"setting a weight doesn't change hash"
+        assert hash(self.quiver.updateWeight(0,0,1)) != hash(self.quiver), f"setting a weight doesn't change hash"
+
+
 if __name__ == "__main__":
     unittest.main()
