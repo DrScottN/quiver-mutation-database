@@ -358,7 +358,7 @@ class Quiver():
         Uinverse = copy.deepcopy(U)
         for e in range(1,self.n):
             Uinverse += U * N**e
-        return np.trace(Uinverse)
+        return np.trace(Uinverse) - self.n
         
 
         
