@@ -62,7 +62,7 @@ class polynomial():
         self.coefficients = newCoeff if not reverse else newCoeff[::-1]   
 
     def __eq__(self, other):
-        if isinstance(other, int) or isinstance(other, Rational):
+        if isinstance(other, int): #or isinstance(other, Rational):
             return self.totalDegree == 0 and self.coefficients[0][0] == other
         elif isinstance(other, polynomial):
             if not self.__varseq__(other):
@@ -86,7 +86,7 @@ class polynomial():
 
     def __add__(self, other):
         newVars = self.vars
-        if isinstance(other, int) or isinstance(other, Rational):
+        if isinstance(other, int): #or isinstance(other, Rational):
             coefficients = [(c[0] + other,) + c[1:] for c in self.coefficients]
         elif isinstance(other, polynomial):
             if not self.__varseq__(other):
