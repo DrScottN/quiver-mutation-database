@@ -39,7 +39,7 @@ class polynomial():
         # Modifies the coefficients to match the new variables and returns a new polynomial
         # newVars is a tuple as well
         vars = {v : i+1 for i, v in enumerate(self.vars)}
-        totalVars = list(set(self.vars) | set(newVars))
+        totalVars = tuple(set(self.vars) | set(newVars))
         coeff = [(c[0],) + tuple([c[vars[v]] if v in vars else 0 for v in totalVars]) for c in self.coefficients]
 
         return polynomial(coeff, totalVars)
@@ -90,7 +90,7 @@ class polynomial():
             coefficients = [(c[0] + other,) + c[1:] for c in self.coefficients]
         elif isinstance(other, polynomial):
             if not self.__varseq__(other):
-                newVars = list(set(self.vars + newVars))
+                newVars = tuple(set(self.vars + newVars))
                 p = self.__varchange__(newVars)
                 q = other.__varchange__(newVars)
             else:
@@ -131,14 +131,14 @@ class polynomial():
 
     def __mul__(self, other):
         if self == 0 or other == 0:
-            return polynomial([0], var=self.vars)
+            return polynomial([0], vars=self.vars)
         elif not isinstance(other, polynomial):
             coefficients = [(other * c[0],) + c[1:] for c in self.coefficients]
             newVars = self.vars
         else:
             coeffDict = dict()
             if not self.__varseq__(other):
-                newVars = list(set(self.vars + other.vars))
+                newVars = tuple(set(self.vars + other.vars))
                 p = self.__varchange__(newVars)
                 q = other.__varchange__(newVars)
             else:
