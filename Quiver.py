@@ -518,8 +518,8 @@ def generateLowWeightQuivers(n):
         for Q in l:
             newM = copy.deepcopy(Q.matrix)
             for w in lowWeights:
-                newM[i][j] = w
-                newM[j][i] = -w
+                newM[i,j] = w
+                newM[j,i] = -w
                 newQ = Quiver(copy.deepcopy(newM))
                 newList.append(newQ)
 
