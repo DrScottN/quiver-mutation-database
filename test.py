@@ -119,7 +119,8 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         for m in M:
             q = q.mutate(m)
         assert q.forkWithPOR(3), f'applying mutation sequence {M} did not produce a fork with por {M[:-1]}'
-        
+
+
 class QuiverInvariants3TestCase(unittest.TestCase):
     def setUp(self):
         #These are disconnected quivers with only oriented cycles on 0,2,1.
@@ -130,6 +131,7 @@ class QuiverInvariants3TestCase(unittest.TestCase):
         self.quivers = [self.quiver_c1, self.quiver_c2, self.quiver_a1, self.quiver_a2]
         self.areMutCyclic = [True, True, False, False]
         self.orientedCycles = [(0,2,1), (0,1,2), (0,2,1), (0,1,2)]
+        self.markovs = [3**2+5**2+6**2 - 3*5*6, 3**2+5**2+6**2 - 3*5*6, 2**2+5**2+6**2 - 2*5*6, 2**2+5**2+6**2 - 2*5*6]
 
     def testAcyclic(self):
         for q in self.quivers:
@@ -159,6 +161,10 @@ class QuiverInvariants3TestCase(unittest.TestCase):
             c = self.orientedCycles[i]
             order_respected = [sigma[c[i]] < sigma[c[(i+1)%len(c)]] for i in range(len(c))]
             assert order_respected.count(False)==1, f"incorrect winding number ({order_respected.count(False)}) from cyclic ordering ({sigma}) for quiver {i}"
+
+    def testMarkov(self):
+        for i in range(len(self.quivers)):
+            assert self.quivers[i].markov() == self.markovs[i], f"incorrect markov invariant {i, self.quivers[i].markov(), self.markovs[i]}"
 
 
 class QuiverHashing(unittest.TestCase):

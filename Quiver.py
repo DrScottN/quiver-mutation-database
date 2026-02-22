@@ -2,6 +2,8 @@ import copy
 from collections import Counter
 import numpy as np 
 
+import polynomial
+
 class Quiver():
     def __init__(self, matrix, validate = True):
         if validate and not isinstance(matrix, np.matrix):
@@ -342,24 +344,32 @@ class Quiver():
         sigma = self.cyclic_order()
         if sigma==False:
             return False
-        U = [[-(i<j)*self.matrix[sigma[i],sigma[j]] for j in range(self.n)] for i in range(self.n)]
+        U = np.matrix([[-(i<j)*self.matrix[sigma[i],sigma[j]] for j in range(self.n)] for i in range(self.n)], dtype='object')
         for i in range(self.n):
             U[i,i]=1
         return U
 
 
     def markov(self):
-        #computes the markov invariant. Return False if this quiver has no potentailly totally proper order.
+        #computes the markov invariant. Return False if this quiver has no potentially totally proper order.
         U = self.Umatrix()
-        if U == False:
+        if U is False:
             return False
         #compute trace of U U^-1 (= U (I + N + N^2 + ...))
-        N = numpy.transpose(np.matlib.identity(self.n, dtype='object') - U)
-        Uinverse = copy.deepcopy(U)
+        N = np.transpose(np.matlib.identity(self.n, dtype='object') - U)
+        Uinverse = U.copy()
         for e in range(1,self.n):
             Uinverse += U * N**e
-        return np.trace(Uinverse) - self.n
+        return (-1)**self.n * (self.n - np.trace(Uinverse))
         
+    def alexander_poly(self):
+        # Computes the alexander polynomial (expressed as a polynomial object). Returns False if the quiver is not potentially totally proper.
+        U = self.Umatrix()
+        if U is False:
+            return False
+        Ux = polynomial.polynomial([0,1])*U - polynomial.polynomial([1])*numpy.transpose(U)
+        return numpy.determinant(Ux)
+
 
         
 
