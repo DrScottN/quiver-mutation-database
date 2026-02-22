@@ -49,7 +49,7 @@ class PolynomialTestCase(unittest.TestCase):
         self.poly1 * 2
         assert self.poly1 == polynomial([1,0,1,0,1])
         assert self.poly1 +2 != self.poly1
-        #Unsupported: assert self.poly3.eval(polynomial([-1,1])) == polynomial([0,0,0,0,1]), "Incorrectly composes polynomials"
+        assert self.poly3.eval([polynomial([-1,1])]) == polynomial([0,0,0,0,1]), "Incorrectly composes polynomials"
 
     def testSub(self):
         assert -self.poly1 == polynomial([-1,0,-1,0,-1]), "Incorrectly negates polynomials"
@@ -57,6 +57,39 @@ class PolynomialTestCase(unittest.TestCase):
         assert self.poly3 - self.poly2 != polynomial([0])
         assert -self.poly3 == (-1)*self.poly3
         assert 3*self.poly3 - self.poly3 == self.poly3*2
+
+
+class PolynomialVarnamesTestCase(unittest.TestCase):
+    def setUp(self):
+        self.oney = polynomial([1], ('y',))
+        self.onez = polynomial([1], ('z',))
+        
+        self.fy = polynomial([0,1], ('y',))
+        self.fz = polynomial([0,1], ('z',))
+
+        self.gz = polynomial([0,1,2,1], ('z',))
+        self.gw = polynomial([0,1,2,1], ('w',))
+
+    def testEqualities(self):
+        assert self.oney == self.onez, "Incorrectly distinguishes constant polys"
+        assert self.oney == 1
+        assert 10*self.oney == 10
+        assert self.fy*self.oney == self.fy
+        assert self.fy != self.fz
+        assert self.gz != self.gw
+        assert self.fy*0 +self.fz == self.fz
+    
+    def testSum(self):
+        assert self.fy + self.fz == self.fz + self.fy
+        assert self.gw + self.fz == self.fz + self.gw
+        assert self.fy + self.oney == self.fy + self.onez
+        assert 3*self.fy - 2*self.fy == self.fy
+    
+    def testProd(self):
+        assert self.fy * self.fy * self.fy == polynomial([0,0,0,1], ('y',))
+        assert self.fy * self.fz == self.fz * self.fy
+        assert self.fy*(self.gw + self.gz) == self.fy*self.gw + self.gz*self.fy
+        assert 3*self.gw == self.gw + self.gw + self.gw
 
 if __name__ == "__main__":
     unittest.main()
