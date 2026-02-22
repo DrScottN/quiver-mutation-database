@@ -313,7 +313,7 @@ class Quiver():
 
     def cyclic_order(self):
         # Return the cyclic ordering of the quiver with all chordless cycles having winding number 1 (if oriented) or 0 (if acyclic). 
-        #  Returns False if no such order exists. Only implemented for 4 vertex quivers.
+        #  Returns False if no such order exists.
         for sigma_p in permutations(self.n-1): #[[0,1,2,3], [0,2,1,3], [0,1,3,2], [0,2,3,1], [0,3,1,2], [0,3,2,1]]:
             sigma = sigma_p + [self.n-1]
             W = self.winding_data(sigma)
@@ -367,8 +367,14 @@ class Quiver():
         U = self.Umatrix()
         if U is False:
             return False
-        Ux = polynomial.polynomial([0,1])*U - polynomial.polynomial([1])*numpy.transpose(U)
-        return numpy.determinant(Ux)
+        Ux = np.matrix([[U[i,j]*polynomial.polynomial([0,1]) for i in range(self.n)] for j in range(self.n)], dtype='object') - np.matrix([[U[j,i]*polynomial.polynomial([1]) for i in range(self.n)] for j in range(self.n)], dtype='object')
+        det = polynomial.polynomial([0])
+        for p in permutations(self.n):
+            a = polynomial.polynomial([1])
+            for i in range(self.n):
+                a *= Ux[i, p[i]]
+            det += a * sign_perm(p)
+        return det
 
 
         
@@ -542,6 +548,24 @@ def permutations(n):
         newPerm.extend(newP)
 
     return newPerm
+
+def sign_perm(permutation):
+    # Returns the sign of the given permutation.
+    not_visited = set(permutation)
+    cycle_sum = 0
+    i = not_visited.pop()
+    cycle = [i]
+    while len(not_visited)>0:
+        if permutation[i] in cycle:
+            i = not_visited.pop()
+            cycle_sum += len(cycle)-1
+            cycle = [i]
+        else:
+            i = permutation[i]
+            not_visited.remove(i)
+            cycle.append(i)
+    return (-1)**((cycle_sum + len(cycle)-1)% 2)
+
 
 def isomorphicQuiver(quiver, p):
     # Returns the quiver given by the graph isomorphism perm

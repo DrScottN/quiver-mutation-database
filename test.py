@@ -205,6 +205,10 @@ class QuiverInvariants3TestCase(unittest.TestCase):
         for i in range(len(self.quivers)):
             assert self.quivers[i].markov() == self.markovs[i], f"incorrect markov invariant {i, self.quivers[i].markov(), self.markovs[i]}"
 
+    def testAlexander(self):
+        for i in range(len(self.quivers)):
+            assert self.quivers[i].alexander_poly() == polynomial.polynomial([-1, 3-self.markovs[i], -(3-self.markovs[i]),1]), f"incorrect alexander poly {str(self.quivers[i].alexander_poly()), self.markovs[i]}"
+
 
 class QuiverHashing(unittest.TestCase):
     def setUp(self):
@@ -219,6 +223,31 @@ class QuiverHashing(unittest.TestCase):
         for i in self.quiver.vertices:
             assert hash(self.quiver.mutate(i)) != hash(self.quiver), f"mutation at {i} fixed the hash"
         
+
+class PermutationTests(unittest.TestCase):
+    def setUp(self):
+        self.s3 = [tuple(p) for p in permutations(3)]
+        self.s2 = [tuple(p) for p in permutations(2)]
+    
+    def testSizes(self):
+        assert len(self.s3)==6
+        assert len(self.s2)==2
+        assert len(set(self.s3))==6
+        assert len(set(self.s2))==2
+        assert len(self.s3[0])==3
+        assert len(self.s2[0])==2
+
+    def testMembers(self):
+        assert (0,1) in self.s2
+        assert (1,0) in self.s2
+        assert (1,2,0) in self.s3
+        assert (0,2,1) in self.s3
+
+    def testParity(self):
+        assert sign_perm([0,1]) == 1
+        assert sign_perm([1,0]) == -1
+        assert sign_perm([1,2,0]) == 1
+        assert sign_perm([0,2,1]) == -1
 
 
 if __name__ == "__main__":
