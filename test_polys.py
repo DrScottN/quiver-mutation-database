@@ -26,7 +26,7 @@ class PolynomialTestCase(unittest.TestCase):
         assert self.poly1 + self.poly1 == 2*self.poly1
         assert (self.poly1 + self.poly2).eval([0]) == 1
         assert (self.poly1 + self.poly2).eval([2]) == 1 + 2**2 + 2**4 + 2**5
-        assert self.poly1 + 2 == polynomial([3,0,1,0,1,0])
+        assert self.poly1 + 2 == polynomial([3,0,1,0,1,0]), f"Incorrectly add constants."
 
     def testProd(self):
         assert (self.poly1*self.poly2).eval([0]) == 0

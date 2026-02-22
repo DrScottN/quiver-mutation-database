@@ -144,6 +144,7 @@ class polynomial():
             else:
                 p = self
                 q = other
+                newVars=self.vars
 
             for c in p.coefficients:
                 for d in q.coefficients:
