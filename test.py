@@ -121,7 +121,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert q.forkWithPOR(3), f'applying mutation sequence {M} did not produce a fork with por {M[:-1]}'
 
 
-class QuiverInvariants3TestCase(unittest.TestCase):
+class QuiverInvariants3dcTestCase(unittest.TestCase):
     def setUp(self):
         #These are disconnected quivers with only oriented cycles on 0,2,1.
         self.quiver_c1 = Quiver([[0,-3,6,0], [3,0,-5,0], [-6,5,0,0], [0,0,0,0]])
@@ -148,6 +148,45 @@ class QuiverInvariants3TestCase(unittest.TestCase):
             else:
                 assert not self.quivers[i].hasMutCyclicSubquiver(), 'mutation acyclic quiver is incorrectly marked as mutation cyclic'
         
+    def testCycles(self):
+        for q in self.quivers:
+            assert [0,1,2] in list(q.chordless_cycles()) or [0,2,1] in list(q.chordless_cycles()), 'missing chordless cycle'
+            assert len(list(q.chordless_cycles()))==1, 'incorrectly found more cycles'
+
+    def testCyclicOrdering(self):
+        sigmas = [q.cyclic_order() for q in self.quivers]
+        assert False not in sigmas, "incorrectly failed to find a cyclic ordering"
+        for i in range(len(self.quivers)):
+            sigma = sigmas[i]
+            c = self.orientedCycles[i]
+            order_respected = [sigma[c[i]] < sigma[c[(i+1)%len(c)]] for i in range(len(c))]
+            assert order_respected.count(False)==1, f"incorrect winding number ({order_respected.count(False)}) from cyclic ordering ({sigma}) for quiver {i}"
+
+    def testMarkov(self):
+        for i in range(len(self.quivers)):
+            assert self.quivers[i].markov() == self.markovs[i], f"incorrect markov invariant {i, self.quivers[i].markov(), self.markovs[i]}"
+
+
+class QuiverInvariants3TestCase(unittest.TestCase):
+    def setUp(self):
+        #These are disconnected quivers with only oriented cycles on 0,2,1.
+        self.quiver_c1 = Quiver([[0,-3,6], [3,0,-5], [-6,5,0]])
+        self.quiver_c2 = Quiver([[0,-5,6], [5,0,-5], [-6,5,0]])
+        self.quiver_a1 = Quiver([[0,2,-6], [-2,0,5], [6,-5,0]])
+        self.quiver_a2 = Quiver([[0,-3,6], [3,0,-18], [-6,18,0]])
+        self.quivers = [self.quiver_c1, self.quiver_c2, self.quiver_a1, self.quiver_a2]
+        self.areMutCyclic = [True, True, False, False]
+        self.orientedCycles = [(0,2,1), (0,2,1), (0,1,2), (0,2,1)]
+        self.markovs = [3**2+5**2+6**2 - 3*5*6, 5**2+5**2+6**2 - 5*5*6, 2**2+5**2+6**2 - 2*5*6, 3**2 + 6**2]
+
+    def testAcyclic(self):
+        for q in self.quivers:
+            assert not q.acyclic()
+
+    def testConnected(self):
+        for q in self.quivers:
+            assert q.connected()
+
     def testCycles(self):
         for q in self.quivers:
             assert [0,1,2] in list(q.chordless_cycles()) or [0,2,1] in list(q.chordless_cycles()), 'missing chordless cycle'

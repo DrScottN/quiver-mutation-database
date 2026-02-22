@@ -360,7 +360,7 @@ class Quiver():
         Uinverse = U.copy()
         for e in range(1,self.n):
             Uinverse += U * N**e
-        return (-1)**self.n * (self.n - np.trace(Uinverse))
+        return self.n - np.trace(Uinverse)
         
     def alexander_poly(self):
         # Computes the alexander polynomial (expressed as a polynomial object). Returns False if the quiver is not potentially totally proper.
