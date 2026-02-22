@@ -102,7 +102,7 @@ class PolynomialMultivarTestCase(unittest.TestCase):
 
     def testEqMulti(self):
         assert self.onexyz == self.onezyx
-        assert self.fxy == self.fyx
+        assert self.fxy == self.fyx, f"Incorrectly distinguishes {str(self.fxy), str(self.fyx)}"
         assert self.fxy + self.fyx == 2*self.fxy
 
 
