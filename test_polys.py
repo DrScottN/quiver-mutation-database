@@ -70,7 +70,7 @@ class PolynomialVarnamesTestCase(unittest.TestCase):
         self.gz = polynomial([0,1,2,1], ('z',))
         self.gw = polynomial([0,1,2,1], ('w',))
 
-    def testEqualities(self):
+    def testEqVarnames(self):
         assert self.oney == self.onez, "Incorrectly distinguishes constant polys"
         assert self.oney == 1
         assert 10*self.oney == 10
@@ -79,17 +79,32 @@ class PolynomialVarnamesTestCase(unittest.TestCase):
         assert self.gz != self.gw
         assert self.fy*0 +self.fz == self.fz
     
-    def testSum(self):
+    def testSumVarnames(self):
         assert self.fy + self.fz == self.fz + self.fy
         assert self.gw + self.fz == self.fz + self.gw
         assert self.fy + self.oney == self.fy + self.onez
         assert 3*self.fy - 2*self.fy == self.fy
     
-    def testProd(self):
+    def testProdVarnames(self):
         assert self.fy * self.fy * self.fy == polynomial([0,0,0,1], ('y',))
         assert self.fy * self.fz == self.fz * self.fy
         assert self.fy*(self.gw + self.gz) == self.fy*self.gw + self.gz*self.fy
         assert 3*self.gw == self.gw + self.gw + self.gw
+
+
+class PolynomialMultivarTestCase(unittest.TestCase):
+    def setUp(self):
+        self.onexyz = polynomial([(1,0,0,0)], ('x','y','z'))
+        self.onezyx = polynomial([(1,0,0,0)], ('z','y','x'))
+        
+        self.fxy = polynomial([(0,0,0),(2,0,1), (1,1,0)], ('x','y'))
+        self.fyx = polynomial([(0,0,0),(2,1,0), (1,0,1)], ('y','x'))
+
+    def testEqMulti(self):
+        assert self.onexyz == self.onezyx
+        assert self.fxy == self.fyx
+        assert self.fxy + self.fyx == 2*self.fxy
+
 
 if __name__ == "__main__":
     unittest.main()
