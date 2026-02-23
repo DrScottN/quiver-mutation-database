@@ -610,7 +610,7 @@ class mutationClass():
         otherEdges = {Q : {P : k for P, k in other.edges[Q].items() if P in vertices} for Q in vertices}
         edges = {Q : {**selfEdges[Q], **otherEdges[Q]} for Q in vertices}
 
-        newMutClass = mutationClass(vertices = vertices, edges = edges, perms = perms)
+        newMutClass = mutationClass(vertices = vertices, edges = edges, perms = self.perms)
         newMutClass.couldBeMutationCyclic = self.couldBeMutationCyclic and other.couldBeMutationCyclic
         newMutClass.couldBeMutationComplete = self.couldBeMutationComplete and other.couldBeMutationComplete
         newMutClass.couldBeMutationVortexFree = self.couldBeMutationVortexFree and other.couldBeMutationVortexFree
@@ -861,6 +861,9 @@ def test():
 
 if __name__ == "__main__":
     #test()
+    main()
+
+def main():
     n = 4
     perms = permutations(n)
     box = isomorphismClass(boxQuiver(2,2),perms)[0]
