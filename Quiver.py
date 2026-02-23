@@ -401,23 +401,25 @@ def generate_acyclics_from_Alexander(alex):
     # Takes an Alexander polynomial alex and generates all acyclic quivers with that polynomial.
     #  Iterator. Assumes alex is uni-variate. Not efficient.
     degree = max([j[0] for j in alex.coeffDict.keys() if alex.coeffDict[j]!=0])
-    markov = degree - alex.coeffDict[(degree-1,)]
+    markov = degree + alex.coeffDict[(degree-1,)]
     if markov < 0:
         return
+
     for w in itertools.product(list(range(math.isqrt(markov)+1)), repeat=(degree*(degree-1))//2):
+        # iterates over all combinations of weights < sqrt(markov), which is much too large
+        #  faster is to build subquivers that are smaller than markov. Even faster potentially is to use more coefficients and a solver.
         
-        X = np.zeros((degree,degree))
+        X = np.matrix([[0 for i in range(degree)] for j in range(degree)])
         #print(degree, np.tril_indices(X.shape[0], k = -1), w)
         X[np.tril_indices(X.shape[0], k = -1)] = w
         Q = Quiver(X - np.transpose(X))
         if Q.alexander_poly() != alex:
             continue
-        #to avoid repeats
-        if any([isomorphismClass(R, permutations(degree))[0] < Q for R in sink_set(Q)]):
+        #to avoid repeats; this is very slow.
+        if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sink_set(Q)]):
             continue
 
         yield Q
-
 
 
 class mutationClass():

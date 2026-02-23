@@ -283,7 +283,6 @@ class RealizableAlexandersTestCase(unittest.TestCase):
 
     def testSearchSmall3(self):
         disconn = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,2,-2,1])))
-        print("disconn", disconn[0].matrix)
         assert all([x.alexander_poly() == polynomial.polynomial([-1,2,-2,1]) for x in disconn])
         assert all([not x.connected() for x in disconn])
         assert len(disconn) == 1, f"incorrect solution set {[Q.matrix for Q in disconn]}" #wts: 100
@@ -295,7 +294,39 @@ class RealizableAlexandersTestCase(unittest.TestCase):
         assert all([x.alexander_poly() == polynomial.polynomial([-1,-17,17,1]) for x in conn])
         assert len(conn) == 4, f"incorrect solution set {[Q.matrix for Q in conn]}" #wts: 321, 312, 420, 222
 
-    
+class QuiverIsoClass(unittest.TestCase):
+    def setUp(self):
+        self.quiver1 = Quiver([[0,3,2],[-3,0,1],[-2,-1,0]])
+        self.quiver2 = Quiver([[0,3,1],[-3,0,2],[-1,-2,0]])
+        self.Iso1 = isomorphismClass(self.quiver1, permutations(3))
+        self.Iso2 = isomorphismClass(self.quiver2, permutations(3))
+
+    def testDistinct(self):
+        assert self.quiver1 in self.Iso1, "incorrectly misses quiver from its own iso class"
+        assert self.quiver2 in self.Iso2, "incorrectly misses quiver from its own iso class"
+        assert self.quiver2 not in self.Iso1, "incorrectly includes quiver from distinct iso class"
+        assert self.quiver1 not in self.Iso2, "incorrectly includes quiver from distinct iso class"
+
+    def testMarkov(self):
+        assert self.quiver1.markov() == self.quiver2.markov()
+
+    def testSinks(self):
+        assert self.quiver1 in sink_set(self.quiver1)
+        assert self.quiver2 in sink_set(self.quiver2)
+        assert all([self.quiver2 not in isomorphismClass(R, permutations(3)) for R in sink_set(self.quiver1)])
+        assert all([self.quiver1 not in isomorphismClass(R, permutations(3)) for R in sink_set(self.quiver2)])
+
+    def testMinRep(self):
+        B = -self.quiver1.matrix
+        Qp = Quiver(B)
+        for R in sink_set(self.quiver2):
+            assert not any([Rp < Qp for Rp in isomorphismClass(R, permutations(3)) if (np.tril(Rp.matrix) >= 0).all()])
+
+    def testMinRep2(self):
+        B = -self.quiver2.matrix
+        Qp = Quiver(B)
+        for R in sink_set(self.quiver1):
+            assert not any([Rp < Qp for Rp in isomorphismClass(R, permutations(3)) if (np.tril(Rp.matrix) >= 0).all()])
 
 class QuiverHashing(unittest.TestCase):
     def setUp(self):
