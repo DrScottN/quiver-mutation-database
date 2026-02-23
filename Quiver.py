@@ -135,7 +135,8 @@ class Quiver():
         return True 
     
     def forkWithPOR(self, r):
-        # Finds the quiver is a fork with point of return r
+        # returns true if a fork with point of return r
+        # else false
         if self.acyclic():
             return False
         elif not self.abundant(): 
@@ -423,51 +424,214 @@ def generate_acyclics_from_Alexander(alex):
 
 
 class mutationClass():
-    def __init__(self, Q, perms, fast = False):
+    # Object to hold mutation-equivalent quivers
+    # Each quiver is represented as a vertex of the mutation class
+    # Each mutation is represented as an edge of the mutation class
+    # Edges are given as a dict of dicts. 
+    # For example, for a quiver Q one mutation away from P at vertex k:
+    #   {Q : {P : k}, P : {Q : k}}
+    # Could easily use this to build a graph visualization of mutation classes
+
+    # The class will be split up into two main ideas: essentially a set for mutations and a tool for exploring mutation-classes
+
+    # Will implement mutationClass unions and intersections
+
+    def __init__(self, Q = None, perms = None, vertices = None, edges = None):
         # Takes in a quiver Q as the first member of our mutation class
-        self.rep = copy.deepcopy(Q)
-        self.vertices = [self.rep]
-        self.forefront = [self.rep]
-        self.edges = {self.rep : dict()} # self.edges[Q][P] gives the label of the mutation taking one to the other
-        self.isoRep = isomorphismClass(self.rep, perms)[0]
+        if Q is None:
+            if vertices is None or edges is None:
+                raise Exception("No vertices or edges given. Try again")
+
+            self.initializationFromVerticesAndEdges(vertices, edges)
+            self.vertices.sort()
+            self.initialQ = self.vertices[0]
+        else:
+            self.initialQ = copy.deepcopy(Q) 
+            self.vertices = [self.initialQ]
+            self.forefront = [self.initialQ] # These are all the quivers that have not been fully mutated
+            self.edges = {self.initialQ : dict()} # self.edges[Q][P] gives the label of the mutation taking one to the other
+            self.numVertices = self.initialQ.n
+        
         self.perms = perms
-        self.possibleReps = [self.rep]
-        self.possibleIsoReps = [self.isoRep]
-        self.leastEdges = self.rep.numEdges
-        self.complete = False
-        self.acyclic = self.rep.acyclic()
-        self.finiteFP = False
-        self.couldBeFiniteFP = True
-        self.finitePFP = False
-        self.couldBeFinitePFP = True
-        self.finite = False
-        self.couldBeFinite = True
-        self.hasVortex = self.rep.vortex()
+        self.possibleReps = [self.initialQ]
+        self.possibleIsoReps = [isomorphismClass(self.initialQ, perms)[0]]
+
+        # Now, check for the mutation-invariants we can immediately find
+        self.mutationConnected = self.initialQ.connected()
+        self.determinant = self.initialQ.determinant()
+        self.leastEdges = self.initialQ.numEdges
         self.size = 1
-        self.fast = fast
-        self.determinant = self.rep.determinant()
-        self.mutationComplete = self.rep.complete()
-        self.mutationCyclic = self.rep.hasMutCyclicSubquiver()
+
+        if self.initialQ.acyclic():
+            self.mutationAcyclic = True
+            self.mutationCyclicSubquiver = False
+            self.couldBeMutationCyclic = False
+        else:
+            self.mutationAcyclic = None # Neither true nor false
+            self.mutationCyclicSubquiver = True if self.initialQ.hasMutCyclicSubquiver() else None
+            self.couldBeMutationCyclic = True
+
+        if not self.initialQ.complete():
+            self.mutationComplete = False
+            self.couldBeMutationComplete = False
+        else:
+            self.mutationComplete = None
+            self.couldBeMutationComplete = True
+
+        if self.initialQ.vortex(): # need to update this for quivers without 4 vertices
+            self.hasVortex = True
+            self.couldBeMutationVortexFree = False
+        else:
+            self.hasVortex = None
+            self.couldBeMutationVortexFree = True
+
+        # Setup possible mutation-invariants
+        self.finite = None
+        self.finiteFP = None
+        self.finitePFP = None
+
+        self.couldBeFinite = True
+        self.couldBeFiniteFP = True
+        self.couldBeFinitePFP = True
 
     def __str__(self):
         return str(self.representative())
 
+    
     def __hash__(self):
         return hash(self.representative())
+    # Need a better hash method for this class
 
     def __eq__(self, other):
-        return self.representative() == other.representative()
+        return not self.emptyIntersection(other)
 
-    def isomorphic(self, other):
-        return self.isomorphicRepresentative() == other.isomorphicRepresentative()
+    def __contains__(self, Q):
+        if not isinstance(Q, Quiver):
+            return False
+
+        return Q in self.vertices
+
+    def __iter__(self):
+        return iter(self.vertices)
+
+    def initializationFromVerticesAndEdges(self, vertices, edges):
+        # Allows us to initialize a mutationClass without starting with a single quiver
+        # We assume that vertices lists all vertices
+        # Edges may not have the edges for both sides
+        # Edges does not include vertices not present in vertices
+
+        self.vertices = copy.deepcopy(vertices) # Why the deepcopy? Want to be absolutely sure I'm not messing with unexpected things
+        self.edges = copy.deepcopy(edges)
+        self.forefront = []
+        self.numVertices = self.vertices[0].n
+
+        # Fix any messed up edges
+        for Q in self.edges:
+            for P in self.edges[Q]:
+                if P not in self.edges:
+                    self.edges[P] = {Q : self.edges[Q][P]}
+                elif Q not in self.edges[P]:
+                    self.edges[P][Q] = self.edges[Q][P]
+
+        # Now can populate the forefront
+        for Q in self.vertices:
+            if Q not in self.edges:
+                self.edges[Q] = dict()
+            
+            if len(self.edges[Q]) < self.numVertices:
+                self.forefront.append(Q)
+
+    def union(self, *others):
+        other = others[0]
+
+        if len(others) > 1:
+            other = other.union(*others[1:])
+
+        if other is None:
+            return None # Why? Want the union of two non-intersecting mutation-classes to be empty
+        elif isinstance(other, Quiver):
+            other = mutationClass(other, self.perms)
+
+        # Now we are looking at the union of exactly two mutation classes
+
+        selfVertices = set(self.vertices)
+        otherVertices = set(other.vertices)
+        vertices = list(selfVertices | otherVertices)
+        commonVertices  = list(selfVertices & otherVertices)
+        
+        if len(commonVertices) == 0:
+            # Again, this is returning an empty union if they do not intersect anywhere
+            return None
+        
+        # Can now assume that they intersect at least one vertex
+
+        selfEdges = {Q : {P : k for P, k in self.edges[Q].items() if P in vertices} for Q in commonVertices}
+        otherEdges = {Q : {P : k for P, k in other.edges[Q].items() if P in vertices} for Q in commonVertices}
+        commonEdges = {Q : {**selfEdges[Q], **otherEdges[Q]} for Q in commonVertices}
+        commonEdges.update({Q : self.edges[Q] for Q in selfVertices if Q not in commonVertices})
+        commonEdges.update({Q : other.edges[Q] for Q in otherVertices if Q not in commonVertices})
+
+        newMutClass = mutationClass(vertices = vertices, edges = edges, perms = perms)
+        newMutClass.couldBeMutationCyclic = self.couldBeMutationCyclic and other.couldBeMutationCyclic
+        newMutClass.couldBeMutationComplete = self.couldBeMutationComplete and other.couldBeMutationComplete
+        newMutClass.couldBeMutationVortexFree = self.couldBeMutationVortexFree and other.couldBeMutationVortexFree
+        newMutClass.couldBeFinite = self.couldBeFinite and other.couldBeFinite
+        newMutClass.couldBeFiniteFP = self.couldBeFiniteFP and other.couldBeFiniteFP
+        newMutClass.couldBeFinitePFP = self.couldBeFinitePFP and other.couldBeFinitePFP
+
+        return newMutClass
+
+    def intersection(self, *others):
+        # Gets the intersection of two mutation classes
+        # Returns a mutation class containing the common quivers
+        # Else returns none if no quivers are common
+        other = others[0]
+        if len(others) > 1:
+            other = other.intersection(*others[1:])
+
+        if other is None:
+            return None
+        elif isinstance(other, Quiver):
+            other = mutationClass(other, self.perms)
+
+        # Now just have one intersection to do with the mutation class other
+
+        selfVertices = set(self.vertices)
+        otherVertices = set(other.vertices)
+        verticesSet = selfVertices & otherVertices
+        vertices  = list(verticesSet)
+
+        if len(vertices) == 0:
+            return None
+
+        # Have a non-trivial intersection now
+
+        selfEdges = {Q : {P : k for P, k in self.edges[Q].items() if P in vertices} for Q in vertices}
+        otherEdges = {Q : {P : k for P, k in other.edges[Q].items() if P in vertices} for Q in vertices}
+        edges = {Q : {**selfEdges[Q], **otherEdges[Q]} for Q in vertices}
+
+        newMutClass = mutationClass(vertices = vertices, edges = edges, perms = perms)
+        newMutClass.couldBeMutationCyclic = self.couldBeMutationCyclic and other.couldBeMutationCyclic
+        newMutClass.couldBeMutationComplete = self.couldBeMutationComplete and other.couldBeMutationComplete
+        newMutClass.couldBeMutationVortexFree = self.couldBeMutationVortexFree and other.couldBeMutationVortexFree
+        newMutClass.couldBeFinite = self.couldBeFinite and other.couldBeFinite
+        newMutClass.couldBeFiniteFP = self.couldBeFiniteFP and other.couldBeFiniteFP
+        newMutClass.couldBeFinitePFP = self.couldBeFinitePFP and other.couldBeFinitePFP
+
+        return newMutClass
+
+    def emptyIntersection(self,other):
+        return self.intersection(other) is None
 
     def representative(self):
+        # Gets a quiver with lowest edge weights to represent the class
         if len(self.possibleReps) > 1:
             self.possibleReps.sort()
         
         return self.possibleReps[0]
 
     def isomorphicRepresentative(self):
+        # Gets an isomorphic quiver with lowest edge weights to represent the class
         if len(self.possibleIsoReps) > 1:
             self.possibleIsoReps.sort()
 
@@ -475,66 +639,68 @@ class mutationClass():
 
     def update(self):
         # updates the mutation class by mutating every quiver on the edge in every possible direction
-        # Naturally throws away forks and pre-forks if they have the same point of return
-        if self.complete:
-            return None
-
+        # Naturally throws away forks and pre-forks if they have the same point of return as where we mutated
         newForefront = []
 
         for Q in self.forefront:
-            #print(Q)
-            #print('--------')
             for k in Q.vertices:
-                P = Q.mutate(k)
-                #print("Mutating at k = ", k)
-                #print(P)
-                #print('-------')
-                if not P.forkWithPOR(k):
-                    self.edges[Q][P] = k # this will cause an error, but hopefully not an important one
-                    if P.preForkWithPOR(k):
-                        self.couldBeFiniteFP = False
-                        self.couldBeFinite = False
-                        continue
-
-                    if P not in self.edges:
-                        self.acyclic = self.acyclic or P.acyclic()
-                        self.hasVortex = self.hasVortex or P.vortex() 
-                        self.edges[P] = {Q : k}
-                        if not self.fast:
-                            self.vertices.append(P)
-                            self.mutationComplete = self.mutationComplete or P.complete()
-                            self.mutationCyclic = self.mutationCyclic or P.hasMutCyclicSubquiver()
-
-                        
-                        newForefront.append(P)
-                        
-                        if P.numEdges <= self.leastEdges:
-                            I = isomorphismClass(P, self.perms)[0]
-                            if P.numEdges < self.leastEdges:
-                                self.possibleReps = []
-                                self.possibleIsoReps = []
-                                self.leastEdges = P.numEdges
-
-                            self.possibleReps.append(copy.deepcopy(P))
-                            self.possibleIsoReps.append(I)
-                    else:
-                        self.edges[P][Q] = k
-                else:
+                P = Q.mutate(k) # Mutate the Quiver
+                if P.forkWithPOR(k): # Check if the new quiver P is a fork with por k
                     self.couldBeFinite = False
+                    continue
 
+                if P.preForkWithPOR(k): # Check if the new quiver P is a pre-fork with por k
+                    self.couldBeFiniteFP = False
+                    self.couldBeFinite = False
+                    continue
+                    
+                self.edges[Q][P] = k # If neither a fork or pre-fork with por k, then we can add it to our edges
 
-        self.forefront = newForefront
+                if P not in self.edges:
+                    # Update potentional mutation invariants
+                    self.couldBeMutationVortexFree = self.couldBeMutationVortexFree and not P.vortex()
+                    self.couldBeMutationComplete = self.couldBeMutationComplete and not P.complete()
+                    self.couldBeMutationCyclic = self.couldBeMutationCyclic and not P.acyclic()
+                    
+                    if self.couldBeMutationCyclic and self.mutationCyclicSubquiver is None:
+                        self.mutationCyclicSubquiver = True if P.hasMutCyclicSubquiver() else self.mutationCyclicSubquiver
+                    
+                    # Update vertices, edges, and forefront
+                    self.edges[P] = {Q : k}
+                    self.vertices.append(P)
+                    newForefront.append(P)
+                    
+                    # Update the representative lists
+                    if P.numEdges <= self.leastEdges:
+                        I = isomorphismClass(P, self.perms)[0]
+                        if P.numEdges < self.leastEdges:
+                            self.possibleReps = []
+                            self.possibleIsoReps = []
+                            self.leastEdges = P.numEdges
+
+                        self.possibleReps.append(copy.deepcopy(P))
+                        self.possibleIsoReps.append(I)
+                else:
+                    # This only occurs if the quiver we find is not a new one
+                    self.edges[P][Q] = k
+
+        self.forefront = newForefront # Update the forefront to be the new quivers we saw this round
 
         if len(self.forefront) == 0:
-            self.complete = True
             self.finitePFP = True
             self.finite = self.couldBeFinite
             self.finiteFP = self.couldBeFiniteFP
-            self.mutationCyclic = not self.acyclic
+            self.mutationAcyclic = not self.couldBeMutationCyclic
+            self.hasVortex = not self.couldBeMutationVortexFree
+            self.mutationComplete = self.couldBeMutationComplete
 
         self.size = len(self.vertices)
 
         return newForefront
+
+    def updateInvariants(self):
+        # Systematically updates all the invariants
+        pass
 
 def isolatedQuiver(n):
     # returns the quiver with 0 arrows between n vertices
@@ -728,37 +894,50 @@ if __name__ == "__main__":
     numFiniteFP = 0
     numFinitePFP = 0
     numMutCyclicSubquiver = 0
+    mutAcyclicClasses = []
+    mutCyclicSubquiverClasses = []
+    mutationFiniteClasses = []
+    mutationFiniteFPClasses = []
+    mutationFinitePFPClasses = []
+    mutationVortexClasses = []
     for M in mutClasses:
         for i in range(m):
             M.update()
-            if M.acyclic:
+            if not M.couldBeMutationCyclic:
                 mutAcyclic += 1
-                #print(f"Found {mutAcyclic} mutation-acyclic quivers so far.")
+                mutAcyclicClasses.append(M)
                 break
-            elif M.mutationCyclic:
+            elif M.mutationCyclicSubquiver is not None and M.mutationCyclicSubquiver:
                 numMutCyclicSubquiver += 1
+                mutCyclicSubquiverClasses.append(M)
                 break
                 #print(M.rep)
                 #print('---------')
-            elif M.finite:
+            elif M.finite is not None and M.finite:
                 numFinite += 1
+                mutationFiniteClasses.append(M)
                 break
-            elif M.hasVortex:
+            elif not M.couldBeMutationVortexFree:
                 numVortex += 1
+                mutationVortexClasses.append(M)
                 #print(f"Found {numVortex} quivers with vortices in the mutation-class so far. Must be mutation-cyclic.")
                 break
-            elif M.finiteFP:
+            elif M.finiteFP is not None and M.finiteFP:
                 numFiniteFP += 1
+                mutationFiniteFPClasses.append(M)
                 #print(f"Found {numFiniteFP} quivers with Finite Forkless Part in the mutation-class so far. Must be mutation-cyclic.")
                 break
-            elif M.finitePFP:
+            elif M.finitePFP is not None and M.finitePFP:
                 numFinitePFP += 1
+                mutationFinitePFPClasses.append(M)
                 #print(f"Found {numFinitePFP} quivers with Finite Pre-Forkless Part in the mutation-class so far. Must be mutation-cyclic.")
                 break
 
     numMutationCyclic = numNonSpecial - mutAcyclic
+    specialClasses = mutAcyclicClasses + mutCyclicSubquiverClasses + mutationVortexClasses
+    specialClasses = specialClasses + mutationFiniteClasses + mutationFiniteFPClasses + mutationFinitePFPClasses
 
-    testing = [M for M in mutClasses if not(M.acyclic or M.hasVortex or M.finitePFP or M.mutationCyclic or M.finite or M.finitePFP)]
+    testing = [M for M in mutClasses if M not in specialClasses]
 
     print(f"Total: {numIsoClasses}")
     print(f"Connected: {numConnected} Disconnected: {numIsoClasses-numConnected}")
