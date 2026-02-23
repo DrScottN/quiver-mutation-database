@@ -258,6 +258,30 @@ class QuiverInvariants3TestCase(unittest.TestCase):
         for i in range(len(self.quivers)):
             assert self.quivers[i].alexander_poly() == polynomial.polynomial([-1, 3-self.markovs[i], -(3-self.markovs[i]),1]), f"incorrect alexander poly {str(self.quivers[i].alexander_poly()), self.markovs[i]}"
 
+class RealizableAlexandersTestCase(unittest.TestCase):
+    def testSearchA1(self):
+        list_of_A1 = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,1])))
+        assert len(list_of_A1)==1, "acyclics from alexander poly is wrong size"
+        assert list_of_A1[0].matrix == np.array([0], dtype='object')
+
+    def testSearchDisjoint4(self):
+        list_of_A1_A1_A1_A1 = list(generate_acyclics_from_Alexander(polynomial.polynomial([1,-4,6,-4,1,0,0])))
+        assert len(list_of_A1_A1_A1_A1)==1, "acyclics from alexander poly is wrong size"
+        assert not list_of_A1_A1_A1_A1[0].connected(), "incorrectly found connected quiver"
+        assert list_of_A1_A1_A1_A1[0].matrix == 0 * list_of_A1_A1_A1_A1[0].matrix, "incorrect acyclic found"
+
+    def testSearchSmall3(self):
+        disconn = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,2,-2,1])))
+        assert all([not x.connected for x in disconn])
+        assert all([x.alexander_poly() == polynomial.polynomial([-1,2,-2,1]) for x in disconn])
+
+    def testSearchMid3(self):
+        conn = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,-17,17,1])))
+        assert all([x.connected for x in conn])
+        assert all([x.alexander_poly() == polynomial.polynomial([-1,-17,17,1]) for x in conn])
+        assert len(conn) == 4 #wts: 321, 312, 420, 222
+
+    
 
 class QuiverHashing(unittest.TestCase):
     def setUp(self):

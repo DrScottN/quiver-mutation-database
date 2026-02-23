@@ -58,6 +58,22 @@ class PolynomialTestCase(unittest.TestCase):
         assert -self.poly3 == (-1)*self.poly3
         assert 3*self.poly3 - self.poly3 == self.poly3*2
 
+    def testCoefficients(self):
+        assert (1,0) in self.poly1.coefficients, f"incorrect poly1 coefficients {self.poly1.coefficients}"
+        assert (1,2) in self.poly1.coefficients, f"incorrect poly1 coefficients {self.poly1.coefficients}"
+        assert (1,4) in self.poly1.coefficients, f"incorrect poly1 coefficients {self.poly1.coefficients}"
+        assert len(self.poly1.coefficients) == 3, f"incorrect number of coefficients {self.poly1.coefficients}"
+        assert len(self.poly2.coefficients) == 1, f"incorrect number of coefficients {self.poly2.coefficients}"
+        assert len(self.poly3.coefficients) == 5, f"incorrect number of coefficients {self.poly3.coefficients}"
+        assert len((6*self.poly3).coefficients) == 5
+        assert len((-1 + self.poly3).coefficients) == 4
+        assert len((self.poly1 + self.poly3).coefficients) == 5
+        for k,v in self.poly1.coeffDict.items():
+            assert (k,v) in self.poly1.coefficients
+        for k,v in self.poly3.coeffDict.items():
+            assert (k,v) in self.poly3.coefficients
+
+
 
 class PolynomialVarnamesTestCase(unittest.TestCase):
     def setUp(self):
