@@ -167,6 +167,55 @@ class QuiverInvariants3dcTestCase(unittest.TestCase):
             assert self.quivers[i].markov() == self.markovs[i], f"incorrect markov invariant {i, self.quivers[i].markov(), self.markovs[i]}"
 
 
+class QuiverInvariants4AlexTestCase(unittest.TestCase):
+    def setUp(self):
+        self.cycleQuiver = lambda w : Quiver([[0,w[0],0,-w[3]],[-w[0],0,w[1],0],[0,-w[1],0,w[2]],[w[3],0,-w[2],0]])
+        self.pathQuiver = lambda w : Quiver([[0,w[0],0,0],[-w[0],0,w[1],0],[0,-w[1],0,w[2]],[0,0,-w[2],0]])
+        self.clawQuiver = lambda w : Quiver([[0,w[0],w[1],w[2]],[-w[0],0,0,0],[-w[1],0,0,0],[-w[2],0,0,0]])
+
+    def testHelperFuns(self):
+        assert self.pathQuiver([1,2,3]).mutate(0).mutate(1).mutate(2).mutate(3) == self.pathQuiver([1,2,3])
+        assert self.pathQuiver([14,22,13]) == self.cycleQuiver([14,22,13,0])
+        assert self.pathQuiver([4,0,0]) == self.clawQuiver([4,0,0])
+    
+    def testMarkovCycle(self):
+        assert self.cycleQuiver([1,1,1,1]).markov() == 4 - 1
+        assert self.cycleQuiver([1,2,1,1]).markov() == 4 + 3 - 2
+        m = lambda w : sum([x**2 for x in w]) - w[0]*w[1]*w[2]*w[3]
+        for w in [[1,1,2,1], [3,4,2,1], [9,9,9,9], [0,1,1,1], [7,3,2,-1], [100,1000,100000,10000000]]:
+            assert m(w) == self.cycleQuiver(w).markov(), f"incorrect cycle quiver markov with weights {w}"
+
+    def testMarkovPath(self):
+        assert self.pathQuiver([1,1,1]).markov() == 3
+        m = lambda w : sum([x**2 for x in w])
+        for w in [[1,1,2], [3,2,1], [9,9,9], [0,1,1], [7,3,-11], [1000,100000,10000000]]:
+            assert m(w) == self.pathQuiver(w).markov(), f"incorrect path quiver markov with weights {w}"
+
+    def testMarkovClaw(self):
+        assert self.clawQuiver([1,1,1]).markov() == 3
+        m = lambda w : sum([x**2 for x in w])
+        for w in [[1,1,2], [3,2,1], [9,9,9], [10,0,1], [7,3,-11], [1000,100000,10000000]]:
+            assert m(w) == self.clawQuiver(w).markov(), f"incorrect claw quiver markov with weights {w}"
+
+    def testAlexPath(self):
+        assert self.pathQuiver([2,2,2]).alexander_poly() == polynomial.polynomial([1,8,-2,8,1])
+        a = lambda w : polynomial.polynomial([1,-4,6,-4,1]) + (w[0]**2 + w[1]**2 + w[2]**2) * polynomial.polynomial([0,1,-2,1]) + (w[0]*w[2])**2 * polynomial.polynomial([0,0,1,0,0])
+        for w in [[3,2,1], [100,1,99], [-19,-32,-100], [25,0,25]]:
+            assert a(w) == self.pathQuiver(w).alexander_poly(), f"incorrect path quiver alexander poly with weights {w}"
+
+    def testAlexClaw(self):
+        assert self.clawQuiver([2,2,2]).alexander_poly() == polynomial.polynomial([1,8,-18,8,1])
+        a = lambda w : polynomial.polynomial([1,-4,6,-4,1]) + (w[0]**2 + w[1]**2 + w[2]**2) * polynomial.polynomial([0,1,-2,1])
+        for w in [[3,2,1], [100,1,99], [-19,-32,-100], [25,0,25]]:
+            assert a(w) == self.clawQuiver(w).alexander_poly(), f"incorrect path quiver alexander poly with weights {w}"
+
+    def testAlexCycle(self):
+        assert self.cycleQuiver([3,3,3,3]).alexander_poly() == polynomial.polynomial([1,-4+36-81, 6+2*45, -4+36-81,1])
+        a = lambda w: polynomial.polynomial([1,-4,6,-4,1]) + polynomial.polynomial([0,1,-2,1])*(sum([x**2 for x in w]) - w[0]*w[1]*w[2]*w[3]) + polynomial.polynomial([0,0,1])*(w[0]**2 *w[2]**2 + w[1]**2 * w[3]**2 - 2*w[0]*w[1]*w[2]*w[3])
+        for w in [[1,1,1,1], [4,3,2,1], [9,1,1,9], [10000,3,10000,2], [2,2,2,4],[0,0,0,0], [19,23,41,-11]]:
+            assert a(w) == self.cycleQuiver(w).alexander_poly(), f"incorrect cycle quiver alexander poly with weights {w}"
+
+
 class QuiverInvariants3TestCase(unittest.TestCase):
     def setUp(self):
         #These are disconnected quivers with only oriented cycles on 0,2,1.
