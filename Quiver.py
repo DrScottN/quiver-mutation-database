@@ -357,10 +357,10 @@ class Quiver():
             return False
         #compute trace of U U^-1 (= U (I + N + N^2 + ...))
         N = np.transpose(np.matlib.identity(self.n, dtype='object') - U)
-        Uinverse = U.copy()
+        Cosquare = U.copy()
         for e in range(1,self.n):
-            Uinverse += U * N**e
-        return self.n - np.trace(Uinverse)
+            Cosquare += U * N**e
+        return self.n - np.trace(Cosquare)
         
     def alexander_poly(self):
         # Computes the alexander polynomial (expressed as a polynomial object). Returns False if the quiver is not potentially totally proper.
@@ -377,7 +377,40 @@ class Quiver():
         return det
 
 
+def sink_set(quiver):
+    # Calculates all sink/source mutation equivalent quivers
+    todo = [quiver]
+    visited = []
+    while todo:
+        q = todo.pop()
+        visited.append(q)
+        for v in q.sinks():
+            p = q.mutate(v)
+            if p in visited:
+                continue
+            todo.append(p)
+    return visited
+
+def generate_acyclics_from_Alexander(alex):
+    # Takes an Alexander polynomial alex and generates all acyclic quivers with that polynomial.
+    #  Iterator. Assumes alex is uni-variate. Not efficient.
+    degree = max([j for j in range(len(alex.coefficients)) if alex.coefficients[j]!=0])
+    markov = degree - alex.coefficients[-2]
+    if markov < 0:
+        return
+    for w in itertools.product(list(range(round((markov)**0.5 + 1.5))), repeat=degree*(degree-1)/2):
         
+        X = np.zeros((degree,degree))
+        X[np.tril_indices(X.shape[0], k = 1)] = w
+        Q = Quiver(X - np.transpose(X))
+        if Q.alexander_poly() != alex:
+            continue
+        #to avoid repeats
+        if any([isomorphismClass(R)[0] < Q for R in sink_set(Q)]):
+            continue
+
+        yield Q
+
 
 
 class mutationClass():
