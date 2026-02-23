@@ -542,6 +542,8 @@ class mutationClass():
                 self.forefront.append(Q)
 
     def union(self, *others):
+        """This returns the union of two mutation classes
+            ONLY IF THEY HAVE A NONTRIVIAL INTERSECTION"""
         other = others[0]
 
         if len(others) > 1:
