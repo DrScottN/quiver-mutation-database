@@ -69,11 +69,13 @@ class PolynomialTestCase(unittest.TestCase):
         assert len((-1 + self.poly3).coefficients) == 4
         assert len((self.poly1 + self.poly3).coefficients) == 5
         for k,v in self.poly1.coeffDict.items():
-            assert (k,v) in self.poly1.coefficients
+            assert (k[0],v) in self.poly1.coefficients
         for k,v in self.poly3.coeffDict.items():
-            assert (k,v) in self.poly3.coefficients
+            assert (k[0],v) in self.poly3.coefficients
 
-
+    def testCoeffDict(self):
+        assert self.poly1.coeffDict == {(0,):1, (2,):1, (4,):1}, f"incorrect coefficient dict {self.poly1.coeffDict} vs {str(self.poly1)}"
+        assert self.poly2.coeffDict == {(5,):1}, f"incorrect coeff dictionary {self.poly2.coeffDict} vs {str(self.poly2)}"
 
 class PolynomialVarnamesTestCase(unittest.TestCase):
     def setUp(self):

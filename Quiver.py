@@ -1,6 +1,8 @@
 import copy
 from collections import Counter
 import numpy as np 
+import itertools
+import math
 
 import polynomial
 
@@ -314,6 +316,10 @@ class Quiver():
     def cyclic_order(self):
         # Return the cyclic ordering of the quiver with all chordless cycles having winding number 1 (if oriented) or 0 (if acyclic). 
         #  Returns False if no such order exists.
+        if self.n==1:
+            return [0]
+        if self.n==2:
+            return [0,1]
         for sigma_p in permutations(self.n-1): #[[0,1,2,3], [0,2,1,3], [0,1,3,2], [0,2,3,1], [0,3,1,2], [0,3,2,1]]:
             sigma = sigma_p + [self.n-1]
             W = self.winding_data(sigma)
@@ -394,19 +400,20 @@ def sink_set(quiver):
 def generate_acyclics_from_Alexander(alex):
     # Takes an Alexander polynomial alex and generates all acyclic quivers with that polynomial.
     #  Iterator. Assumes alex is uni-variate. Not efficient.
-    degree = max([j for j in range(len(alex.coefficients)) if alex.coefficients[j]!=0])
-    markov = degree - alex.coefficients[-2]
+    degree = max([j[0] for j in alex.coeffDict.keys() if alex.coeffDict[j]!=0])
+    markov = degree - alex.coeffDict[(degree-1,)]
     if markov < 0:
         return
-    for w in itertools.product(list(range(round((markov)**0.5 + 1.5))), repeat=degree*(degree-1)/2):
+    for w in itertools.product(list(range(math.isqrt(markov)+1)), repeat=(degree*(degree-1))//2):
         
         X = np.zeros((degree,degree))
-        X[np.tril_indices(X.shape[0], k = 1)] = w
+        #print(degree, np.tril_indices(X.shape[0], k = -1), w)
+        X[np.tril_indices(X.shape[0], k = -1)] = w
         Q = Quiver(X - np.transpose(X))
         if Q.alexander_poly() != alex:
             continue
         #to avoid repeats
-        if any([isomorphismClass(R)[0] < Q for R in sink_set(Q)]):
+        if any([isomorphismClass(R, permutations(degree))[0] < Q for R in sink_set(Q)]):
             continue
 
         yield Q
@@ -566,6 +573,8 @@ def generateLowWeightQuivers(n):
 
 def permutations(n):
     # Gives a list of permutations on n
+    if n == 0:
+        return []
     if n == 1:
         return [[0]]
 

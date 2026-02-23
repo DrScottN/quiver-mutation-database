@@ -1,6 +1,7 @@
 from Quiver import *
 import unittest
 import random
+import itertools
 
 class QuiverInitializationTestCase(unittest.TestCase):
     def setUp(self):
@@ -24,6 +25,16 @@ class QuiverInitializationTestCase(unittest.TestCase):
 
     def testAbundant(self):
         assert self.quiver.abundant(), 'incorrect abundance'
+
+class QuiverConnectedIsolatedTestCase(unittest.TestCase):
+    def testA1Isolated(self):
+        q = Quiver([[0,1,0],[-1,0,0],[0,0,0]])
+        assert not q.connected()
+
+    def testmA1Isolated(self):
+        q = Quiver([[0,-1,0],[1,0,0],[0,0,0]])
+        assert not q.connected()
+
 
 
 class QuiverMutation3vertTestCase(unittest.TestCase):
@@ -268,18 +279,21 @@ class RealizableAlexandersTestCase(unittest.TestCase):
         list_of_A1_A1_A1_A1 = list(generate_acyclics_from_Alexander(polynomial.polynomial([1,-4,6,-4,1,0,0])))
         assert len(list_of_A1_A1_A1_A1)==1, "acyclics from alexander poly is wrong size"
         assert not list_of_A1_A1_A1_A1[0].connected(), "incorrectly found connected quiver"
-        assert list_of_A1_A1_A1_A1[0].matrix == 0 * list_of_A1_A1_A1_A1[0].matrix, "incorrect acyclic found"
+        assert (list_of_A1_A1_A1_A1[0].matrix == 0 * list_of_A1_A1_A1_A1[0].matrix).all(), "incorrect acyclic found"
 
     def testSearchSmall3(self):
         disconn = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,2,-2,1])))
-        assert all([not x.connected for x in disconn])
+        print("disconn", disconn[0].matrix)
         assert all([x.alexander_poly() == polynomial.polynomial([-1,2,-2,1]) for x in disconn])
+        assert all([not x.connected() for x in disconn])
+        assert len(disconn) == 1, f"incorrect solution set {[Q.matrix for Q in disconn]}" #wts: 100
+
 
     def testSearchMid3(self):
         conn = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,-17,17,1])))
-        assert all([x.connected for x in conn])
+        assert all([x.connected() for x in conn])
         assert all([x.alexander_poly() == polynomial.polynomial([-1,-17,17,1]) for x in conn])
-        assert len(conn) == 4 #wts: 321, 312, 420, 222
+        assert len(conn) == 4, f"incorrect solution set {[Q.matrix for Q in conn]}" #wts: 321, 312, 420, 222
 
     
 
