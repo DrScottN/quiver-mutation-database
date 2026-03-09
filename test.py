@@ -367,6 +367,173 @@ class PermutationTests(unittest.TestCase):
         assert sign_perm([1,2,0]) == 1
         assert sign_perm([0,2,1]) == -1
 
+class MutationClassInitTests(unittest.TestCase):
+    def setUp(self):
+        #would be nice to support non-4 vertex quivers, especially small ones.
+        self.classes = []
+        self.acyclicL = []
+        self.members = []
+        Q = isolatedQuiver(4)
+        self.classes.append(mutationClass(Q, perms=permutations(4)))
+        self.acyclicL.append(True)
+        self.members.append(Q)
+        Q = Quiver(np.matrix([[0,-3,0,0],[3,0,0,0], [0,0,0,0], [0,0,0,0]]))
+        self.classes.append(mutationClass(Q, perms=permutations(4)))
+        self.acyclicL.append(True)
+        self.members.append(Q)
+        Q = Quiver(np.matrix([[0,3,2,0],[-3,0,3,0],[-2,-3,0,0], [0,0,0,0]]))
+        self.classes.append(mutationClass(Q, perms=permutations(4)))
+        self.acyclicL.append(True)
+        self.members.append(Q)
+        Q = Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
+        self.classes.append(mutationClass(Q, perms=permutations(4)))
+        self.acyclicL.append(False)
+        self.members.append(Q)
+        R = Quiver(-np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
+        self.classes.append(mutationClass(vertices=[R,Q], edges=[{R: {Q:1}, Q:{R:2}}]))
+        self.acyclicL.append(False)
+        self.members.append(Q)
+        Q = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
+        self.classes.append(mutationClass(Q, perms=permutations(4)))
+        self.acyclicL.append(False)
+        self.members.append(Q)
+
+        
+    def testMembership(self):
+        for i in range(len(self.classes)):
+            assert self.members[i] in self.classes[i], f"Missing quiver {self.members[i].matrix}"
+
+    def testAcyclicInit(self):
+        for i in range(len(self.classes)):
+            assert self.classes[i].mutationAcyclic == self.acyclicL[i], f"Incorrect acyclicity {i}"
+
+    def testEq(self):
+        assert self.classes[0] != self.classes[1]
+        assert self.classes[1] != self.classes[2]
+        assert self.classes[2] != self.classes[3]
+        assert self.classes[2] != self.classes[4]
+        assert self.classes[0] == self.classes[0]
+        C = mutationClass(Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])))
+        C.update()
+        assert self.classes[3] == C, "Incorrect equality from update"
+
+class updateMutationClassTests(unittest.TestCase):
+    def setUp(self):
+        self.markovClass = mutationClass(Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.markovClass.update()
+        self.markovResult = self.markovClass.update()
+
+        self.isolatedClass = mutationClass(isolatedQuiver(4), perms=permutations(4))
+        self.isolatedResult = self.isolatedClass.update()
+
+        self.A2Class = mutationClass(Quiver(np.matrix([[0,1,0,0],[-1,0,0,0],[0,0,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.A2Class.update()
+        self.A2Result = self.A2Class.update()
+
+        self.A3Class = mutationClass(Quiver(np.matrix([[0,1,0,0],[-1,0,1,0],[0,-1,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.A3Class.update()
+        self.A3Class.update()
+        self.A3Class.update()
+        self.A3Class.update()
+        self.A3Result = self.A3Class.update()
+
+        self.AcyclicEventuallyClass = mutationClass(Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.AcyclicEventuallyClass.update()
+        self.AcyclicEventuallyClass.update()
+        self.AcyclicEventuallyClass.update()
+        self.AcyclicEventuallyResult = self.AcyclicEventuallyClass.update()
+    
+    def testResults(self):
+        assert len(self.isolatedResult) == 0
+        assert len(self.markovResult) == 0
+        assert len(self.A3Result) == 0
+        assert len(self.A2Result) == 0
+        assert len(self.AcyclicEventuallyResult) != 0
+
+
+    def testUpdateMembership(self):
+        assert Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])) in self.markovClass
+        assert isolatedQuiver(4) in self.isolatedClass
+        assert isolatedQuiver(4) not in self.A3Class
+        assert Quiver(np.matrix([[0,1,-1,0],[-1,0,1,0],[1,-1,0,0], [0,0,0,0]])) in self.A3Class
+        assert Quiver(np.matrix([[0,-1,0,0],[1,0,1,0],[0,-1,0,0], [0,0,0,0]])) in self.A3Class
+        assert Quiver(np.matrix([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) not in self.A3Class
+        assert Quiver(np.matrix([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) in self.A2Class
+        assert Quiver(-np.matrix([[0,2,-5,0],[-2,0,6,0],[5,-6,0,0], [0,0,0,0]])) in self.AcyclicEventuallyClass
+        assert Quiver(np.matrix([[0,2,-4,0],[-2,0,6,0],[4,-6,0,0], [0,0,0,0]])) not in self.AcyclicEventuallyClass
+
+    def testUpdatedIntersection(self):
+        assert self.markovClass.intersection(self.A2Class) is None
+        assert self.markovClass.intersection(self.A3Class) is None
+        assert self.markovClass.intersection(self.AcyclicEventuallyClass) is None
+        assert self.markovClass.intersection(self.isolatedClass) is None
+        assert self.markovClass.intersection(self.markovClass) == self.markovClass
+
+    def testUpdatedUnion(self):
+        assert self.markovClass.union(self.A2Class) is None
+        assert self.markovClass.union(self.A3Class) is None
+        assert self.markovClass.union(self.AcyclicEventuallyClass) is None
+        assert self.markovClass.union(self.isolatedClass) is None
+        assert self.markovClass.union(self.markovClass) == self.markovClass
+
+    def testUpdatedFinite(self):
+        assert self.markovClass.finite
+        assert self.A2Class.finite
+        assert self.isolatedClass.finite
+        assert self.A3Class.finite
+        assert self.AcyclicEventuallyClass.finite != True
+
+    def testUpdatedConnected(self):
+        assert self.markovClass.mutationConnected == False
+        assert self.A2Class.mutationConnected == False
+        assert self.A3Class.mutationConnected == False
+        assert self.isolatedClass.mutationConnected == False
+
+    def testLeastEdges(self):
+        assert self.markovClass.leastEdges == 6
+        assert self.A2Class.leastEdges == 1
+        assert self.AcyclicEventuallyClass.leastEdges == 3
+        assert self.A3Class.leastEdges == 2
+        assert self.isolatedClass.leastEdges == 0
+
+    def testRep(self):
+        assert Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])) not in self.AcyclicEventuallyClass.possibleReps
+        assert Quiver(np.matrix([[0,2,-1,0],[-2,0,0,0],[1,0,0,0], [0,0,0,0]])) in self.AcyclicEventuallyClass.possibleReps
+        assert Quiver(np.matrix([[0,1,-1,0],[-1,0,1,0],[1,-1,0,0], [0,0,0,0]])) not in self.A3Class.possibleReps
+
+    def testMuCyclic(self):
+        assert self.markovClass.couldBeMutationCyclic
+        assert not self.A2Class.couldBeMutationCyclic
+        assert not self.A3Class.couldBeMutationCyclic
+        assert not self.AcyclicEventuallyClass.couldBeMutationCyclic
+        assert not self.markovClass.mutationAcyclic
+        assert self.A2Class.mutationAcyclic
+        assert self.A3Class.mutationAcyclic
+        assert self.AcyclicEventuallyClass.mutationAcyclic
+        
+
+
+
+class IsomorphismClassTests(unittest.TestCase):
+    def setUp(self):
+        self.markov = Quiver(np.matrix([[0,2,-2],[-2,0,2],[2,-2,0]]))
+        self.empty = Quiver(np.matrix([[0]]))
+        self.A3 = Quiver(np.matrix([[0,1,0],[-1,0,1],[0,-1,0]]))
+
+    def testNotIso(self):
+        assert self.markov not in isomorphismClass(self.empty, permutations(1))
+        assert self.A3 not in isomorphismClass(self.markov, permutations(3))
+        assert self.A3.mutate(1) not in isomorphismClass(self.A3, permutations(3))
+        assert self.A3 not in isomorphismClass(self.A3.mutate(1), permutations(3))
+        assert self.A3.mutate(0) not in isomorphismClass(self.A3, permutations(3))
+        assert self.markov not in isomorphismClass(self.A3, permutations(3))
+
+    def testIso(self):
+        assert self.markov in isomorphismClass(self.markov, permutations(3))
+        assert self.empty in isomorphismClass(self.empty, permutations(1))
+        assert self.markov.mutate(1) in isomorphismClass(self.markov, permutations(3))
+        assert self.A3.mutate(0).mutate(2) in isomorphismClass(self.A3, permutations(3))
+        assert self.A3.mutate(1).mutate(2) in isomorphismClass(self.A3, permutations(3))
 
 if __name__ == "__main__":
     unittest.main()
