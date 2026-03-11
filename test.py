@@ -132,6 +132,31 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert q.forkWithPOR(3), f'applying mutation sequence {M} did not produce a fork with por {M[:-1]}'
 
 
+class ForkEdgeTestCase(unittest.TestCase):
+    def setUp(self):
+        self.iso2 = Quiver(np.matrix([[0,0],[0,0]]))
+        self.twoForks = Quiver(np.matrix([[0,5,-15,0,0,0],[-5,0,2,0,0,0],[15,-2,0,0,0,0],[0,0,0,0,6,-105],[0,0,0,-6,0,10],[0,0,0,105,-10,0]]))
+        self.prefork = Quiver(np.matrix([[0,1,4,-17],[-1,0,5,-18],[-4,-5,0,3],[17,18,-3,0]]))
+        self.forkWithExtra = Quiver([[0,-3,6,0], [3,0,-5,0], [-6,5,0,0], [0,0,0,0]])
+
+    def testNotForks(self):
+        assert all([not self.iso2.forkWithPOR(i) for i in range(self.iso2.n)])
+        assert all([not self.twoForks.forkWithPOR(i) for i in range(self.twoForks.n)])
+        assert all([not self.prefork.forkWithPOR(i) for i in range(self.prefork.n)])
+        assert all([not self.forkWithExtra.forkWithPOR(i) for i in range(self.forkWithExtra.n)])
+
+    def testNotForksMutated(self):
+        Q = self.iso2.mutate(1)
+        assert all([not Q.forkWithPOR(i) for i in range(Q.n)])
+        Q = self.twoForks.mutate(4).mutate(5).mutate(1)
+        assert all([not Q.forkWithPOR(i) for i in range(Q.n)])
+        Q = self.prefork.mutate(1).mutate(3).mutate(2)
+        assert Q.forkWithPOR(2)
+        Q = self.prefork.mutate(1).mutate(0)
+        assert all([not Q.forkWithPOR(i) for i in range(Q.n)])
+
+        
+
 class QuiverInvariants3dcTestCase(unittest.TestCase):
     def setUp(self):
         #These are disconnected quivers with only oriented cycles on 0,2,1.
@@ -390,7 +415,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.acyclicL.append(False)
         self.members.append(Q)
         R = Quiver(-np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
-        self.classes.append(mutationClass(vertices=[R,Q], edges=[{R: {Q:1}, Q:{R:2}}]))
+        self.classes.append(mutationClass(vertices=[R,Q], edges={R: {Q:1}, Q:{R:2}}, perms=permutations(4)))
         self.acyclicL.append(False)
         self.members.append(Q)
         Q = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
@@ -413,7 +438,7 @@ class MutationClassInitTests(unittest.TestCase):
         assert self.classes[2] != self.classes[3]
         assert self.classes[2] != self.classes[4]
         assert self.classes[0] == self.classes[0]
-        C = mutationClass(Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])))
+        C = mutationClass(Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])), perms=permutations(4))
         C.update()
         assert self.classes[3] == C, "Incorrect equality from update"
 
@@ -459,9 +484,10 @@ class updateMutationClassTests(unittest.TestCase):
         assert Quiver(np.matrix([[0,-1,0,0],[1,0,1,0],[0,-1,0,0], [0,0,0,0]])) in self.A3Class
         assert Quiver(np.matrix([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) not in self.A3Class
         assert Quiver(np.matrix([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) in self.A2Class
+        assert Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])).mutate(1).mutate(0).mutate(1).mutate(0) in self.AcyclicEventuallyClass
         assert Quiver(-np.matrix([[0,2,-5,0],[-2,0,6,0],[5,-6,0,0], [0,0,0,0]])) in self.AcyclicEventuallyClass
         assert Quiver(np.matrix([[0,2,-4,0],[-2,0,6,0],[4,-6,0,0], [0,0,0,0]])) not in self.AcyclicEventuallyClass
-
+        
     def testUpdatedIntersection(self):
         assert self.markovClass.intersection(self.A2Class) is None
         assert self.markovClass.intersection(self.A3Class) is None

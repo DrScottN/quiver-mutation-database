@@ -437,7 +437,7 @@ class mutationClass():
     # Will implement mutationClass unions and intersections
 
     def __init__(self, Q = None, perms = None, vertices = None, edges = None):
-        # Takes in a quiver Q as the first member of our mutation class
+        # Takes in a quiver Q as the first member of our mutation class. perms is required.
         if Q is None:
             if vertices is None or edges is None:
                 raise Exception("No vertices or edges given. Try again")
@@ -467,8 +467,12 @@ class mutationClass():
             self.mutationCyclicSubquiver = False
             self.couldBeMutationCyclic = False
         else:
-            self.mutationAcyclic = None # Neither true nor false
-            self.mutationCyclicSubquiver = True if self.initialQ.hasMutCyclicSubquiver() else None
+            if self.initialQ.hasMutCyclicSubquiver():
+                self.mutationCyclicSubquiver = True
+                self.mutationAcyclic = False
+            else:
+                self.mutationCyclicSubquiver = None
+                self.mutationAcyclic = None
             self.couldBeMutationCyclic = True
 
         if not self.initialQ.complete():
@@ -573,7 +577,7 @@ class mutationClass():
         commonEdges.update({Q : self.edges[Q] for Q in selfVertices if Q not in commonVertices})
         commonEdges.update({Q : other.edges[Q] for Q in otherVertices if Q not in commonVertices})
 
-        newMutClass = mutationClass(vertices = vertices, edges = edges, perms = perms)
+        newMutClass = mutationClass(vertices = vertices, edges = commonEdges, perms = self.perms)
         newMutClass.couldBeMutationCyclic = self.couldBeMutationCyclic and other.couldBeMutationCyclic
         newMutClass.couldBeMutationComplete = self.couldBeMutationComplete and other.couldBeMutationComplete
         newMutClass.couldBeMutationVortexFree = self.couldBeMutationVortexFree and other.couldBeMutationVortexFree
@@ -663,6 +667,7 @@ class mutationClass():
                     self.couldBeMutationVortexFree = self.couldBeMutationVortexFree and not P.vortex()
                     self.couldBeMutationComplete = self.couldBeMutationComplete and not P.complete()
                     self.couldBeMutationCyclic = self.couldBeMutationCyclic and not P.acyclic()
+                    self.mutationAcyclic = True if P.acyclic() else self.mutationAcyclic
                     
                     if self.couldBeMutationCyclic and self.mutationCyclicSubquiver is None:
                         self.mutationCyclicSubquiver = True if P.hasMutCyclicSubquiver() else self.mutationCyclicSubquiver
@@ -743,6 +748,7 @@ def generateLowWeightQuivers(n):
 
 def permutations(n):
     # Gives a list of permutations on n
+    #  proposal: itertools.permutations(range(n))
     if n == 0:
         return []
     if n == 1:
