@@ -82,15 +82,15 @@ class polynomial():
                 
             return True
         else:
-            raise Exception("What are you comparing?")         
+            raise Exception("What are you comparing?")
 
     def __add__(self, other):
         newVars = self.vars
         if isinstance(other, int): #or isinstance(other, Rational):
-            coefficients = [(c[0] + other,) + c[1:] for c in self.coefficients]
+            coefficients = [(c[0] + other*all([i==0 for i in c[1:]]),) + c[1:] for c in self.coefficients]
         elif isinstance(other, polynomial):
             if not self.__varseq__(other):
-                newVars = tuple(set(self.vars + newVars))
+                newVars = tuple(sorted(set(other.vars + newVars)))
                 p = self.__varchange__(newVars)
                 q = other.__varchange__(newVars)
             else:
@@ -138,7 +138,7 @@ class polynomial():
         else:
             coeffDict = dict()
             if not self.__varseq__(other):
-                newVars = tuple(set(self.vars + other.vars))
+                newVars = tuple(sorted(set(self.vars + other.vars)))
                 p = self.__varchange__(newVars)
                 q = other.__varchange__(newVars)
             else:

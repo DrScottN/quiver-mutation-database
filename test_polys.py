@@ -98,7 +98,7 @@ class PolynomialVarnamesTestCase(unittest.TestCase):
         assert self.fy*0 +self.fz == self.fz
     
     def testSumVarnames(self):
-        assert self.fy + self.fz == self.fz + self.fy
+        assert self.fy + self.fz == self.fz + self.fy, f"Incorrect equality with commuting {(self.fy + self.fz).vars} vs {(self.fz + self.fy).vars}"
         assert self.gw + self.fz == self.fz + self.gw
         assert self.fy + self.oney == self.fy + self.onez
         assert 3*self.fy - 2*self.fy == self.fy
