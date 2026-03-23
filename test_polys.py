@@ -62,16 +62,20 @@ class PolynomialTestCase(unittest.TestCase):
         assert (1,0) in self.poly1.coefficients, f"incorrect poly1 coefficients {self.poly1.coefficients}"
         assert (1,2) in self.poly1.coefficients, f"incorrect poly1 coefficients {self.poly1.coefficients}"
         assert (1,4) in self.poly1.coefficients, f"incorrect poly1 coefficients {self.poly1.coefficients}"
+        assert (1,4) in self.poly3.coefficients, f"incorrect poly3 coefficients {self.poly3.coefficients}"
         assert len(self.poly1.coefficients) == 3, f"incorrect number of coefficients {self.poly1.coefficients}"
         assert len(self.poly2.coefficients) == 1, f"incorrect number of coefficients {self.poly2.coefficients}"
         assert len(self.poly3.coefficients) == 5, f"incorrect number of coefficients {self.poly3.coefficients}"
         assert len((6*self.poly3).coefficients) == 5
+        assert len((self.poly3 + (-1)).coefficients) == 4
         assert len((-1 + self.poly3).coefficients) == 4
         assert len((self.poly1 + self.poly3).coefficients) == 5
         for k,v in self.poly1.coeffDict.items():
-            assert (k[0],v) in self.poly1.coefficients
+            assert (v,)+(k[0],) in self.poly1.coefficients, f"dictionary and coefficients disagree, {(v,)+(k[0],)} not in {self.poly1.coefficients}"
+        for x in self.poly1.coefficients:
+            assert (x[1:], x[0]) in self.poly1.coeffDict.items(), f"dictionary and coefficients disagree, {(x[1:], x[0])} not in {self.poly1.coeffDict.items()}"
         for k,v in self.poly3.coeffDict.items():
-            assert (k[0],v) in self.poly3.coefficients
+            assert (v,)+(k[0],) in self.poly3.coefficients
 
     def testCoeffDict(self):
         assert self.poly1.coeffDict == {(0,):1, (2,):1, (4,):1}, f"incorrect coefficient dict {self.poly1.coeffDict} vs {str(self.poly1)}"

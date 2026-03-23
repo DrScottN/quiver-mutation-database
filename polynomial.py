@@ -5,22 +5,24 @@ class polynomial():
     # where the order of the tuples is given by the variable order
     # need to let coefficients be a stream eventually to deal with formal power series
     def __init__(self, coefficients, vars = ('x',)) -> None:
-        self.vars = vars
+        enum_vars = sorted(enumerate(vars), key=lambda x: x[1])
+        self.vars = [x[1] for x in enum_vars]
         self.numVars = len(vars)
         self.simplified = False
 
         if isinstance(coefficients, list):
-            if not isinstance(coefficients[0], tuple):
-                coefficients = [(c, i) for i, c in enumerate(coefficients)]
-
+            if len(coefficients)>0 and not isinstance(coefficients[0], tuple):
+                coefficients = [(c, i) for i, c in enumerate(coefficients) if c!=0]
+            else:
+                coefficients = [(c[0],) + tuple(c[1+x[0]] for x in enum_vars) for c in coefficients if c[0]!=0]
             self.coefficients = coefficients
             self.__lex__() # Sorts them in the lexigraphical order and adds terms of the same monomial
-            self.totalDegree = max(sum(c[1:]) for c in self.coefficients)
-            if len(coefficients[0][1:]) == 1:
+            self.totalDegree = max(sum(c[1:]) for c in self.coefficients+[[0,0]])
+            if len(self.vars) == 1:
                 self.degree = self.totalDegree
             
             
-            self.localDegrees = {v : max(c[i+1] for c in self.coefficients) for i, v in enumerate(self.vars)}
+            self.localDegrees = {v : max(c[i+1] for c in self.coefficients+[[0]+[0]*len(self.vars)]) for i, v in enumerate(self.vars)}
         else:
             raise Exception("Not a valid input")
 
@@ -52,10 +54,10 @@ class polynomial():
             if c[0] != 0:
                 self.coeffDict[c[1:]] = c[0]
 
-        zero = (0,) * (len(self.coefficients[0])-1)
+        #zero = (0,) * (len(self.coefficients[0])-1)
 
-        if zero not in self.coeffDict:
-            self.coeffDict[zero] = 0
+        #if zero not in self.coeffDict:
+        #    self.coeffDict[zero] = 0
 
         self.coeffDict = dict(sorted(self.coeffDict.items())) # Should automatically sort
         newCoeff = [(v,) + k for k,v in self.coeffDict.items()]
@@ -87,7 +89,16 @@ class polynomial():
     def __add__(self, other):
         newVars = self.vars
         if isinstance(other, int): #or isinstance(other, Rational):
-            coefficients = [(c[0] + other*all([i==0 for i in c[1:]]),) + c[1:] for c in self.coefficients]
+            deg_zero = (0,)*len(self.vars)
+            coefficients = [c for c in self.coefficients]
+            found=False
+            for i,c in enumerate(self.coefficients):
+                if c[1:] == deg_zero:
+                    coefficients[i] = (c[0]+other,) + deg_zero
+                    found=True
+                    break
+            if not found:
+                coefficients = [(other,) + deg_zero] + coefficients
         elif isinstance(other, polynomial):
             if not self.__varseq__(other):
                 newVars = tuple(sorted(set(other.vars + newVars)))
@@ -162,6 +173,16 @@ class polynomial():
     
     def __rmul__(self, other):
         return self.__mul__(other)
+
+    def __pow__(self, other):
+        if not isinstance(other, int):
+            Exception("Can only exponentiate a polynomial with an integer")
+        if other < 0:
+            Exception("Can only exponentiate a polynomial with a positive integer")
+        prod = 1
+        for i in range(other): #could do fast exponentiation for faster performance
+            prod = prod*self
+        return prod
     
     def eval(self, values):
         # Evalutes the polynomial at vars = values
