@@ -50,6 +50,8 @@ class PolynomialTestCase(unittest.TestCase):
         assert self.poly1 == polynomial([1,0,1,0,1])
         assert self.poly1 +2 != self.poly1
         assert self.poly3.eval([polynomial([-1,1])]) == polynomial([0,0,0,0,1]), "Incorrectly composes polynomials"
+        assert polynomial([0]) == 0, "Incorrectly misses 0 polynomial"
+        assert polynomial([(0,0,0),(0,1,1),(0,2,0)], ('x','y')) == 0, "Incorrectly misses 0 polynomial"
 
     def testSub(self):
         assert -self.poly1 == polynomial([-1,0,-1,0,-1]), "Incorrectly negates polynomials"

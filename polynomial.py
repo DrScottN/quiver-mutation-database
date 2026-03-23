@@ -65,7 +65,7 @@ class polynomial():
 
     def __eq__(self, other):
         if isinstance(other, int): #or isinstance(other, Rational):
-            return self.totalDegree == 0 and self.coefficients[0][0] == other
+            return self.totalDegree == 0 and (len(self.coefficients)==0 and other==0) or self.coefficients[0][0] == other
         elif isinstance(other, polynomial):
             if not self.__varseq__(other):
                 newVars = set(self.vars + other.vars)
