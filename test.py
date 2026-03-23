@@ -171,7 +171,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         q = q.mutate(2)
         for i,j in itertools.combinations(q.vertices, 2):
             assert not q.preForkWithVertices(2, i, j), f'incorrected found a prefork with vertices {i,j}'
-            assert q.preForkWithVertices(2, i, j) == q.preForkWithVertices(2, j,i), f'incorrectly cares about order of prefork vertices {i,j}'
+            assert q.preForkWithVertices(2, i, j) == q.preForkWithVertices(2, j, i), f'incorrectly cares about order of prefork vertices {i,j}'
         assert not q.preForkWithPOR(2)
         
     def testFork(self):
