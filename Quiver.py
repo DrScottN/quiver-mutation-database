@@ -185,7 +185,7 @@ class Quiver():
         Q = self.subquiverRemoveOneVertex(i)
         P = self.subquiverRemoveOneVertex(j)
 
-        if not Q.forkWithPOR(r) or not Q.forkWithPOR(r):
+        if not Q.forkWithPOR(r) or not P.forkWithPOR(r):
             return False
 
         for k in self.vertices:

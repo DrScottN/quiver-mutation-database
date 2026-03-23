@@ -7,24 +7,31 @@ class QuiverInitializationTestCase(unittest.TestCase):
     def setUp(self):
         self.quiver = Quiver([[0,2], [-2,0]])
         self.quiver = self.quiver.mutate(1)
+        self.quiver_iso = Quiver([[0,0],[0,0]])
 
     def testLen(self):
         assert self.quiver.n == 2, 'incorrect rank n'
+        assert self.quiver_iso.n == 2, 'incorrect rank n'
     
     def testVerts(self):
         assert self.quiver.vertices == [0,1], 'incorrect list of vertices'
+        assert self.quiver_iso.vertices == [0,1], 'incorrect list of vertices'
 
     def testEdges(self):
         assert self.quiver.numEdges == 2, 'incorrect number of edges'
+        assert self.quiver_iso.numEdges == 0, 'incorrect number of edges'
 
     def testDet(self):
         assert self.quiver.determinant() == 4, 'incorrect determinant'
+        assert self.quiver_iso.determinant() == 0, 'incorrect determinant'
 
     def testConnected(self):
         assert self.quiver.connected(), 'incorrect connectedness'
+        assert not self.quiver_iso.connected(), 'incorrect connectedness'
 
     def testAbundant(self):
         assert self.quiver.abundant(), 'incorrect abundance'
+        assert not self.quiver_iso.abundant(), 'incorrect abundance'
 
 class QuiverConnectedIsolatedTestCase(unittest.TestCase):
     def testA1Isolated(self):
@@ -90,9 +97,12 @@ class QuiverMutation3vertTestCase(unittest.TestCase):
 class QuiverMutation4vertTestCase(unittest.TestCase):
     def setUp(self):
         self.quiver = Quiver([[0,2,0,6], [-2,0,1,0], [0,-1,0,7], [-6,0,-7,0]])
+        self.incomplete_quiver = Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]]))
     
     def testCommutingMutations(self):
         assert self.quiver == self.quiver.mutate(2).mutate(0).mutate(2).mutate(0), 'commuting mutation cycle did not cycle'
+        assert self.incomplete_quiver.mutate(1) == self.incomplete_quiver.mutate(3).mutate(1), 'commuting mutation cycle did not cycle'
+        assert self.incomplete_quiver.mutate(1) == self.incomplete_quiver.mutate(1).mutate(3), 'commuting mutation cycle did not cycle'
     
     def testA2Cycle(self):
         assert self.quiver.mutate(1).mutate(2).mutate(1).mutate(2).mutate(1) == self.quiver.mutate(2).mutate(1).mutate(2).mutate(1).mutate(2), 'A2 mutation cycle did not cycle'
@@ -100,7 +110,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
     def testMutationInverseRandom(self):
         r = []
         for i in range(12):
-            r.append(random.randrange(3))
+            r.append(random.randrange(4))
         q = self.quiver
         for m in r:
             q = q.mutate(m)
@@ -113,23 +123,67 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
             q = q.mutate(m)
         assert self.quiver == q, f'applying the mutation sequence {r + r[::-1]} did not fix the quiver'
 
+    def testMutationInverseRandom_incomplete(self):
+        r = []
+        for i in range(12):
+            r.append(random.randrange(4))
+        q = self.incomplete_quiver
+        for m in r:
+            q = q.mutate(m)
+        
+        assert q.cyclic_order() != False, f'{r} mutated into something without a good cyclic ordering'
+        assert q.determinant() == self.incomplete_quiver.determinant(), f'determinant changed after mutating at {r}'
+        assert not q.vortex(), f'acyclic quiver became a vortex after mutating at {r}'
+
+        for m in r[::-1]:
+            q = q.mutate(m)
+        assert self.incomplete_quiver == q, f'applying the mutation sequence {r + r[::-1]} did not fix the quiver'
+
     def testDet(self):
         for i in self.quiver.vertices:
             assert self.quiver.determinant() == self.quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
+            assert self.incomplete_quiver.determinant() == self.incomplete_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
 
     def testPrefork(self):
         M = [1,0]
         q = self.quiver
         for m in M:
             q = q.mutate(m)
-        assert q.forkWithPOR(0), f'applying mutation sequence {M} did not produce a prefork with por {M[:-1]}'
+        assert q.preForkWithPOR(M[-1]), f'applying mutation sequence {M} did not produce a prefork with por {M[-1]}'
+        q = self.incomplete_quiver
+        for m in M:
+            q = q.mutate(m)
+        assert not any([q.preForkWithPOR(i) for i in range(q.n)]), f'incorrectly marked a disconnected quiver as a prefork'
+
+    def testPrefork2(self):
+        M = [1,0,1]
+        q = self.quiver
+        for m in M:
+            q = q.mutate(m)
+        assert q.preForkWithPOR(M[-1]), f'applying mutation sequence {M} did not produce a prefork with por {M[-1]}'
+        q = self.incomplete_quiver
+        for m in M:
+            q = q.mutate(m)
+        assert not any([q.preForkWithPOR(i) for i in range(q.n)]), f'incorrectly marked a disconnected quiver as a prefork'
+
+    def testPrefork3(self):
+        q = self.incomplete_quiver
+        q = q.mutate(2)
+        for i,j in itertools.combinations(q.vertices, 2):
+            assert not q.preForkWithVertices(2, i, j), f'incorrected found a prefork with vertices {i,j}'
+            assert q.preForkWithVertices(2, i, j) == q.preForkWithVertices(2, j,i), f'incorrectly cares about order of prefork vertices {i,j}'
+        assert not q.preForkWithPOR(2)
         
     def testFork(self):
         M = [1,0,3,2,0,1,2,3]
         q = self.quiver
         for m in M:
             q = q.mutate(m)
-        assert q.forkWithPOR(3), f'applying mutation sequence {M} did not produce a fork with por {M[:-1]}'
+        assert q.forkWithPOR(M[-1]), f'applying mutation sequence {M} did not produce a fork with por {M[-1]}'
+        q = self.incomplete_quiver
+        for m in M:
+            q = q.mutate(m)
+        assert not any([q.forkWithPOR(i) for i in range(q.n)]), f'incorrectly marked a disconnected quiver as a fork'
 
 
 class ForkEdgeTestCase(unittest.TestCase):
