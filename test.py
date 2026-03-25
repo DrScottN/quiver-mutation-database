@@ -306,6 +306,46 @@ class QuiverInvariants4AlexTestCase(unittest.TestCase):
             assert a(w) == self.cycleQuiver(w).alexander_poly(), f"incorrect cycle quiver alexander poly with weights {w}"
 
 
+class SubquiverTestCase(unittest.TestCase):
+    def setUp(self):
+        self.markov_vortex = Quiver([[0,2,-2,4],[-2,0,2,7],[2,-2,0,9],[-4,-7,-9,0]])
+        self.mutated_vortex = self.markov_vortex.mutate(1).mutate(3).mutate(2).mutate(0)
+        self.small_weight = Quiver([[0,2,-1,-1],[-2,0,2,0],[1,-2,0,1],[1,0,-1,0]])
+        self.mutated_small = self.small_weight.mutate(3)
+        self.big_problem = Quiver([[0, -1900534033, 89268872382, -568349], [1900534033, 0, 17905678993253867017, -114000260996770], [-89268872382, -17905678993253867017, 0, 157067], [568349, 114000260996770, -157067, 0]] )
+        self.markov_manual = lambda M : (M[0,1]**2) + (M[1,2]**2) + (M[2,0]**2) - abs(M[0,1]*M[1,2]*M[2,0])
+
+    def testCyclicSubquivers(self):
+        assert self.markov_vortex.hasMutCyclicSubquiver()
+        assert not self.mutated_vortex.hasMutCyclicSubquiver()
+        assert not self.small_weight.hasMutCyclicSubquiver()
+        assert self.mutated_small.hasMutCyclicSubquiver()
+        assert not self.big_problem.hasMutCyclicSubquiver()
+
+    def testMarkov(self):
+        for i in self.markov_vortex.vertices:
+            R = self.markov_vortex.subquiverRemoveOneVertex(i)
+            if not R.acyclic():
+                assert self.markov_manual(R.matrix) == R.markov()
+        
+        for i in self.big_problem.vertices:
+            R = self.big_problem.subquiverRemoveOneVertex(i)
+            if not R.acyclic():
+                assert self.markov_manual(R.matrix) == R.markov(), f"incorrect markov for {i, R.matrix}, {self.markov_manual(R.matrix)} vs {R.markov()}"
+        
+    def testAcyclicBig(self):
+        assert self.big_problem.subquiverRemoveOneVertex(3).acyclic()
+        assert self.big_problem.subquiverRemoveOneVertex(2).acyclic()
+        assert not self.big_problem.subquiverRemoveOneVertex(1).acyclic()
+        assert not self.big_problem.subquiverRemoveOneVertex(0).acyclic()
+
+    def testAbundance(self):
+        assert self.mutated_vortex.abundant()
+        assert self.markov_vortex.abundant()
+        assert not self.small_weight.abundant()
+        assert not self.small_weight.abundant()
+    
+
 class QuiverInvariants3TestCase(unittest.TestCase):
     def setUp(self):
         #These are disconnected quivers with only oriented cycles on 0,2,1.

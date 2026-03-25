@@ -17,7 +17,7 @@ class Quiver():
                         if a != -matrix[j][i]:
                             raise Exception("Not a skew-symmetric matrix")
 
-        self.matrix = np.matrix(matrix, dtype='object') #matrix # type 'object' lets us put arbitrary python in there.
+        self.matrix = np.matrix(matrix, dtype=object) #matrix # type object lets us put arbitrary python in there.
         self.n = len(matrix)
         self.vertices = [v for v in range(self.n)]
         self.numEdges = sum(self.matrix[i,j] for i in self.vertices for j in self.vertices if self.matrix[i,j] > 0)
@@ -88,12 +88,12 @@ class Quiver():
     def sources(self):
         # Get the sources in a quiver
 
-        return [i for i in range(self.n) if np.sum(self.matrix[i,:]) == np.sum([abs(self.matrix[i,j]) for j in range(self.n)])]
+        return [i for i in range(self.n) if all([self.matrix[i,j]>=0 for j in range(self.n)])]
     
     def sinks(self):
         # Get the sources in a quiver
 
-        return [i for i in range(self.n) if -np.sum(self.matrix[i,:]) == np.sum([abs(self.matrix[i,j]) for j in range(self.n)])]
+        return [i for i in range(self.n) if all([self.matrix[i,j]<=0 for j in range(self.n)])]
 
     def acyclic(self):
         # Finds if the quiver is acyclic or not
@@ -246,7 +246,7 @@ class Quiver():
         if 0 in self.matrix[vertex,:vertex] or 0 in self.matrix[vertex,vertex+1:]:
             return False
         
-        Q = self.subquiverRemoveOneVertex(vertices[0])
+        Q = self.subquiverRemoveOneVertex(vertex)
 
         return Q.threeCycle()
 
@@ -351,7 +351,7 @@ class Quiver():
         sigma = self.cyclic_order()
         if sigma==False:
             return False
-        U = np.matrix([[-(i<j)*self.matrix[sigma[i],sigma[j]] for j in range(self.n)] for i in range(self.n)], dtype='object')
+        U = np.matrix([[-(i<j)*self.matrix[sigma[i],sigma[j]] for j in range(self.n)] for i in range(self.n)], dtype=object)
         for i in range(self.n):
             U[i,i]=1
         return U
@@ -363,18 +363,21 @@ class Quiver():
         if U is False:
             return False
         #compute trace of U U^-1 (= U (I + N + N^2 + ...))
-        N = np.transpose(np.matlib.identity(self.n, dtype='object') - U)
+        N = np.transpose(np.matlib.identity(self.n, dtype=object) - U)
         Cosquare = U.copy()
         for e in range(1,self.n):
             Cosquare += U * N**e
-        return self.n - np.trace(Cosquare)
+        trace = 0
+        for i in range(self.n):
+            trace += Cosquare[i,i]
+        return self.n - trace
         
     def alexander_poly(self):
         # Computes the alexander polynomial (expressed as a polynomial object). Returns False if the quiver is not potentially totally proper.
         U = self.Umatrix()
         if U is False:
             return False
-        Ux = np.matrix([[U[i,j]*polynomial.polynomial([0,1]) for i in range(self.n)] for j in range(self.n)], dtype='object') - np.matrix([[U[j,i]*polynomial.polynomial([1]) for i in range(self.n)] for j in range(self.n)], dtype='object')
+        Ux = np.matrix([[U[i,j]*polynomial.polynomial([0,1]) for i in range(self.n)] for j in range(self.n)], dtype=object) - np.matrix([[U[j,i]*polynomial.polynomial([1]) for i in range(self.n)] for j in range(self.n)], dtype=object)
         det = polynomial.polynomial([0])
         for p in permutations(self.n):
             a = polynomial.polynomial([1])
