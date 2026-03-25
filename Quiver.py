@@ -867,9 +867,6 @@ def test():
 
     raise Exception("Testing finished")
 
-if __name__ == "__main__":
-    #test()
-    main()
 
 def main():
     n = 4
@@ -978,3 +975,8 @@ def main():
         print("---------")
 
     print("Number of distinct determinants: ", len(determinantCount))
+
+
+if __name__ == "__main__":
+    #test()
+    main()
