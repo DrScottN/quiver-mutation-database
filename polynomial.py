@@ -177,13 +177,18 @@ class polynomial():
     def __pow__(self, other):
         if not isinstance(other, int):
             Exception("Can only exponentiate a polynomial with an integer")
-        if other < 0:
+        elif other < 0:
             Exception("Can only exponentiate a polynomial with a positive integer")
-        prod = 1
-        for i in range(other): #could do fast exponentiation for faster performance
-            prod = prod*self
-        return prod
-    
+        elif other == 0:
+            return 1
+        elif other == 1:
+            return self
+
+        a = other // 2
+        b = other - a # will be >= a
+
+        return self.pow(a)*self.pow(b) # This should be a faster exponentiation
+           
     def eval(self, values):
         # Evalutes the polynomial at vars = values
         s = 0
