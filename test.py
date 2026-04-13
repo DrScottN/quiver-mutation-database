@@ -656,6 +656,14 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.A3Class.mutationAcyclic
         assert self.AcyclicEventuallyClass.mutationAcyclic
         
+class TestEigenvalues(unittest.TestCase):
+    def setUp(self):
+        self.quiver = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
+        self.M = np.matrix([[2,0],[0,3]])
+        self.N = np.matrix([[2,-1],[-2,2]])
+
+    def testEign(self):
+        pass #todo
 
 
 
