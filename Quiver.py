@@ -395,7 +395,7 @@ class Quiver():
 def eigenvalues(M):
     # Computes the eigenvalues of the given matrix, cast to float.
     #   Note that the rank is a mutation invariant but not these values.
-    return np.linalg.eig(np.matrix(self.matrix))
+    return np.linalg.eig(np.float64(M)).eigenvalues
 
 
 def sink_set(quiver):

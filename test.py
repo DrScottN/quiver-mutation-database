@@ -663,7 +663,9 @@ class TestEigenvalues(unittest.TestCase):
         self.N = np.matrix([[2,-1],[-2,2]])
 
     def testEign(self):
-        pass #todo
+        np.testing.assert_almost_equal(eigenvalues(self.quiver.matrix), np.array([0+3*np.emath.sqrt(-3.), 0-3*np.emath.sqrt(-3.), 0, 0]))
+        np.testing.assert_almost_equal(eigenvalues(self.M), np.array([2.,3.]))
+        np.testing.assert_almost_equal(eigenvalues(self.N), np.array([2.+np.sqrt(2.), 2.-np.sqrt(2.)]))
 
 
 
