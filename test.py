@@ -623,8 +623,12 @@ class updateMutationClassTests(unittest.TestCase):
 
     def testMuCyclic(self):
         assert self.markovClass.couldBeMutationCyclic
+        assert self.markovClass.mutationCyclicSubquiver
+        assert self.markovClass.mutationCyclicSubquiverWitness.hasMutCyclicSubquiver()
         assert not self.A2Class.couldBeMutationCyclic
         assert not self.A3Class.couldBeMutationCyclic
+        assert not self.A2Class.mutationCyclicSubquiver
+        assert self.A2Class.mutationCyclicSubquiverWitness == None
         assert not self.AcyclicEventuallyClass.couldBeMutationCyclic
         assert not self.markovClass.mutationAcyclic
         assert self.A2Class.mutationAcyclic
