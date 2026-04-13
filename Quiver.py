@@ -468,13 +468,14 @@ class mutationClass():
         if self.initialQ.acyclic():
             self.mutationAcyclic = True
             self.mutationCyclicSubquiver = False
+            self.mutationCyclicSubquiverWitness = None
             self.couldBeMutationCyclic = False
         else:
             if self.initialQ.hasMutCyclicSubquiver():
-                self.mutationCyclicSubquiver = True
-                self.mutationAcyclic = False
+                self.foundCyclicSubquiver(self.initialQ)
             else:
                 self.mutationCyclicSubquiver = None
+                self.mutationCyclicSubquiverWitness = None
                 self.mutationAcyclic = None
             self.couldBeMutationCyclic = True
 
@@ -673,7 +674,8 @@ class mutationClass():
                     self.mutationAcyclic = True if P.acyclic() else self.mutationAcyclic
                     
                     if self.couldBeMutationCyclic and self.mutationCyclicSubquiver is None:
-                        self.mutationCyclicSubquiver = True if P.hasMutCyclicSubquiver() else self.mutationCyclicSubquiver
+                        if P.hasMutCyclicSubquiver():
+                            self.foundCyclicSubquiver(P)
                     
                     # Update vertices, edges, and forefront
                     self.edges[P] = {Q : k}
@@ -711,6 +713,13 @@ class mutationClass():
     def updateInvariants(self):
         # Systematically updates all the invariants
         pass
+
+    def foundCyclicSubquiver(self, Q):
+        """Sets MutationCyclicSubquiver, not(MutationAcyclic), and sets the witness to Q."""
+        self.mutationCyclicSubquiver = True
+        self.mutationAcyclic = False
+        self.mutationCyclicSubquiverWitness = Q
+
 
 def isolatedQuiver(n):
     # returns the quiver with 0 arrows between n vertices
