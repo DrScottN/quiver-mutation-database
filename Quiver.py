@@ -386,6 +386,12 @@ class Quiver():
             det += a * sign_perm(p)
         return det
 
+    def gcd_vector(self):
+        # Computes the gcd vector of self, as a tuple with ith entry the gcd of row i.
+        return tuple(math.gcd(*[self.matrix[i,j] for j in range(self.n)]) for i in range(self.n))
+        
+
+
 
 def sink_set(quiver):
     # Calculates all sink/source mutation equivalent quivers
@@ -464,6 +470,8 @@ class mutationClass():
         self.determinant = self.initialQ.determinant()
         self.leastEdges = self.initialQ.numEdges
         self.size = 1
+        self.gcdVector = self.initialQ.gcd_vector()
+
 
         if self.initialQ.acyclic():
             self.mutationAcyclic = True
@@ -532,7 +540,7 @@ class mutationClass():
         self.edges = copy.deepcopy(edges)
         self.forefront = []
         self.numVertices = self.vertices[0].n
-
+        
         # Fix any messed up edges
         for Q in self.edges:
             for P in self.edges[Q]:
