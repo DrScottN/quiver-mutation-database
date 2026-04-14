@@ -449,14 +449,14 @@ def surface_quiver(quiver):
 
     # single arrow, out out
     def vI(i,l):
-        return np.array([x in [i,l] for x in range(n)], dtype=numpy.int8)
+        return np.array([x in [i,l] for x in range(n)], dtype=np.int8)
     def BI(i,l):
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,l] += 1
         return B - np.transpose(B)
     # oriented cycle, out out out
     def vII(i,j,k):
-        return np.array([x in [i,j,k] for x in range(n)], dtype=numpy.int8)
+        return np.array([x in [i,j,k] for x in range(n)], dtype=np.int8)
     def BII(i,j,k):
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
@@ -465,7 +465,7 @@ def surface_quiver(quiver):
         return B - np.transpose(B)
     # sink, out dead dead
     def vIII(i,j,k):
-        return np.array([x==i + 2*(x in [j,k]) for x in range(n)], dtype=numpy.int8)
+        return np.array([(x==i) + 2*(x in [j,k]) for x in range(n)], dtype=np.int8)
     def BIIIa(i,j,k):
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[j,i] += 1
@@ -479,7 +479,7 @@ def surface_quiver(quiver):
         return B - np.transpose(B)
     #diamond, out dead dead out
     def vIV(i,j,k,l):
-        return np.array([(x in [i,l]) + 2*(x in [j,k]) for x in range(n)], dtype=numpy.int8)
+        return np.array([(x in [i,l]) + 2*(x in [j,k]) for x in range(n)], dtype=np.int8)
     def BIV(i,j,k,l):
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
@@ -490,7 +490,7 @@ def surface_quiver(quiver):
         return B - np.transpose(B)
     #surrounded, out dead dead dead dead, i->j->k<-g->h<-j
     def vV(i,j,k,g,h):
-        return np.array([x==i + 2*(x in [j,k,g,h]) for x in range(n)], dtype=numpy.int8)
+        return np.array([(x==i) + 2*(x in [j,k,g,h]) for x in range(n)], dtype=np.int8)
     def BV(i,j,k,g,h):
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
@@ -505,9 +505,10 @@ def surface_quiver(quiver):
 
     #init vars
     B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
-    v = np.zeros(n,dtype=numpy.int8)
+    v = np.zeros(n,dtype=np.int8)
     blocks = []
     def check_status():
+        nonlocal B, v
         # check if B,v is consistent so far
         matched_verts = [i for i in range(n) if v[i]==2]
         #  premature: outlet_verts = [i for i in range(n) if v[i]==1]
@@ -525,6 +526,7 @@ def surface_quiver(quiver):
         return True
     
     def block_decomp():
+        nonlocal B,v,blocks
         # recursive function for finding a block decomposition
         #  B is matrix so far, v counts how matched vertices are (0 is unused, 1 is out, 2 is filled)
         outlet_verts = []
@@ -537,7 +539,7 @@ def surface_quiver(quiver):
                 matched_verts.append(i)
             else:
                 unused_verts.append(i)
-        if B == self.quiver:
+        if (B == quiver.matrix).all():
             return True
 
         #if len(matched_verts)==n:
@@ -545,6 +547,7 @@ def surface_quiver(quiver):
         #    return True
 
         def try_block(block):
+            nonlocal B, v, blocks
             match block[0]:
                 case '1':
                     vp = vI(*block[1])
@@ -558,7 +561,7 @@ def surface_quiver(quiver):
                     vp = vIV(*block[1])
                 case '5':
                     vp = vV(*block[1])
-            if any((v+vp)>2):
+            if ((v+vp)>2).any():
                 return False
             match block[0]:
                 case '1':
