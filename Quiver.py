@@ -426,11 +426,9 @@ def surface_quiver(quiver):
     # Return if the quiver is a surface quiver by identifying a block decomposition.
     #  Block decomposition described in section 4 of "Skew-symmetric cluster algebras of finite mutation type" arxiv:0811.1703
     #  and in FST 13.1
-
-    # easy checks
+    # easy check
     if (2<quiver.matrix).any():
         return False
-
     # constants
     n = quiver.n
     neighbors_out = [[j for j in range(n) if quiver.matrix[i,j] >0] for i in range(n)]
@@ -447,14 +445,14 @@ def surface_quiver(quiver):
     # constructors for the blocks. 
     # B_ gives the matrix, v_ gives the covering count of each vertex by that matrix.
 
-    # single arrow, out out
+    # single arrow, out out i->j
     def vI(i,l):
         return np.array([x in [i,l] for x in range(n)], dtype=np.int8)
     def BI(i,l):
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,l] += 1
         return B - np.transpose(B)
-    # oriented cycle, out out out
+    # oriented cycle, out out out i->j->k->i
     def vII(i,j,k):
         return np.array([x in [i,j,k] for x in range(n)], dtype=np.int8)
     def BII(i,j,k):
@@ -463,7 +461,7 @@ def surface_quiver(quiver):
         B[j,k] += 1
         B[k,i] += 1
         return B - np.transpose(B)
-    # sink, out dead dead
+    # sink, out dead dead j->i<-k
     def vIII(i,j,k):
         return np.array([(x==i) + 2*(x in [j,k]) for x in range(n)], dtype=np.int8)
     def BIIIa(i,j,k):
@@ -471,13 +469,13 @@ def surface_quiver(quiver):
         B[j,i] += 1
         B[k,i] += 1
         return B - np.transpose(B)
-    #source, out dead dead
+    #source, out dead dead j<-i->k
     def BIIIb(i,j,k):
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[i,k] += 1
         return B - np.transpose(B)
-    #diamond, out dead dead out
+    #diamond, out dead dead out i->j->l->i->k->l
     def vIV(i,j,k,l):
         return np.array([(x in [i,l]) + 2*(x in [j,k]) for x in range(n)], dtype=np.int8)
     def BIV(i,j,k,l):
@@ -488,7 +486,7 @@ def surface_quiver(quiver):
         B[k,l] += 1
         B[l,i] += 1
         return B - np.transpose(B)
-    #surrounded, out dead dead dead dead, i->j->k<-g->h<-j
+    #surrounded, out dead dead dead dead, i->j->k<-g->h<-j, k->i->g, i<-h
     def vV(i,j,k,g,h):
         return np.array([(x==i) + 2*(x in [j,k,g,h]) for x in range(n)], dtype=np.int8)
     def BV(i,j,k,g,h):
@@ -503,7 +501,7 @@ def surface_quiver(quiver):
         B[i,g] += 1
         return B - np.transpose(B)
 
-    #init vars
+    #init vars; these are shared among the recursive functions below via 'nonlocal'.
     B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
     v = np.zeros(n,dtype=np.int8)
     blocks = []
@@ -511,18 +509,10 @@ def surface_quiver(quiver):
         nonlocal B, v
         # check if B,v is consistent so far
         matched_verts = [i for i in range(n) if v[i]==2]
-        #  premature: outlet_verts = [i for i in range(n) if v[i]==1]
-        #do finished vertices match?
+        # do finished vertices match?
         for i,j in itertools.combinations(matched_verts, 2):
             if B[i,j] != quiver.matrix[i,j]:
                 return False
-        #for i in outlet_verts:
-        #    c=0
-        #    for j in neighbors[i]:
-        #        if j in outlet_verts:
-        #            if c >= 2:
-        #                return False
-        #            c+=1
         return True
     
     def block_decomp():
@@ -541,10 +531,6 @@ def surface_quiver(quiver):
                 unused_verts.append(i)
         if (B == quiver.matrix).all():
             return True
-
-        #if len(matched_verts)==n:
-        #    #degenerate halt state
-        #    return True
 
         def try_block(block):
             nonlocal B, v, blocks
@@ -587,7 +573,6 @@ def surface_quiver(quiver):
             B = B-Bp
             v = v-vp
             return False
-            
 
         if len(outlet_verts)==0:
             u = unused_verts[0]
@@ -666,21 +651,6 @@ def surface_quiver(quiver):
         return [True, blocks]
     else:
         return False
-
-
-
-
-    
-
-
-
-
-
-
-
-
-        
-
 
 class mutationClass():
     # Object to hold mutation-equivalent quivers
