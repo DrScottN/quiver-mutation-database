@@ -648,6 +648,9 @@ class SurfaceQuiverTests(unittest.TestCase):
         self.MIV = Quiver([[0,0,1,1,1],[0,0,-1,-1,-1],[-1,1,0,0,0],[-1,1,0,0,0],[-1,1,0,0,0]])
         self.MIVm = self.MIV.mutate(0).mutate(2).mutate(3)
 
+        self.E6 = Quiver([[0,1,0,0,0,0],[-1,0,1,0,0,0],[0,-1,0,-1,-1,0],[0,0,1,0,0,0],[0,0,1,0,0,1],[0,0,0,0,-1,0]])
+        self.X6 = Quiver([[0,1,-1,1,-1,-1],[-1,0,2,0,0,0],[1,-2,0,0,0,0],[-1,0,0,0,2,0],[1,0,0,-2,0,0],[1,0,0,0,0,0]])
+
 
     def testSurfaceBlocks(self):
         for Q in [self.BI, self.BII, self.BIIIa, self.BIIIb, self.BIV, self.BV]:
@@ -661,7 +664,7 @@ class SurfaceQuiverTests(unittest.TestCase):
                     count_zero += 1
                 assert len(b[1])==len(set(b[1])), f"block has repeated vertex {Q.matrix, b}"
             assert count_zero <= 2, f"index zero was too prevalent {Q.matrix, r}"
-        for M in [self.MI, self.MII, self.MIII, self.MIV]:
+        for M in [self.MI, self.MII, self.MIII, self.MIV, self.E6, self.X6]:
             assert not surface_quiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surface_quiver(M)[1]}"
 
     def testSurfaceBlocksMutated(self):
@@ -676,9 +679,9 @@ class SurfaceQuiverTests(unittest.TestCase):
             assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
             assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
 
-        for M in [self.MI, self.MII, self.MIII, self.MIV]:
-            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,3,4])), f"incorrectly recognizes permuted block {[1,0,2,3,4], M.matrix} as {surface_quiver(isomorphicQuiver(M,p1))}"
-            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3])), f"incorrectly recognizes permuted block {[1,0,2,4,3], M.matrix}"
+        for M in [self.MI, self.MII, self.MIII, self.MIV, self.E6, self.X6]:
+            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surface_quiver(isomorphicQuiver(M,p1))}"
+            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
 
 
 class IsomorphismClassTests(unittest.TestCase):
