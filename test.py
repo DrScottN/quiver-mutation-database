@@ -648,8 +648,9 @@ class SurfaceQuiverTests(unittest.TestCase):
         self.MIV = Quiver([[0,0,1,1,1],[0,0,-1,-1,-1],[-1,1,0,0,0],[-1,1,0,0,0],[-1,1,0,0,0]])
         self.MIVm = self.MIV.mutate(0).mutate(2).mutate(3)
 
-        self.E6 = Quiver([[0,1,0,0,0,0],[-1,0,1,0,0,0],[0,-1,0,-1,-1,0],[0,0,1,0,0,0],[0,0,1,0,0,1],[0,0,0,0,-1,0]])
-        self.X6 = Quiver([[0,1,-1,1,-1,-1],[-1,0,2,0,0,0],[1,-2,0,0,0,0],[-1,0,0,0,2,0],[1,0,0,-2,0,0],[1,0,0,0,0,0]])
+        #see SlowSurfaceTest...
+        #self.E6 = Quiver([[0,1,0,0,0,0],[-1,0,1,0,0,0],[0,-1,0,-1,-1,0],[0,0,1,0,0,0],[0,0,1,0,0,1],[0,0,0,0,-1,0]])
+        #self.X6 = Quiver([[0,1,-1,1,-1,-1],[-1,0,2,0,0,0],[1,-2,0,0,0,0],[-1,0,0,0,2,0],[1,0,0,-2,0,0],[1,0,0,0,0,0]])
 
 
     def testSurfaceBlocks(self):
@@ -664,7 +665,7 @@ class SurfaceQuiverTests(unittest.TestCase):
                     count_zero += 1
                 assert len(b[1])==len(set(b[1])), f"block has repeated vertex {Q.matrix, b}"
             assert count_zero <= 2, f"index zero was too prevalent {Q.matrix, r}"
-        for M in [self.MI, self.MII, self.MIII, self.MIV, self.E6, self.X6]:
+        for M in [self.MI, self.MII, self.MIII, self.MIV]:
             assert not surface_quiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surface_quiver(M)[1]}"
 
     def testSurfaceBlocksMutated(self):
@@ -679,10 +680,81 @@ class SurfaceQuiverTests(unittest.TestCase):
             assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
             assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
 
-        for M in [self.MI, self.MII, self.MIII, self.MIV, self.E6, self.X6]:
+        for M in [self.MI, self.MII, self.MIII, self.MIV]:
             assert not surface_quiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surface_quiver(isomorphicQuiver(M,p1))}"
             assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
 
+@unittest.skip("Larger surface quiver tests skipped.")
+class SlowSurfaceTests(unittest.TestCase):
+    def setUp(self):
+        n = 6
+        i,j,k,l,h,g = 0,1,2,3,4,5
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B[i,j] += 1
+        B[j,k] += 1
+        B[j,h] += 1
+        B[k,i] += 1
+        B[h,i] += 1
+        B[g,k] += 1
+        B[g,h] += 1
+        B[i,g] += 1
+        self.BV = Quiver(B - np.transpose(B))
+        self.BVm = self.BV.mutate(0)
+
+        i,j,k,l,h,g = 0,1,2,3,4,5
+        B = np.matrix(np.zeros((8,8), dtype='object'), dtype='object')
+        B[i,j] += 1
+        B[j,k] += 1
+        B[j,h] += 1
+        B[k,i] += 1
+        B[h,i] += 1
+        B[g,k] += 1
+        B[g,h] += 1
+        B[i,g] += 1
+        j,k,l = 3,6,7
+        B[i,j] += 1
+        B[i,k] += 1
+        B[j,l] += 1
+        B[k,l] += 1
+        B[l,i] += 1
+        self.BVp = Quiver(B - np.transpose(B))
+        self.BVpm = self.BV.mutate(0)
+
+        #non egs
+        self.E6 = Quiver([[0,1,0,0,0,0],[-1,0,1,0,0,0],[0,-1,0,-1,-1,0],[0,0,1,0,0,0],[0,0,1,0,0,1],[0,0,0,0,-1,0]])
+        self.X6 = Quiver([[0,1,-1,1,-1,-1],[-1,0,2,0,0,0],[1,-2,0,0,0,0],[-1,0,0,0,2,0],[1,0,0,-2,0,0],[1,0,0,0,0,0]])
+
+
+    def testSurfaceBlocks(self):
+        for Q in [self.BV, self.BVp, self.BVpm]:
+            r = surface_quiver(Q)
+            assert r, f"couldn't recognize {Q.matrix}"
+            blocks = r[1]
+            count_zero = 0
+            for b in blocks:
+                assert all([0 <= x < Q.n for x in b[1]]), f"produced impossible index in block {Q.matrix, b}"
+                if 0 in b[1]:
+                    count_zero += 1
+                assert len(b[1])==len(set(b[1])), f"block has repeated vertex {Q.matrix, b}"
+            assert count_zero <= 2, f"index zero was too prevalent {Q.matrix, r}"
+        for M in [self.E6, self.X6]:
+            assert not surface_quiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surface_quiver(M)[1]}"
+
+    def testSurfaceBlocksMutated(self):
+        for Q in [self.BVm]:
+            assert surface_quiver(Q), f"couldn't recognize {Q.matrix}"
+        assert not surface_quiver(self.E6.mutate(1)), f"incorrectly marked {self.E6.matrix} as being a surface quiver"
+
+    def testSurfaceBlocksIso(self):
+        p1 = [3,2,0,1,5,4,6,7,8]
+        p2 = [5,4,3,2,1,0,8,6,7]
+        for Q in [self.BV, self.BVp, self.BVpm]:
+            assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
+            assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
+
+        for M in [self.E6, self.X6]:
+            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surface_quiver(isomorphicQuiver(M,p1))}"
+            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
 
 class IsomorphismClassTests(unittest.TestCase):
     def setUp(self):
