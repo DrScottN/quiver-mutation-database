@@ -397,9 +397,13 @@ class Quiver():
 
 
 def eigenvalues(M):
-    # Computes the eigenvalues of the given matrix, cast to float.
+    # Computes the eigenvalues of the given matrix, cast to int64.
     #   Note that the rank is a mutation invariant but not these values.
-    return np.linalg.eig(np.float64(M)).eigenvalues
+    return np.linalg.eig(np.int64(M)).eigenvalues
+
+def matrix_rank(M):
+    # Computes the rank of a given matrix, cast to int64
+    return np.linalg.matrix_rank(np.int64(M))
 
 
 def sink_set(quiver):
@@ -709,6 +713,7 @@ class mutationClass():
         self.leastEdges = self.initialQ.numEdges
         self.size = 1
         self.gcdVector = self.initialQ.gcd_vector()
+        self.B_rank = matrix_rank(self.initialQ.matrix)
 
 
         if self.initialQ.acyclic():

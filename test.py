@@ -503,36 +503,43 @@ class MutationClassInitTests(unittest.TestCase):
         self.acyclicL = []
         self.gcd_vecs = []
         self.members = []
+        self.mat_ranks = []
         Q = isolatedQuiver(4)
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
         self.gcd_vecs.append((0,0,0,0))
         self.members.append(Q)
+        self.mat_ranks.append(0)
         Q = Quiver(np.matrix([[0,-3,0,0],[3,0,0,0], [0,0,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
         self.gcd_vecs.append((3,3,0,0))
         self.members.append(Q)
+        self.mat_ranks.append(2)
         Q = Quiver(np.matrix([[0,3,2,0],[-3,0,3,0],[-2,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
         self.gcd_vecs.append((1,3,1,0))
         self.members.append(Q)
+        self.mat_ranks.append(2)
         Q = Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
         self.gcd_vecs.append((2,2,2,0))
         self.members.append(Q)
+        self.mat_ranks.append(2)
         R = Quiver(-np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(vertices=[R,Q], edges={R: {Q:1}, Q:{R:2}}, perms=permutations(4)))
         self.acyclicL.append(False)
         self.gcd_vecs.append((2,2,2,0))
         self.members.append(Q)
+        self.mat_ranks.append(2)
         Q = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
         self.gcd_vecs.append((3,3,3,0))
         self.members.append(Q)
+        self.mat_ranks.append(2)
 
         
     def testMembership(self):
@@ -546,6 +553,10 @@ class MutationClassInitTests(unittest.TestCase):
     def testGCDInit(self):
         for i in range(len(self.classes)):
             assert self.classes[i].gcdVector == self.gcd_vecs[i], f"Incorrect gcd_vector {i}"
+
+    def testBRankInit(self):
+        for i in range(len(self.classes)):
+            assert self.classes[i].B_rank == self.mat_ranks[i], f"Incorrect matrix rank {i}"
 
     def testEq(self):
         assert self.classes[0] != self.classes[1]
@@ -822,11 +833,12 @@ class SlowSurfaceTests(unittest.TestCase):
             assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
 
 
-class TestEigenvalues(unittest.TestCase):
+class TestLinAlg(unittest.TestCase):
     def setUp(self):
         self.quiver = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
         self.M = np.matrix([[2,0],[0,3]])
         self.N = np.matrix([[2,-1],[-2,2]])
+        self.vortex = Quiver(np.matrix([[0,1,2,3],[-1,0,2,-2],[-2,-2,0,3],[-3,2,3,0]]))
 
     def testEign(self):
         np.testing.assert_almost_equal(eigenvalues(self.quiver.matrix), np.array([0+3*np.emath.sqrt(-3.), 0-3*np.emath.sqrt(-3.), 0, 0]))
@@ -834,6 +846,11 @@ class TestEigenvalues(unittest.TestCase):
         np.testing.assert_almost_equal(eigenvalues(self.N), np.array([2.+np.sqrt(2.), 2.-np.sqrt(2.)]))
 
 
+    def testRank(self):
+        assert 2 == matrix_rank(self.quiver.matrix), f"incorrect rank of disconnected markov"
+        assert 2 == matrix_rank(self.M)
+        assert 0 == matrix_rank(isolatedQuiver(4).matrix)
+        assert 4 == matrix_rank(self.vortex.matrix)
 
 class IsomorphismClassTests(unittest.TestCase):
     def setUp(self):
