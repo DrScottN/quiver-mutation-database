@@ -520,6 +520,7 @@ class mutationClass():
         self.couldBeFinitePFP = True
 
         self.hasMutationCycle = Unknown
+        self.mutationAbundant = False if not self.initialQ.abundant() else Unknown
 
     def __str__(self):
         return str(self.representative())
@@ -693,6 +694,7 @@ class mutationClass():
                     self.couldBeMutationComplete = self.couldBeMutationComplete and not P.complete()
                     self.couldBeMutationCyclic = self.couldBeMutationCyclic and not P.acyclic()
                     self.mutationAcyclic = True if P.acyclic() else self.mutationAcyclic
+                    self.mutationAbundant = self.mutationAbundant and P.abundant()
                     
                     if self.couldBeMutationCyclic and self.mutationCyclicSubquiver is None:
                         if P.hasMutCyclicSubquiver():
@@ -730,6 +732,7 @@ class mutationClass():
             self.hasVortex = not self.couldBeMutationVortexFree
             self.mutationComplete = self.couldBeMutationComplete
             self.hasMutationCycle = False if self.hasMutationCycle is Unknown else self.hasMutationCycle
+            self.mutationAbundant = True if self.mutationAbundant is Unknown else self.mutationAbundant
         self.size = len(self.vertices)
 
         return newForefront
