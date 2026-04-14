@@ -5,6 +5,10 @@ import itertools
 import math
 
 import polynomial
+from unknown import unknown
+
+Unknown = unknown()
+
 
 class Quiver():
     def __init__(self, matrix, validate = True):
@@ -496,10 +500,12 @@ class mutationClass():
         self.finite = None
         self.finiteFP = None
         self.finitePFP = None
-
+        
         self.couldBeFinite = True
         self.couldBeFiniteFP = True
         self.couldBeFinitePFP = True
+
+        self.hasMutationCycle = Unknown
 
     def __str__(self):
         return str(self.representative())
@@ -649,6 +655,8 @@ class mutationClass():
     def update(self):
         # updates the mutation class by mutating every quiver on the edge in every possible direction
         # Naturally throws away forks and pre-forks if they have the same point of return as where we mutated
+        # This function has a lot of room to benefit from parallelization
+        # As the quivers in the forefront are practically independent from each other
         newForefront = []
 
         for Q in self.forefront:
@@ -692,7 +700,10 @@ class mutationClass():
                         self.possibleIsoReps.append(I)
                 else:
                     # This only occurs if the quiver we find is not a new one
+                    # Hence a mutation cycle has appeared
                     self.edges[P][Q] = k
+                    self.hasMutationCycle = True
+
 
         self.forefront = newForefront # Update the forefront to be the new quivers we saw this round
 
@@ -703,7 +714,7 @@ class mutationClass():
             self.mutationAcyclic = not self.couldBeMutationCyclic
             self.hasVortex = not self.couldBeMutationVortexFree
             self.mutationComplete = self.couldBeMutationComplete
-
+            self.hasMutationCycle = False if self.hasMutationCycle is Unknown else self.hasMutationCycle
         self.size = len(self.vertices)
 
         return newForefront

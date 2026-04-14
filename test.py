@@ -655,5 +655,17 @@ class IsomorphismClassTests(unittest.TestCase):
         assert self.A3.mutate(0).mutate(2) in isomorphismClass(self.A3, permutations(3))
         assert self.A3.mutate(1).mutate(2) in isomorphismClass(self.A3, permutations(3))
 
+class MutationCycleTests(unittest.TestCase):
+    def setUp(self):
+        self.A3Class = mutationClass(Quiver(np.matrix([[0,1,0,0],[-1,0,1,0],[0,-1,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.A3Class.update()
+        self.A3Class.update()
+        self.A3Class.update()
+        self.A3Class.update()
+        self.A3Class.update()
+
+    def testMutCycleDetected(self):
+        assert self.A3Class.hasMutationCycle
+
 if __name__ == "__main__":
     unittest.main()
