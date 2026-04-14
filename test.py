@@ -591,8 +591,52 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.A3Class.mutationAcyclic
         assert self.AcyclicEventuallyClass.mutationAcyclic
         
+class SurfaceQuiverTests(unittest.TestCase):
+    def setUp(self):
+        n = 6
+        i,j,k,l,h,g = 0,1,2,3,4,5
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B[i,l] += 1
+        self.BI = B - np.transpose(B)
 
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B[i,j] += 1
+        B[j,k] += 1
+        B[k,i] += 1
+        self.BII = B - np.transpose(B)
 
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B[j,i] += 1
+        B[k,i] += 1
+        self.BIIIa = B - np.transpose(B)
+
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B[i,j] += 1
+        B[i,k] += 1
+        self.BIIIb = B - np.transpose(B)
+
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B[i,j] += 1
+        B[i,k] += 1
+        B[j,l] += 1
+        B[k,l] += 1
+        B[l,i] += 1
+        self.BIV = B - np.transpose(B)
+
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B[i,j] += 1
+        B[j,k] += 1
+        B[j,h] += 1
+        B[k,i] += 1
+        B[h,i] += 1
+        B[g,k] += 1
+        B[g,h] += 1
+        B[i,g] += 1
+        self.BV = B - np.transpose(B)
+
+    def testSurfaceBlocks(self):
+        for B in [self.BI, self.BII, self.BIIIa, self.BIIIb, self.BIV, self.BV]:
+            assert surface_quiver(Quiver(B)), f"couldn't recognize {B}"
 
 class IsomorphismClassTests(unittest.TestCase):
     def setUp(self):

@@ -428,7 +428,7 @@ def surface_quiver(quiver):
     #  and in FST 13.1
 
     # easy checks
-    if any(2<quiver.matrix):
+    if (2<quiver.matrix).any():
         return False
 
     # constants
@@ -438,7 +438,7 @@ def surface_quiver(quiver):
     neighbor_count = [len(neighbors_in[i] + neighbors_out[i]) for i in range(n)]
 
     #more easy checks
-    if max([len(neighbors[i]) for i in range(n)]) > 8:
+    if max(neighbor_count) > 8:
         return False
     if max([len(neighbors_in[i]) for i in range(n)]) > 4:
         return False
@@ -451,14 +451,14 @@ def surface_quiver(quiver):
     def vI(i,l):
         return np.array([x in [i,l] for x in range(n)], dtype=numpy.int8)
     def BI(i,l):
-        B = np.zero_matrix(n, dtype='object')
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,l] += 1
         return B - np.transpose(B)
     # oriented cycle, out out out
     def vII(i,j,k):
         return np.array([x in [i,j,k] for x in range(n)], dtype=numpy.int8)
     def BII(i,j,k):
-        B = np.zero_matrix(n, dtype='object')
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[j,k] += 1
         B[k,i] += 1
@@ -467,13 +467,13 @@ def surface_quiver(quiver):
     def vIII(i,j,k):
         return np.array([x==i + 2*(x in [j,k]) for x in range(n)], dtype=numpy.int8)
     def BIIIa(i,j,k):
-        B = np.zero_matrix(n, dtype='object')
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[j,i] += 1
         B[k,i] += 1
         return B - np.transpose(B)
     #source, out dead dead
     def BIIIb(i,j,k):
-        B = np.zero_matrix(n, dtype='object')
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[i,k] += 1
         return B - np.transpose(B)
@@ -481,18 +481,18 @@ def surface_quiver(quiver):
     def vIV(i,j,k,l):
         return np.array([(x in [i,l]) + 2*(x in [j,k]) for x in range(n)], dtype=numpy.int8)
     def BIV(i,j,k,l):
-        B = np.zero_matrix(n, dtype='object')
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[i,k] += 1
         B[j,l] += 1
         B[k,l] += 1
         B[l,i] += 1
         return B - np.transpose(B)
-    #surrounded, out dead dead dead dead
+    #surrounded, out dead dead dead dead, i->j->k<-g->h<-j
     def vV(i,j,k,g,h):
         return np.array([x==i + 2*(x in [j,k,g,h]) for x in range(n)], dtype=numpy.int8)
     def BV(i,j,k,g,h):
-        B = np.zero_matrix(n, dtype='object')
+        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[j,k] += 1
         B[j,h] += 1
@@ -504,7 +504,7 @@ def surface_quiver(quiver):
         return B - np.transpose(B)
 
     #init vars
-    B = np.zero_matrix(n, dtype='object')
+    B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
     v = np.zeros(n,dtype=numpy.int8)
     blocks = []
     def check_status():
@@ -537,10 +537,12 @@ def surface_quiver(quiver):
                 matched_verts.append(i)
             else:
                 unused_verts.append(i)
-
-        if len(matched_verts)==n:
-            #degenerate halt state
+        if B == self.quiver:
             return True
+
+        #if len(matched_verts)==n:
+        #    #degenerate halt state
+        #    return True
 
         def try_block(block):
             match block[0]:
@@ -578,6 +580,7 @@ def surface_quiver(quiver):
             
                 if block_decomp():
                     return True
+                blocks.pop()
             B = B-Bp
             v = v-vp
             return False
@@ -585,7 +588,7 @@ def surface_quiver(quiver):
 
         if len(outlet_verts)==0:
             u = unused_verts[0]
-            #attach one dead and recurse, or one out then drop down
+            #attach one dead and recurse, or drop down
             #dead => BIII (1 nbr), BIV (2 nbr), BV (3 nbr)
             #BIII
             match neighbor_count[u]:
@@ -594,26 +597,72 @@ def surface_quiver(quiver):
                     i = (neighbors_in[u]+neighbors_out[u])[0]
                     if v[i]!=2:
                         if quiver.matrix[u,i] >0:
-                            for j in [x for x in neighbors_in[i] if neighbor_count[x]==1]:
+                            for j in [x for x in neighbors_in[i] if neighbor_count[x]==1 and v[x]==0]:
                                 if try_block(('3a',(i,u,j))): return True
                         else:
-                            for j in [x for x in neighbors_out[i] if neighbor_count[x]==1]:
+                            for j in [x for x in neighbors_out[i] if neighbor_count[x]==1 and v[x]==0]:
                                 if try_block(('3b',(i,u,j))): return True
                 case 2:
                     if len(neighbors_in[u]) == len(neighbors_out[u]):
                         # i -> u -> l -> i -> k -> l
                         i,l = neighbors_in[u][0], neighbors_out[u][0]
                         if v[i]!=2 and v[l]!=2 and i in neighbors_out[l]:
-                            for k in [x for x in neighbors_out[i] if x in neighbors_in[l]]:
+                            for k in [x for x in neighbors_out[i] if x in neighbors_in[l] and v[x]==0]:
                                 if try_block(('4', (i,u,k,l))): return True
-                case 3:
-                    pass #todo
-
-
-
+                case 3: 
+                    if len(neighbors_out[u])==1: 
+                        #i->j->u<-g->h<-j
+                        i = neighbors_out[u]
+                        j,g = neighbors_in[u]
+                        if len(neighbors_out[j])==2:
+                            h = neighbors_out[j][0] if neighbors_out[j][1]==u else neighbors_out[j][1]
+                            if try_block(('5', (i,j,u,g,h))): return True
+                        
+                    elif len(neighbors_in[u])==1: 
+                        #i->j->u<-g->h<-j
+                        i = neighbors_in[u]
+                        j,g = neighbors_out[u]
+                        if len(neighbors_in[j])==2:
+                            h = neighbors_in[j][0] if neighbors_in[j][1]==u else neighbors_in[j][1]
+                            if try_block(('5', (i,j,u,g,h))): return True
         else:
             u = outlet_verts[0]
         #now have u with one block attached.
+        # outlet => B1 (i or j) B2 BIIIab BIV BV
+        # this version tries with no assumptions; could instead check nbrs+current count
+        for i in outlet_verts+unused_verts: #2+ outlets
+            if i==u: continue
+            if try_block(('1',(i,u))): return True
+            if try_block(('1',(u,i))): return True
+            for j in outlet_verts+unused_verts:
+                if j in [i,u]: continue
+                if try_block(('2',(u,i,j))): return True
+                if try_block(('2',(u,j,i))): return True
+            if i not in neighbors_in[u]: #u->i
+                for j,k in itertools.combinations([x for x in neighbors_out[i] if x in neighbors_in[u]], 2):
+                    if try_block(('4',(i,j,k,u))): return True
+            if i not in neighbors_out[u]: #i->u
+                for j,k in itertools.combinations([x for x in neighbors_in[i] if x in neighbors_out[u]], 2):
+                    if try_block(('4',(u,j,k,i))): return True
+        for i,j in itertools.combinations([x for x in neighbors_out[u] if v[x]==0], 2): #1 outlet, outset
+            match (neighbor_count[i], neighbor_count[j]):
+                case (1,1):
+                    if try_block(('3b',(u,i,j))): return True
+                case (3,3):
+                    if len(neighbors_out[i])==2:
+                        g,h = neighbor_out[i]
+                        if try_block(('5',(u,i,g,j,h))): return True
+        for i,j in itertools.combinations([x for x in neighbors_in[u] if v[x]==0], 2):
+            if try_block(('3a',(u,i,j))): return True
+        return
+
+    if block_decomp():
+        return [True, blocks]
+    else:
+        return False
+
+
+
 
     
 
