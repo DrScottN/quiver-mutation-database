@@ -390,6 +390,17 @@ class Quiver():
             det += a * sign_perm(p)
         return det
 
+    def gcd_vector(self):
+        # Computes the gcd vector of self, as a tuple with ith entry the gcd of row i.
+        return tuple(math.gcd(*[self.matrix[i,j] for j in range(self.n)]) for i in range(self.n))
+        
+
+
+def eigenvalues(M):
+    # Computes the eigenvalues of the given matrix, cast to float.
+    #   Note that the rank is a mutation invariant but not these values.
+    return np.linalg.eig(np.float64(M)).eigenvalues
+
 
 def sink_set(quiver):
     # Calculates all sink/source mutation equivalent quivers
@@ -468,17 +479,20 @@ class mutationClass():
         self.determinant = self.initialQ.determinant()
         self.leastEdges = self.initialQ.numEdges
         self.size = 1
+        self.gcdVector = self.initialQ.gcd_vector()
+
 
         if self.initialQ.acyclic():
             self.mutationAcyclic = True
             self.mutationCyclicSubquiver = False
+            self.mutationCyclicSubquiverWitness = None
             self.couldBeMutationCyclic = False
         else:
             if self.initialQ.hasMutCyclicSubquiver():
-                self.mutationCyclicSubquiver = True
-                self.mutationAcyclic = False
+                self.foundCyclicSubquiver(self.initialQ)
             else:
                 self.mutationCyclicSubquiver = None
+                self.mutationCyclicSubquiverWitness = None
                 self.mutationAcyclic = None
             self.couldBeMutationCyclic = True
 
@@ -537,7 +551,7 @@ class mutationClass():
         self.edges = copy.deepcopy(edges)
         self.forefront = []
         self.numVertices = self.vertices[0].n
-
+        
         # Fix any messed up edges
         for Q in self.edges:
             for P in self.edges[Q]:
@@ -681,7 +695,8 @@ class mutationClass():
                     self.mutationAcyclic = True if P.acyclic() else self.mutationAcyclic
                     
                     if self.couldBeMutationCyclic and self.mutationCyclicSubquiver is None:
-                        self.mutationCyclicSubquiver = True if P.hasMutCyclicSubquiver() else self.mutationCyclicSubquiver
+                        if P.hasMutCyclicSubquiver():
+                            self.foundCyclicSubquiver(P)
                     
                     # Update vertices, edges, and forefront
                     self.edges[P] = {Q : k}
@@ -722,6 +737,13 @@ class mutationClass():
     def updateInvariants(self):
         # Systematically updates all the invariants
         pass
+
+    def foundCyclicSubquiver(self, Q):
+        """Sets MutationCyclicSubquiver, not(MutationAcyclic), and sets the witness to Q."""
+        self.mutationCyclicSubquiver = True
+        self.mutationAcyclic = False
+        self.mutationCyclicSubquiverWitness = Q
+
 
 def isolatedQuiver(n):
     # returns the quiver with 0 arrows between n vertices
