@@ -422,6 +422,210 @@ def generate_acyclics_from_Alexander(alex):
 
         yield Q
 
+def surface_quiver(quiver):
+    # Return if the quiver is a surface quiver by identifying a block decomposition.
+    #  Block decomposition described in section 4 of "Skew-symmetric cluster algebras of finite mutation type" arxiv:0811.1703
+    #  and in FST 13.1
+
+    # easy checks
+    if any(2<quiver.matrix):
+        return False
+
+    # constants
+    n = quiver.n
+    neighbors_out = [[j for j in range(n) if quiver.matrix[i,j] >0] for i in range(n)]
+    neighbors_in = [[j for j in range(n) if quiver.matrix[i,j] <0] for i in range(n)]
+    neighbor_count = [len(neighbors_in[i] + neighbors_out[i]) for i in range(n)]
+
+    #more easy checks
+    if max([len(neighbors[i]) for i in range(n)]) > 8:
+        return False
+    if max([len(neighbors_in[i]) for i in range(n)]) > 4:
+        return False
+    if max([len(neighbors_out[i]) for i in range(n)]) > 4:
+        return False
+    # constructors for the blocks. 
+    # B_ gives the matrix, v_ gives the covering count of each vertex by that matrix.
+
+    # single arrow, out out
+    def vI(i,l):
+        return np.array([x in [i,l] for x in range(n)], dtype=numpy.int8)
+    def BI(i,l):
+        B = np.zero_matrix(n, dtype='object')
+        B[i,l] += 1
+        return B - np.transpose(B)
+    # oriented cycle, out out out
+    def vII(i,j,k):
+        return np.array([x in [i,j,k] for x in range(n)], dtype=numpy.int8)
+    def BII(i,j,k):
+        B = np.zero_matrix(n, dtype='object')
+        B[i,j] += 1
+        B[j,k] += 1
+        B[k,i] += 1
+        return B - np.transpose(B)
+    # sink, out dead dead
+    def vIII(i,j,k):
+        return np.array([x==i + 2*(x in [j,k]) for x in range(n)], dtype=numpy.int8)
+    def BIIIa(i,j,k):
+        B = np.zero_matrix(n, dtype='object')
+        B[j,i] += 1
+        B[k,i] += 1
+        return B - np.transpose(B)
+    #source, out dead dead
+    def BIIIb(i,j,k):
+        B = np.zero_matrix(n, dtype='object')
+        B[i,j] += 1
+        B[i,k] += 1
+        return B - np.transpose(B)
+    #diamond, out dead dead out
+    def vIV(i,j,k,l):
+        return np.array([(x in [i,l]) + 2*(x in [j,k]) for x in range(n)], dtype=numpy.int8)
+    def BIV(i,j,k,l):
+        B = np.zero_matrix(n, dtype='object')
+        B[i,j] += 1
+        B[i,k] += 1
+        B[j,l] += 1
+        B[k,l] += 1
+        B[l,i] += 1
+        return B - np.transpose(B)
+    #surrounded, out dead dead dead dead
+    def vV(i,j,k,g,h):
+        return np.array([x==i + 2*(x in [j,k,g,h]) for x in range(n)], dtype=numpy.int8)
+    def BV(i,j,k,g,h):
+        B = np.zero_matrix(n, dtype='object')
+        B[i,j] += 1
+        B[j,k] += 1
+        B[j,h] += 1
+        B[k,i] += 1
+        B[h,i] += 1
+        B[g,k] += 1
+        B[g,h] += 1
+        B[i,g] += 1
+        return B - np.transpose(B)
+
+    #init vars
+    B = np.zero_matrix(n, dtype='object')
+    v = np.zeros(n,dtype=numpy.int8)
+    blocks = []
+    def check_status():
+        # check if B,v is consistent so far
+        matched_verts = [i for i in range(n) if v[i]==2]
+        #  premature: outlet_verts = [i for i in range(n) if v[i]==1]
+        #do finished vertices match?
+        for i,j in itertools.combinations(matched_verts, 2):
+            if B[i,j] != quiver.matrix[i,j]:
+                return False
+        #for i in outlet_verts:
+        #    c=0
+        #    for j in neighbors[i]:
+        #        if j in outlet_verts:
+        #            if c >= 2:
+        #                return False
+        #            c+=1
+        return True
+    
+    def block_decomp():
+        # recursive function for finding a block decomposition
+        #  B is matrix so far, v counts how matched vertices are (0 is unused, 1 is out, 2 is filled)
+        outlet_verts = []
+        matched_verts = []
+        unused_verts = []
+        for i in range(n):
+            if v[i]==1:
+                outlet_verts.append(i)
+            elif v[i]==2:
+                matched_verts.append(i)
+            else:
+                unused_verts.append(i)
+
+        if len(matched_verts)==n:
+            #degenerate halt state
+            return True
+
+        def try_block(block):
+            match block[0]:
+                case '1':
+                    vp = vI(*block[1])
+                case '2':
+                    vp = vII(*block[1])
+                case '3a':
+                    vp = vIII(*block[1])
+                case '3b':
+                    vp = vIII(*block[1])
+                case '4':
+                    vp = vIV(*block[1])
+                case '5':
+                    vp = vV(*block[1])
+            if any((v+vp)>2):
+                return False
+            match block[0]:
+                case '1':
+                    Bp = BI(*block[1])
+                case '2':
+                    Bp = BII(*block[1])
+                case '3a':
+                    Bp = BIIIa(*block[1])
+                case '3b':
+                    Bp = BIIIb(*block[1])
+                case '4':
+                    Bp = BIV(*block[1])
+                case '5':
+                    Bp = BV(*block[1])
+            B = B+Bp
+            v = v+vp
+            if check_status():
+                blocks.append(block)
+            
+                if block_decomp():
+                    return True
+            B = B-Bp
+            v = v-vp
+            return False
+            
+
+        if len(outlet_verts)==0:
+            u = unused_verts[0]
+            #attach one dead and recurse, or one out then drop down
+            #dead => BIII (1 nbr), BIV (2 nbr), BV (3 nbr)
+            #BIII
+            match neighbor_count[u]:
+                case 1:
+                    # u -> i <- j or u <- i -> j
+                    i = (neighbors_in[u]+neighbors_out[u])[0]
+                    if v[i]!=2:
+                        if quiver.matrix[u,i] >0:
+                            for j in [x for x in neighbors_in[i] if neighbor_count[x]==1]:
+                                if try_block(('3a',(i,u,j))): return True
+                        else:
+                            for j in [x for x in neighbors_out[i] if neighbor_count[x]==1]:
+                                if try_block(('3b',(i,u,j))): return True
+                case 2:
+                    if len(neighbors_in[u]) == len(neighbors_out[u]):
+                        # i -> u -> l -> i -> k -> l
+                        i,l = neighbors_in[u][0], neighbors_out[u][0]
+                        if v[i]!=2 and v[l]!=2 and i in neighbors_out[l]:
+                            for k in [x for x in neighbors_out[i] if x in neighbors_in[l]]:
+                                if try_block(('4', (i,u,k,l))): return True
+                case 3:
+                    pass #todo
+
+
+
+        else:
+            u = outlet_verts[0]
+        #now have u with one block attached.
+
+    
+
+
+
+
+
+
+
+
+        
+
 
 class mutationClass():
     # Object to hold mutation-equivalent quivers
