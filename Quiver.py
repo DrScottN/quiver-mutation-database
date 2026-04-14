@@ -591,6 +591,9 @@ def surface_quiver(quiver):
 
         if len(outlet_verts)==0:
             u = unused_verts[0]
+            if neighbor_count[u]==0: #isolated vertex
+                v[u]=2
+                return block_decomp()
             #attach one dead and recurse, or drop down
             #dead => BIII (1 nbr), BIV (2 nbr), BV (3 nbr)
             #BIII
@@ -600,10 +603,10 @@ def surface_quiver(quiver):
                     i = (neighbors_in[u]+neighbors_out[u])[0]
                     if v[i]!=2:
                         if quiver.matrix[u,i] >0:
-                            for j in [x for x in neighbors_in[i] if neighbor_count[x]==1 and v[x]==0]:
+                            for j in [x for x in neighbors_in[i] if neighbor_count[x]==1 and v[x]==0 and x!=u]:
                                 if try_block(('3a',(i,u,j))): return True
                         else:
-                            for j in [x for x in neighbors_out[i] if neighbor_count[x]==1 and v[x]==0]:
+                            for j in [x for x in neighbors_out[i] if neighbor_count[x]==1 and v[x]==0 and x!=u]:
                                 if try_block(('3b',(i,u,j))): return True
                 case 2:
                     if len(neighbors_in[u]) == len(neighbors_out[u]):
@@ -653,7 +656,7 @@ def surface_quiver(quiver):
                     if try_block(('3b',(u,i,j))): return True
                 case (3,3):
                     if len(neighbors_out[i])==2:
-                        g,h = neighbor_out[i]
+                        g,h = neighbors_out[i]
                         if try_block(('5',(u,i,g,j,h))): return True
         for i,j in itertools.combinations([x for x in neighbors_in[u] if v[x]==0], 2):
             if try_block(('3a',(u,i,j))): return True

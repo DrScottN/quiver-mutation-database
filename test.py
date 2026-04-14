@@ -597,23 +597,26 @@ class SurfaceQuiverTests(unittest.TestCase):
         i,j,k,l,h,g = 0,1,2,3,4,5
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,l] += 1
-        self.BI = B - np.transpose(B)
+        self.BI = Quiver(B - np.transpose(B))
+        self.BIm = self.BI.mutate(0)
 
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[j,k] += 1
         B[k,i] += 1
-        self.BII = B - np.transpose(B)
+        self.BII = Quiver(B - np.transpose(B))
+        self.BIIm = self.BII.mutate(0).mutate(1).mutate(2).mutate(1)
 
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[j,i] += 1
         B[k,i] += 1
-        self.BIIIa = B - np.transpose(B)
+        self.BIIIa = Quiver(B - np.transpose(B))
+        self.BIIIam = self.BIIIa.mutate(0)
 
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[i,k] += 1
-        self.BIIIb = B - np.transpose(B)
+        self.BIIIb = Quiver(B - np.transpose(B))
 
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
@@ -621,7 +624,7 @@ class SurfaceQuiverTests(unittest.TestCase):
         B[j,l] += 1
         B[k,l] += 1
         B[l,i] += 1
-        self.BIV = B - np.transpose(B)
+        self.BIV = Quiver(B - np.transpose(B))
 
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
@@ -632,11 +635,51 @@ class SurfaceQuiverTests(unittest.TestCase):
         B[g,k] += 1
         B[g,h] += 1
         B[i,g] += 1
-        self.BV = B - np.transpose(B)
+        self.BV = Quiver(B - np.transpose(B))
+        self.BVm = self.BV.mutate(0)
+
+        #non egs
+        self.MI = Quiver([[0,3],[-3,0]])
+
+        self.MII = Quiver([[0,2,0],[-2,0,2],[0,-2,0]])
+
+        self.MIII = Quiver([[0,2,0],[-2,0,1],[0,-1,0]])
+
+        self.MIV = Quiver([[0,0,1,1,1],[0,0,-1,-1,-1],[-1,1,0,0,0],[-1,1,0,0,0],[-1,1,0,0,0]])
+        self.MIVm = self.MIV.mutate(0).mutate(2).mutate(3)
+
 
     def testSurfaceBlocks(self):
-        for B in [self.BI, self.BII, self.BIIIa, self.BIIIb, self.BIV, self.BV]:
-            assert surface_quiver(Quiver(B)), f"couldn't recognize {B}"
+        for Q in [self.BI, self.BII, self.BIIIa, self.BIIIb, self.BIV, self.BV]:
+            r = surface_quiver(Q)
+            assert r, f"couldn't recognize {Q.matrix}"
+            blocks = r[1]
+            count_zero = 0
+            for b in blocks:
+                assert all([0 <= x < Q.n for x in b[1]]), f"produced impossible index in block {Q.matrix, b}"
+                if 0 in b[1]:
+                    count_zero += 1
+                assert len(b[1])==len(set(b[1])), f"block has repeated vertex {Q.matrix, b}"
+            assert count_zero <= 2, f"index zero was too prevalent {Q.matrix, r}"
+        for M in [self.MI, self.MII, self.MIII, self.MIV]:
+            assert not surface_quiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surface_quiver(M)[1]}"
+
+    def testSurfaceBlocksMutated(self):
+        for Q in [self.BIm, self.BIIm, self.BIIIam, self.BVm]:
+            assert surface_quiver(Q), f"couldn't recognize {Q.matrix}"
+        assert not surface_quiver(self.MIVm), f"incorrectly marked {self.MIVm.matrix} as being a surface quiver"
+
+    def testSurfaceBlocksIso(self):
+        p1 = [3,2,0,1,5,4]
+        p2 = [5,4,3,2,1,0]
+        for Q in [self.BI, self.BII, self.BIIIa, self.BV, self.BIIm, self.BVm]:
+            assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
+            assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
+
+        for M in [self.MI, self.MII, self.MIII, self.MIV]:
+            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,3,4])), f"incorrectly recognizes permuted block {[1,0,2,3,4], M.matrix} as {surface_quiver(isomorphicQuiver(M,p1))}"
+            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3])), f"incorrectly recognizes permuted block {[1,0,2,4,3], M.matrix}"
+
 
 class IsomorphismClassTests(unittest.TestCase):
     def setUp(self):
