@@ -4,10 +4,10 @@ class polynomial():
     # as such, coefficients will now be a list of tuples, where the first entry is the coefficient and the remaining are the powers
     # where the order of the tuples is given by the variable order
     # need to let coefficients be a stream eventually to deal with formal power series
-    def __init__(self, coefficients, vars = ('x',)) -> None:
-        enum_vars = sorted(enumerate(vars), key=lambda x: x[1])
-        self.vars = [x[1] for x in enum_vars]
-        self.numVars = len(vars)
+    def __init__(self, coefficients, variables = ('x',)) -> None:
+        enum_vars = sorted(enumerate(variables), key=lambda x: x[1])
+        self.variables = [x[1] for x in enum_vars]
+        self.numVars = len(variables)
         self.simplified = False
 
         if isinstance(coefficients, list):
@@ -18,31 +18,31 @@ class polynomial():
             self.coefficients = coefficients
             self.__lex__() # Sorts them in the lexigraphical order and adds terms of the same monomial
             self.totalDegree = max(sum(c[1:]) for c in self.coefficients+[[0,0]])
-            if len(self.vars) == 1:
+            if len(self.variables) == 1:
                 self.degree = self.totalDegree
             
             
-            self.localDegrees = {v : max(c[i+1] for c in self.coefficients+[[0]+[0]*len(self.vars)]) for i, v in enumerate(self.vars)}
+            self.localDegrees = {v : max(c[i+1] for c in self.coefficients+[[0]+[0]*len(self.variables)]) for i, v in enumerate(self.variables)}
         else:
             raise Exception("Not a valid input")
 
     def __str__(self) -> str:
-        s = " + ".join([f"({c[0]}){''.join(['^'.join([self.vars[i], str(j)]) for i,j in enumerate(c[1:]) if j != 0])}" for c in self.coefficients if c[0] != 0])
+        s = " + ".join([f"({c[0]}){''.join(['^'.join([self.variables[i], str(j)]) for i,j in enumerate(c[1:]) if j != 0])}" for c in self.coefficients if c[0] != 0])
         return s
 
     def __varseq__(self, other):
         # Returns true if two polynomials have the same variables
-        a = set(self.vars)
-        b = set(other.vars)
+        a = set(self.variables)
+        b = set(other.variables)
 
         return a == b
 
     def __varchange__(self, newVars):
         # Modifies the coefficients to match the new variables and returns a new polynomial
         # newVars is a tuple as well
-        vars = {v : i+1 for i, v in enumerate(self.vars)}
-        totalVars = tuple(set(self.vars) | set(newVars))
-        coeff = [(c[0],) + tuple([c[vars[v]] if v in vars else 0 for v in totalVars]) for c in self.coefficients]
+        variables = {v : i+1 for i, v in enumerate(self.variables)}
+        totalVars = tuple(set(self.variables) | set(newVars))
+        coeff = [(c[0],) + tuple([c[variables[v]] if v in variables else 0 for v in totalVars]) for c in self.coefficients]
 
         return polynomial(coeff, totalVars)
 
@@ -65,10 +65,10 @@ class polynomial():
 
     def __eq__(self, other):
         if isinstance(other, int): #or isinstance(other, Rational):
-            return self.totalDegree == 0 and (len(self.coefficients)==0 and other==0) or self.coefficients[0][0] == other
+            return self.totalDegree == 0 and ((len(self.coefficients)==0 and other==0) or self.coefficients[0][0] == other)
         elif isinstance(other, polynomial):
             if not self.__varseq__(other):
-                newVars = set(self.vars + other.vars)
+                newVars = set(self.variables + other.variables)
                 p = self.__varchange__(newVars)
                 q = other.__varchange__(newVars)
             else:
@@ -87,9 +87,9 @@ class polynomial():
             raise Exception("What are you comparing?")
 
     def __add__(self, other):
-        newVars = self.vars
+        newVars = self.variables
         if isinstance(other, int): #or isinstance(other, Rational):
-            deg_zero = (0,)*len(self.vars)
+            deg_zero = (0,)*len(self.variables)
             coefficients = [c for c in self.coefficients]
             found=False
             for i,c in enumerate(self.coefficients):
@@ -101,7 +101,7 @@ class polynomial():
                 coefficients = [(other,) + deg_zero] + coefficients
         elif isinstance(other, polynomial):
             if not self.__varseq__(other):
-                newVars = tuple(sorted(set(other.vars + newVars)))
+                newVars = tuple(sorted(set(other.variables + newVars)))
                 p = self.__varchange__(newVars)
                 q = other.__varchange__(newVars)
             else:
@@ -127,7 +127,7 @@ class polynomial():
         else:
             raise Exception("Unsupported addition")
 
-        return polynomial(coefficients, vars=newVars)
+        return polynomial(coefficients, variables=newVars)
     
     def __radd__(self, other):
         return self.__add__(other)
@@ -135,27 +135,27 @@ class polynomial():
     def __neg__(self):
         coefficients = [(-c[0],) + c[1:] for c in self.coefficients]
 
-        return polynomial(coefficients, self.vars)
+        return polynomial(coefficients, self.variables)
     
     def __sub__(self, other):
         return self + (-other)
 
     def __mul__(self, other):
         if self == 0 or other == 0:
-            return polynomial([0], vars=self.vars)
+            return polynomial([0], variables=self.variables)
         elif not isinstance(other, polynomial):
             coefficients = [(other * c[0],) + c[1:] for c in self.coefficients]
-            newVars = self.vars
+            newVars = self.variables
         else:
             coeffDict = dict()
             if not self.__varseq__(other):
-                newVars = tuple(sorted(set(self.vars + other.vars)))
+                newVars = tuple(sorted(set(self.variables + other.variables)))
                 p = self.__varchange__(newVars)
                 q = other.__varchange__(newVars)
             else:
                 p = self
                 q = other
-                newVars=self.vars
+                newVars=self.variables
 
             for c in p.coefficients:
                 for d in q.coefficients:
@@ -167,7 +167,7 @@ class polynomial():
                     
             coefficients = [(v,) + k for k,v in coeffDict.items()]
 
-        r = polynomial(coefficients, vars = newVars)
+        r = polynomial(coefficients, variables = newVars)
 
         return r
     
@@ -177,15 +177,20 @@ class polynomial():
     def __pow__(self, other):
         if not isinstance(other, int):
             Exception("Can only exponentiate a polynomial with an integer")
-        if other < 0:
+        elif other < 0:
             Exception("Can only exponentiate a polynomial with a positive integer")
-        prod = 1
-        for i in range(other): #could do fast exponentiation for faster performance
-            prod = prod*self
-        return prod
-    
+        elif other == 0:
+            return 1
+        elif other == 1:
+            return self
+
+        a = other // 2
+        b = other - a # will be >= a
+
+        return pow(self, a)*pow(self, b) # This should be a faster exponentiation
+           
     def eval(self, values):
-        # Evalutes the polynomial at vars = values
+        # Evalutes the polynomial at variables = values
         s = 0
         
         for c in self.coefficients:

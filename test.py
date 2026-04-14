@@ -222,6 +222,7 @@ class QuiverInvariants3dcTestCase(unittest.TestCase):
         self.areMutCyclic = [True, True, False, False]
         self.orientedCycles = [(0,2,1), (0,1,2), (0,2,1), (0,1,2)]
         self.markovs = [3**2+5**2+6**2 - 3*5*6, 3**2+5**2+6**2 - 3*5*6, 2**2+5**2+6**2 - 2*5*6, 2**2+5**2+6**2 - 2*5*6]
+        self.gcd_vecs = [(3,1,1,0), (3,1,1,0), (2,1,1,0), (2,1,1,0)]#xx
 
     def testAcyclic(self):
         for q in self.quivers:
@@ -255,6 +256,10 @@ class QuiverInvariants3dcTestCase(unittest.TestCase):
     def testMarkov(self):
         for i in range(len(self.quivers)):
             assert self.quivers[i].markov() == self.markovs[i], f"incorrect markov invariant {i, self.quivers[i].markov(), self.markovs[i]}"
+
+    def testGCDvecs(self):
+        for i in range(len(self.quivers)):
+            assert self.quivers[i].gcd_vector() == self.gcd_vecs[i], f"incorrect gcd vector, {i, self.gcd_vecs[i], self.quivers[i].gcd_vector()}"
 
 
 class QuiverInvariants4AlexTestCase(unittest.TestCase):
@@ -306,6 +311,46 @@ class QuiverInvariants4AlexTestCase(unittest.TestCase):
             assert a(w) == self.cycleQuiver(w).alexander_poly(), f"incorrect cycle quiver alexander poly with weights {w}"
 
 
+class SubquiverTestCase(unittest.TestCase):
+    def setUp(self):
+        self.markov_vortex = Quiver([[0,2,-2,4],[-2,0,2,7],[2,-2,0,9],[-4,-7,-9,0]])
+        self.mutated_vortex = self.markov_vortex.mutate(1).mutate(3).mutate(2).mutate(0)
+        self.small_weight = Quiver([[0,2,-1,-1],[-2,0,2,0],[1,-2,0,1],[1,0,-1,0]])
+        self.mutated_small = self.small_weight.mutate(3)
+        self.big_problem = Quiver([[0, -1900534033, 89268872382, -568349], [1900534033, 0, 17905678993253867017, -114000260996770], [-89268872382, -17905678993253867017, 0, 157067], [568349, 114000260996770, -157067, 0]] )
+        self.markov_manual = lambda M : (M[0,1]**2) + (M[1,2]**2) + (M[2,0]**2) - abs(M[0,1]*M[1,2]*M[2,0])
+
+    def testCyclicSubquivers(self):
+        assert self.markov_vortex.hasMutCyclicSubquiver()
+        assert not self.mutated_vortex.hasMutCyclicSubquiver()
+        assert not self.small_weight.hasMutCyclicSubquiver()
+        assert self.mutated_small.hasMutCyclicSubquiver()
+        assert not self.big_problem.hasMutCyclicSubquiver()
+
+    def testMarkov(self):
+        for i in self.markov_vortex.vertices:
+            R = self.markov_vortex.subquiverRemoveOneVertex(i)
+            if not R.acyclic():
+                assert self.markov_manual(R.matrix) == R.markov()
+        
+        for i in self.big_problem.vertices:
+            R = self.big_problem.subquiverRemoveOneVertex(i)
+            if not R.acyclic():
+                assert self.markov_manual(R.matrix) == R.markov(), f"incorrect markov for {i, R.matrix}, {self.markov_manual(R.matrix)} vs {R.markov()}"
+        
+    def testAcyclicBig(self):
+        assert self.big_problem.subquiverRemoveOneVertex(3).acyclic()
+        assert self.big_problem.subquiverRemoveOneVertex(2).acyclic()
+        assert not self.big_problem.subquiverRemoveOneVertex(1).acyclic()
+        assert not self.big_problem.subquiverRemoveOneVertex(0).acyclic()
+
+    def testAbundance(self):
+        assert self.mutated_vortex.abundant()
+        assert self.markov_vortex.abundant()
+        assert not self.small_weight.abundant()
+        assert not self.small_weight.abundant()
+    
+
 class QuiverInvariants3TestCase(unittest.TestCase):
     def setUp(self):
         #These are disconnected quivers with only oriented cycles on 0,2,1.
@@ -317,6 +362,7 @@ class QuiverInvariants3TestCase(unittest.TestCase):
         self.areMutCyclic = [True, True, False, False]
         self.orientedCycles = [(0,2,1), (0,2,1), (0,1,2), (0,2,1)]
         self.markovs = [3**2+5**2+6**2 - 3*5*6, 5**2+5**2+6**2 - 5*5*6, 2**2+5**2+6**2 - 2*5*6, 3**2 + 6**2]
+        self.gcd_vecs = [(3,1,1), (1,5,1), (2,1,1), (3,3,6)]
 
     def testAcyclic(self):
         for q in self.quivers:
@@ -347,6 +393,10 @@ class QuiverInvariants3TestCase(unittest.TestCase):
     def testAlexander(self):
         for i in range(len(self.quivers)):
             assert self.quivers[i].alexander_poly() == polynomial.polynomial([-1, 3-self.markovs[i], -(3-self.markovs[i]),1]), f"incorrect alexander poly {str(self.quivers[i].alexander_poly()), self.markovs[i]}"
+
+    def testGCDvecs(self):
+        for i in range(len(self.quivers)):
+            assert self.quivers[i].gcd_vector() == self.gcd_vecs[i], f"incorrect gcd vector, {i, self.gcd_vecs[i], self.quivers[i].gcd_vector()}"
 
 class RealizableAlexandersTestCase(unittest.TestCase):
     def testSearchA1(self):
@@ -451,30 +501,37 @@ class MutationClassInitTests(unittest.TestCase):
         #would be nice to support non-4 vertex quivers, especially small ones.
         self.classes = []
         self.acyclicL = []
+        self.gcd_vecs = []
         self.members = []
         Q = isolatedQuiver(4)
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
+        self.gcd_vecs.append((0,0,0,0))
         self.members.append(Q)
         Q = Quiver(np.matrix([[0,-3,0,0],[3,0,0,0], [0,0,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
+        self.gcd_vecs.append((3,3,0,0))
         self.members.append(Q)
         Q = Quiver(np.matrix([[0,3,2,0],[-3,0,3,0],[-2,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
+        self.gcd_vecs.append((1,3,1,0))
         self.members.append(Q)
         Q = Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
+        self.gcd_vecs.append((2,2,2,0))
         self.members.append(Q)
         R = Quiver(-np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(vertices=[R,Q], edges={R: {Q:1}, Q:{R:2}}, perms=permutations(4)))
         self.acyclicL.append(False)
+        self.gcd_vecs.append((2,2,2,0))
         self.members.append(Q)
         Q = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
+        self.gcd_vecs.append((3,3,3,0))
         self.members.append(Q)
 
         
@@ -485,6 +542,10 @@ class MutationClassInitTests(unittest.TestCase):
     def testAcyclicInit(self):
         for i in range(len(self.classes)):
             assert self.classes[i].mutationAcyclic == self.acyclicL[i], f"Incorrect acyclicity {i}"
+
+    def testGCDInit(self):
+        for i in range(len(self.classes)):
+            assert self.classes[i].gcdVector == self.gcd_vecs[i], f"Incorrect gcd_vector {i}"
 
     def testEq(self):
         assert self.classes[0] != self.classes[1]
@@ -583,8 +644,12 @@ class updateMutationClassTests(unittest.TestCase):
 
     def testMuCyclic(self):
         assert self.markovClass.couldBeMutationCyclic
+        assert self.markovClass.mutationCyclicSubquiver
+        assert self.markovClass.mutationCyclicSubquiverWitness.hasMutCyclicSubquiver()
         assert not self.A2Class.couldBeMutationCyclic
         assert not self.A3Class.couldBeMutationCyclic
+        assert not self.A2Class.mutationCyclicSubquiver
+        assert self.A2Class.mutationCyclicSubquiverWitness == None
         assert not self.AcyclicEventuallyClass.couldBeMutationCyclic
         assert not self.markovClass.mutationAcyclic
         assert self.A2Class.mutationAcyclic
@@ -756,6 +821,20 @@ class SlowSurfaceTests(unittest.TestCase):
             assert not surface_quiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surface_quiver(isomorphicQuiver(M,p1))}"
             assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
 
+
+class TestEigenvalues(unittest.TestCase):
+    def setUp(self):
+        self.quiver = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
+        self.M = np.matrix([[2,0],[0,3]])
+        self.N = np.matrix([[2,-1],[-2,2]])
+
+    def testEign(self):
+        np.testing.assert_almost_equal(eigenvalues(self.quiver.matrix), np.array([0+3*np.emath.sqrt(-3.), 0-3*np.emath.sqrt(-3.), 0, 0]))
+        np.testing.assert_almost_equal(eigenvalues(self.M), np.array([2.,3.]))
+        np.testing.assert_almost_equal(eigenvalues(self.N), np.array([2.+np.sqrt(2.), 2.-np.sqrt(2.)]))
+
+
+
 class IsomorphismClassTests(unittest.TestCase):
     def setUp(self):
         self.markov = Quiver(np.matrix([[0,2,-2],[-2,0,2],[2,-2,0]]))
@@ -776,6 +855,18 @@ class IsomorphismClassTests(unittest.TestCase):
         assert self.markov.mutate(1) in isomorphismClass(self.markov, permutations(3))
         assert self.A3.mutate(0).mutate(2) in isomorphismClass(self.A3, permutations(3))
         assert self.A3.mutate(1).mutate(2) in isomorphismClass(self.A3, permutations(3))
+
+class MutationCycleTests(unittest.TestCase):
+    def setUp(self):
+        self.A3Class = mutationClass(Quiver(np.matrix([[0,1,0,0],[-1,0,1,0],[0,-1,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.A3Class.update()
+        self.A3Class.update()
+        self.A3Class.update()
+        self.A3Class.update()
+        self.A3Class.update()
+
+    def testMutCycleDetected(self):
+        assert self.A3Class.hasMutationCycle
 
 if __name__ == "__main__":
     unittest.main()
