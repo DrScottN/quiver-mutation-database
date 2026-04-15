@@ -202,6 +202,20 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert self.vortex_quiver.mutate(0).forkWithPOR(0) 
         assert self.vortex_quiver.mutate(2).forkWithPOR(2) 
 
+    def testChordlessCycles(self):
+        assert set(self.vortex_quiver.chordless_cycles()) == set([(0,1,2),(0,1,3),(0,2,3),(1,2,3)]), f"missing chordless cycles {set(self.vortex_quiver.chordless_cycles())}"
+
+    def testWindingDictionary(self):
+        assert self.vortex_quiver.winding_data([3,2,1,0])[(0,1,2)] == (2,0), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(0,1,2)]}"
+        assert self.vortex_quiver.winding_data([3,2,1,0])[(0,1,3)] == (1,1), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(0,1,3)]}"
+        assert self.vortex_quiver.winding_data([3,2,1,0])[(0,2,3)] == (0,2), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(0,2,3)]}"
+        assert self.vortex_quiver.winding_data([3,2,1,0])[(1,2,3)] == (1,1), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(1,2,3)]}"
+
+    def testProper(self):
+        assert self.incomplete_quiver.proper()
+        assert self.quiver.proper()
+        assert not self.vortex_quiver.proper(), f"incorrectly found proper ordering {self.vortex_quiver.proper()} of a vortex"
+
 
 class ForkEdgeTestCase(unittest.TestCase):
     def setUp(self):
@@ -258,7 +272,7 @@ class QuiverInvariants3dcTestCase(unittest.TestCase):
         
     def testCycles(self):
         for q in self.quivers:
-            assert [0,1,2] in list(q.chordless_cycles()) or [0,2,1] in list(q.chordless_cycles()), 'missing chordless cycle'
+            assert (0,1,2) in list(q.chordless_cycles()) or (0,2,1) in list(q.chordless_cycles()), 'missing chordless cycle'
             assert len(list(q.chordless_cycles()))==1, 'incorrectly found more cycles'
 
     def testCyclicOrdering(self):
@@ -391,8 +405,11 @@ class QuiverInvariants3TestCase(unittest.TestCase):
 
     def testCycles(self):
         for q in self.quivers:
-            assert [0,1,2] in list(q.chordless_cycles()) or [0,2,1] in list(q.chordless_cycles()), 'missing chordless cycle'
+            assert (0,1,2) in list(q.chordless_cycles()) or (0,2,1) in list(q.chordless_cycles()), 'missing chordless cycle'
             assert len(list(q.chordless_cycles()))==1, 'incorrectly found more cycles'
+        for _,d in self.quiver_a1.winding_data([2,1,0]).items():
+            assert d in [(-2,3), (2,0)]
+
 
     def testCyclicOrdering(self):
         sigmas = [q.cyclic_order() for q in self.quivers]

@@ -304,7 +304,7 @@ class Quiver():
 
         for i in range(self.n):
             for C in chordless_cycles_at(i):
-                yield C
+                yield tuple(C)
 
     def winding_data(self, sigma):
         # Using linear order sigma (a permutation of the indices), return winding numbers and edges against direction of traversal of the chordless cycles.
@@ -348,6 +348,23 @@ class Quiver():
                 continue
             return sigma
         return False
+
+    def proper(self):
+        # returns a proper cyclic ordering (but not necessarily totally proper) if it exists.
+        for p in permutations(self.n):
+            winding = self.winding_data(p)
+            next_p = False
+            for C, x in winding.items():
+                ell = x[1]
+                r = len(C)-ell
+                if (ell > 0 and x[0] == 1-ell) or (r > 0 and x[0] == r-1):
+                    next_p = True
+                    break
+            if next_p:
+                continue
+            return p
+        return False
+
 
     def Umatrix(self):
         # Compute a unipotent companion. 
