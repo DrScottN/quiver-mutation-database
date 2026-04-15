@@ -927,12 +927,14 @@ class mutationClass():
                 if P not in self.edges:
                     # Update potentional mutation invariants
                     self.couldBeMutationVortexFree = self.couldBeMutationVortexFree and not P.vortex()
+                    self.hasVortex = True if P.vortex() else self.hasVortex
                     self.couldBeMutationComplete = self.couldBeMutationComplete and not P.complete()
+                    self.mutationComplete = False if not P.complete() else self.mutationComplete
                     self.couldBeMutationCyclic = self.couldBeMutationCyclic and not P.acyclic()
                     self.mutationAcyclic = True if P.acyclic() else self.mutationAcyclic
                     self.mutationAbundant = self.mutationAbundant and P.abundant()
                     
-                    if self.couldBeMutationCyclic and self.mutationCyclicSubquiver is None:
+                    if self.couldBeMutationCyclic and self.mutationCyclicSubquiver is Unknown:
                         if P.hasMutCyclicSubquiver():
                             self.foundCyclicSubquiver(P)
                     
