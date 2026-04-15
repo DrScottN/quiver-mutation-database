@@ -759,6 +759,18 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.A3Class.is_surface_quiver
         assert not self.bigClass.is_surface_quiver
         assert not self.AcyclicEventuallyClass.is_surface_quiver
+
+    def testAlexanderPreserved(self):
+        for Q in self.A3Class.vertices:
+            assert Q.alexander_poly() == self.A3Class.alexander_poly, f"alexander poly varies across class, {str(self.A3Class.alexander_poly)} vs {str(Q.alexander_poly())}"
+        assert self.A3Class.totallyProper
+        for Q in self.AcyclicEventuallyClass.vertices:
+            assert Q.alexander_poly() == self.AcyclicEventuallyClass.alexander_poly, f"alexander poly varies across class, {str(self.AcyclicEventuallyClass.alexander_poly)} vs {str(Q.alexander_poly())}"
+        assert self.AcyclicEventuallyClass.totallyProper
+        assert not self.vortexClass.alexander_poly
+        assert not self.vortexConnClass.alexander_poly
+        assert not self.vortexClass.totallyProper
+        assert not self.vortexConnClass.totallyProper
         
 class SurfaceQuiverTests(unittest.TestCase):
     def setUp(self):
