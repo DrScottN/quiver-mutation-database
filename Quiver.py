@@ -725,29 +725,31 @@ class mutationClass():
             if self.initialQ.hasMutCyclicSubquiver():
                 self.foundCyclicSubquiver(self.initialQ)
             else:
-                self.mutationCyclicSubquiver = None
+                self.mutationCyclicSubquiver = Unknown
                 self.mutationCyclicSubquiverWitness = None
-                self.mutationAcyclic = None
+                self.mutationAcyclic = Unknown
             self.couldBeMutationCyclic = True
 
         if not self.initialQ.complete():
             self.mutationComplete = False
             self.couldBeMutationComplete = False
         else:
-            self.mutationComplete = None
+            self.mutationComplete = Unknown
             self.couldBeMutationComplete = True
 
         if self.initialQ.vortex(): # need to update this for quivers without 4 vertices
             self.hasVortex = True
             self.couldBeMutationVortexFree = False
         else:
-            self.hasVortex = None
+            self.hasVortex = Unknown
             self.couldBeMutationVortexFree = True
 
         # Setup possible mutation-invariants
-        self.finite = None
-        self.finiteFP = None
-        self.finitePFP = None
+        self.is_surface_quiver = bool(surface_quiver(self.initialQ))
+        self.finite = True if self.is_surface_quiver else Unknown
+        self.finiteFP = True if self.is_surface_quiver else Unknown
+        self.finitePFP = True if self.is_surface_quiver else Unknown
+        
         
         self.couldBeFinite = True
         self.couldBeFiniteFP = True
