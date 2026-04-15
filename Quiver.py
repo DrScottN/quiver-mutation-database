@@ -7,6 +7,7 @@ import math
 import polynomial
 from unknown import unknown
 
+#custom entry for 'none, but we might find it later!'
 Unknown = unknown()
 
 
@@ -245,12 +246,12 @@ class Quiver():
         if len(vertices) != 1:
             return False
         
-        vertex = vertices[0]
+        apex = vertices[0]
         
-        if 0 in self.matrix[vertex,:vertex] or 0 in self.matrix[vertex,vertex+1:]:
+        if 0 in self.matrix[apex,:apex] or 0 in self.matrix[apex,apex+1:]:
             return False
         
-        Q = self.subquiverRemoveOneVertex(vertex)
+        Q = self.subquiverRemoveOneVertex(apex)
 
         return Q.threeCycle()
 
@@ -687,8 +688,9 @@ class mutationClass():
 
     # Will implement mutationClass unions and intersections
 
-    def __init__(self, Q = None, perms = None, vertices = None, edges = None):
+    def __init__(self, Q = None, perms = None, vertices = None, edges = None, max_weight=2**16):
         # Takes in a quiver Q as the first member of our mutation class. perms is required.
+        #  set max_weight=False to ignore weight checks.
         if Q is None:
             if vertices is None or edges is None:
                 raise Exception("No vertices or edges given. Try again")
@@ -706,6 +708,14 @@ class mutationClass():
         self.perms = perms
         self.possibleReps = [self.initialQ]
         self.possibleIsoReps = [isomorphismClass(self.initialQ, perms)[0]]
+
+        self.max_weight = max_weight
+        self.hit_max_weight = False
+        for Q in self.vertices:
+            if self.max_weight and np.max(np.abs(Q.matrix)) > self.max_weight:
+                self.hit_max_weight = True
+                #do we wish to do anything here?
+
 
         # Now, check for the mutation-invariants we can immediately find
         self.mutationConnected = self.initialQ.connected()
@@ -744,14 +754,22 @@ class mutationClass():
             self.hasVortex = Unknown
             self.couldBeMutationVortexFree = True
 
+        self.is_surface_quiver = Unknown
         # Setup possible mutation-invariants
-        self.is_surface_quiver = bool(surface_quiver(self.initialQ))
-        self.finite = True if self.is_surface_quiver else Unknown
-        self.finiteFP = True if self.is_surface_quiver else Unknown
-        self.finitePFP = True if self.is_surface_quiver else Unknown
+        for Q in self.vertices:
+            if self.max_weight and np.max(np.abs(Q.matrix)) > 2:
+                self.is_surface_quiver = False
+                self.finite = False
+                self.finiteFP = Unknown
+                self.finitePFP = Unknown
+        if self.is_surface_quiver is Unknown:
+            self.is_surface_quiver = bool(surface_quiver(self.initialQ))
+            self.finite = True if self.is_surface_quiver else Unknown
+            self.finiteFP = True if self.is_surface_quiver else Unknown
+            self.finitePFP = True if self.is_surface_quiver else Unknown
         
         
-        self.couldBeFinite = True
+        self.couldBeFinite = False if not self.finite else True
         self.couldBeFiniteFP = True
         self.couldBeFinitePFP = True
 
@@ -922,6 +940,11 @@ class mutationClass():
                     self.couldBeFinite = False
                     continue
                     
+                
+                if self.max_weight and np.max(np.abs(P.matrix)) > self.max_weight:
+                    self.hit_max_weight = True
+                    continue
+
                 self.edges[Q][P] = k # If neither a fork or pre-fork with por k, then we can add it to our edges
 
                 if P not in self.edges:
@@ -931,7 +954,10 @@ class mutationClass():
                     self.couldBeMutationComplete = self.couldBeMutationComplete and not P.complete()
                     self.mutationComplete = False if not P.complete() else self.mutationComplete
                     self.couldBeMutationCyclic = self.couldBeMutationCyclic and not P.acyclic()
-                    self.mutationAcyclic = True if P.acyclic() else self.mutationAcyclic
+                    if self.mutationAcyclic is Unknown and P.acyclic():
+                        self.mutationAcyclic = True
+                        self.hasVortex=False
+                        self.mutationAbundant = P.abundant()
                     self.mutationAbundant = self.mutationAbundant and P.abundant()
                     
                     if self.couldBeMutationCyclic and self.mutationCyclicSubquiver is Unknown:

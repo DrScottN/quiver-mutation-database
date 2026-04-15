@@ -98,12 +98,14 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
     def setUp(self):
         self.quiver = Quiver([[0,2,0,6], [-2,0,1,0], [0,-1,0,7], [-6,0,-7,0]])
         self.incomplete_quiver = Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]]))
+        self.vortex_quiver = Quiver(np.matrix([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]]))
     
     def testCommutingMutations(self):
         assert self.quiver == self.quiver.mutate(2).mutate(0).mutate(2).mutate(0), 'commuting mutation cycle did not cycle'
         assert self.incomplete_quiver.mutate(1) == self.incomplete_quiver.mutate(3).mutate(1), 'commuting mutation cycle did not cycle'
         assert self.incomplete_quiver.mutate(1) == self.incomplete_quiver.mutate(1).mutate(3), 'commuting mutation cycle did not cycle'
-    
+        assert self.vortex_quiver.mutate(1).mutate(2) != self.vortex_quiver.mutate(2).mutate(1), 'too many mutations commute'
+
     def testA2Cycle(self):
         assert self.quiver.mutate(1).mutate(2).mutate(1).mutate(2).mutate(1) == self.quiver.mutate(2).mutate(1).mutate(2).mutate(1).mutate(2), 'A2 mutation cycle did not cycle'
 
@@ -143,6 +145,8 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         for i in self.quiver.vertices:
             assert self.quiver.determinant() == self.quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
             assert self.incomplete_quiver.determinant() == self.incomplete_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
+            assert self.vortex_quiver.determinant() == self.vortex_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
+
 
     def testPrefork(self):
         M = [1,0]
@@ -184,6 +188,19 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         for m in M:
             q = q.mutate(m)
         assert not any([q.forkWithPOR(i) for i in range(q.n)]), f'incorrectly marked a disconnected quiver as a fork'
+        q = self.vortex_quiver
+        for m in M:
+            q = q.mutate(m)
+        assert q.forkWithPOR(M[-1]), f'applying mutation sequence {M} did not produce a fork with por {M[-1]}'
+
+    def testFork2(self):
+        assert not self.incomplete_quiver.forkWithPOR(1)
+        assert not self.quiver.forkWithPOR(2)
+        assert not any([self.vortex_quiver.forkWithPOR(i) for i in self.vortex_quiver.vertices])
+        assert not any([self.vortex_quiver.mutate(3).forkWithPOR(i) for i in self.vortex_quiver.vertices])
+        assert not any([self.vortex_quiver.mutate(1).forkWithPOR(i) for i in self.vortex_quiver.vertices])
+        assert self.vortex_quiver.mutate(0).forkWithPOR(0) 
+        assert self.vortex_quiver.mutate(2).forkWithPOR(2) 
 
 
 class ForkEdgeTestCase(unittest.TestCase):
@@ -593,6 +610,20 @@ class updateMutationClassTests(unittest.TestCase):
         self.AcyclicEventuallyClass.update()
         self.AcyclicEventuallyClass.update()
         self.AcyclicEventuallyResult = self.AcyclicEventuallyClass.update()
+
+        self.bigClass = mutationClass(Quiver(np.matrix([[0,2000,-300,0],[-2000,0,20,0],[300,-20,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.bigClass.update()
+        self.bigClassResult = self.bigClass.update()
+
+        self.vortexClass = mutationClass(Quiver(np.matrix([[0,2,-4,6],[-2,0,2,6],[4,-2,0,6], [-6,-6,-6,0]])), perms=permutations(4))
+        self.vortexClass.update()
+        self.vortexClass.update()
+        self.vortexClassResult=self.vortexClass.update()
+
+        self.vortexConnClass = mutationClass(Quiver(np.matrix([[0,2,-40,6],[-2,0,2,6],[40,-2,0,6], [-6,-6,-6,0]])), perms=permutations(4))
+        self.vortexConnClass.update()
+        self.vortexConnClass.update()
+        self.vortexConnClassResult=self.vortexClass.update()
     
     def testResults(self):
         assert len(self.isolatedResult) == 0
@@ -600,6 +631,8 @@ class updateMutationClassTests(unittest.TestCase):
         assert len(self.A3Result) == 0
         assert len(self.A2Result) == 0
         assert len(self.AcyclicEventuallyResult) != 0
+        assert len(self.bigClassResult) ==0 #pruned away
+        assert len(self.vortexClassResult) !=0
 
 
     def testUpdateMembership(self):
@@ -613,7 +646,10 @@ class updateMutationClassTests(unittest.TestCase):
         assert Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])).mutate(1).mutate(0).mutate(1).mutate(0) in self.AcyclicEventuallyClass
         assert Quiver(-np.matrix([[0,2,-5,0],[-2,0,6,0],[5,-6,0,0], [0,0,0,0]])) in self.AcyclicEventuallyClass
         assert Quiver(np.matrix([[0,2,-4,0],[-2,0,6,0],[4,-6,0,0], [0,0,0,0]])) not in self.AcyclicEventuallyClass
+        assert Quiver(np.matrix([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]])) in self.vortexClass
+        assert Quiver(np.matrix([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]])).mutate(1) in self.vortexClass
         
+
     def testUpdatedIntersection(self):
         assert self.markovClass.intersection(self.A2Class) is None
         assert self.markovClass.intersection(self.A3Class) is None
@@ -633,13 +669,17 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.A2Class.finite
         assert self.isolatedClass.finite
         assert self.A3Class.finite
-        assert self.AcyclicEventuallyClass.finite != True
+        assert not self.AcyclicEventuallyClass.finite
+        assert not self.bigClass.finite
+        assert not self.vortexClass.finite
 
     def testUpdatedConnected(self):
-        assert self.markovClass.mutationConnected == False
-        assert self.A2Class.mutationConnected == False
-        assert self.A3Class.mutationConnected == False
-        assert self.isolatedClass.mutationConnected == False
+        assert not self.markovClass.mutationConnected 
+        assert not self.A2Class.mutationConnected 
+        assert not self.A3Class.mutationConnected 
+        assert not self.isolatedClass.mutationConnected 
+        assert self.vortexClass.mutationConnected is not False
+        assert self.vortexConnClass.mutationConnected is not False
 
     def testLeastEdges(self):
         assert self.markovClass.leastEdges == 6
@@ -666,6 +706,30 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.A2Class.mutationAcyclic
         assert self.A3Class.mutationAcyclic
         assert self.AcyclicEventuallyClass.mutationAcyclic
+
+    def testBigWeightPruning(self):
+        assert self.bigClass.hit_max_weight
+        assert not self.A2Class.hit_max_weight
+        assert not self.AcyclicEventuallyClass.hit_max_weight
+
+    def testHasVortex(self):
+        assert not self.bigClass.hasVortex
+        assert not self.AcyclicEventuallyClass.hasVortex
+        assert self.vortexClass.hasVortex
+        assert self.vortexConnClass.hasVortex
+
+    def testClassAbundance(self):
+        assert not self.isolatedClass.mutationAbundant
+        assert not self.bigClass.mutationAbundant
+        assert not self.vortexClass.mutationAbundant
+        assert self.vortexConnClass.mutationAbundant
+
+    def testClassSurfaceQuiver(self):
+        assert self.isolatedClass.is_surface_quiver
+        assert self.A2Class.is_surface_quiver
+        assert self.A3Class.is_surface_quiver
+        assert not self.bigClass.is_surface_quiver
+        assert not self.AcyclicEventuallyClass.is_surface_quiver
         
 class SurfaceQuiverTests(unittest.TestCase):
     def setUp(self):
