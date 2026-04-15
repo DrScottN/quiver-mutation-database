@@ -538,42 +538,49 @@ class MutationClassInitTests(unittest.TestCase):
         self.gcd_vecs = []
         self.members = []
         self.mat_ranks = []
+        self.alexander_polys = []
         Q = isolatedQuiver(4)
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
         self.gcd_vecs.append((0,0,0,0))
         self.members.append(Q)
         self.mat_ranks.append(0)
+        self.alexander_polys.append(polynomial.polynomial([1,-4,6,-4,1]))
         Q = Quiver(np.matrix([[0,-3,0,0],[3,0,0,0], [0,0,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
         self.gcd_vecs.append((3,3,0,0))
         self.members.append(Q)
         self.mat_ranks.append(2)
+        self.alexander_polys.append(polynomial.polynomial([1,-4,6,-4,1]) + 9*polynomial.polynomial([0,1,-2,1]))
         Q = Quiver(np.matrix([[0,3,2,0],[-3,0,3,0],[-2,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
         self.gcd_vecs.append((1,3,1,0))
         self.members.append(Q)
         self.mat_ranks.append(2)
+        self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-37,37,1]))
         Q = Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
         self.gcd_vecs.append((2,2,2,0))
         self.members.append(Q)
         self.mat_ranks.append(2)
+        self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-1,1,1]))
         R = Quiver(-np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(vertices=[R,Q], edges={R: {Q:1}, Q:{R:2}}, perms=permutations(4)))
         self.acyclicL.append(False)
         self.gcd_vecs.append((2,2,2,0))
         self.members.append(Q)
         self.mat_ranks.append(2)
+        self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-1,1,1]))
         Q = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
         self.gcd_vecs.append((3,3,3,0))
         self.members.append(Q)
         self.mat_ranks.append(2)
+        self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,3,-3,1]))
 
         
     def testMembership(self):
@@ -601,6 +608,11 @@ class MutationClassInitTests(unittest.TestCase):
         C = mutationClass(Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])), perms=permutations(4))
         C.update()
         assert self.classes[3] == C, "Incorrect equality from update"
+    
+    def testAlexander(self):
+        for i in range(len(self.classes)):
+            assert self.classes[i].alexander_poly == self.alexander_polys[i], f"Incorrect alexander poly {i, str(self.classes[i].alexander_poly)}"
+        
 
 class updateMutationClassTests(unittest.TestCase):
     def setUp(self):

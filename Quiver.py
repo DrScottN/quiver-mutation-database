@@ -741,6 +741,7 @@ class mutationClass():
         self.size = 1
         self.gcdVector = self.initialQ.gcd_vector()
         self.B_rank = matrix_rank(self.initialQ.matrix)
+        self.alexander_poly = self.initialQ.alexander_poly()
 
 
         if self.initialQ.acyclic():
@@ -748,6 +749,7 @@ class mutationClass():
             self.mutationCyclicSubquiver = False
             self.mutationCyclicSubquiverWitness = None
             self.couldBeMutationCyclic = False
+            self.totallyProper = True
         else:
             if self.initialQ.hasMutCyclicSubquiver():
                 self.foundCyclicSubquiver(self.initialQ)
@@ -756,6 +758,7 @@ class mutationClass():
                 self.mutationCyclicSubquiverWitness = None
                 self.mutationAcyclic = Unknown
             self.couldBeMutationCyclic = True
+            self.totallyProper = Unknown if self.alexander_poly else False
 
         if not self.initialQ.complete():
             self.mutationComplete = False
@@ -1014,6 +1017,9 @@ class mutationClass():
             self.mutationComplete = self.couldBeMutationComplete
             self.hasMutationCycle = False if self.hasMutationCycle is Unknown else self.hasMutationCycle
             self.mutationAbundant = True if self.mutationAbundant is Unknown else self.mutationAbundant
+            if not self.hasVortex and self.mutationComplete:
+                self.totallyProper=True
+
         self.size = len(self.vertices)
 
         return newForefront
