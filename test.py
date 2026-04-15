@@ -612,7 +612,7 @@ class MutationClassInitTests(unittest.TestCase):
     def testAlexander(self):
         for i in range(len(self.classes)):
             assert self.classes[i].alexander_poly == self.alexander_polys[i], f"Incorrect alexander poly {i, str(self.classes[i].alexander_poly)}"
-        
+            assert self.classes[i].totallyProper == True if self.acyclicL[i] else Unknown
 
 class updateMutationClassTests(unittest.TestCase):
     def setUp(self):
