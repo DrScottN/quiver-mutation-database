@@ -99,15 +99,18 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         self.quiver = Quiver([[0,2,0,6], [-2,0,1,0], [0,-1,0,7], [-6,0,-7,0]])
         self.incomplete_quiver = Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]]))
         self.vortex_quiver = Quiver(np.matrix([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]]))
+        self.A4 = Quiver([[0,1,0,0],[-1,0,1,0],[0,-1,0,1],[0,0,-1,0]])
     
     def testCommutingMutations(self):
         assert self.quiver == self.quiver.mutate(2).mutate(0).mutate(2).mutate(0), 'commuting mutation cycle did not cycle'
         assert self.incomplete_quiver.mutate(1) == self.incomplete_quiver.mutate(3).mutate(1), 'commuting mutation cycle did not cycle'
         assert self.incomplete_quiver.mutate(1) == self.incomplete_quiver.mutate(1).mutate(3), 'commuting mutation cycle did not cycle'
         assert self.vortex_quiver.mutate(1).mutate(2) != self.vortex_quiver.mutate(2).mutate(1), 'too many mutations commute'
+        assert self.A4.mutate(0).mutate(3) == self.A4.mutate(3).mutate(0)
 
     def testA2Cycle(self):
         assert self.quiver.mutate(1).mutate(2).mutate(1).mutate(2).mutate(1) == self.quiver.mutate(2).mutate(1).mutate(2).mutate(1).mutate(2), 'A2 mutation cycle did not cycle'
+        assert self.A4.mutate(1).mutate(2).mutate(1).mutate(2).mutate(1) == self.A4.mutate(2).mutate(1).mutate(2).mutate(1).mutate(2)
 
     def testMutationInverseRandom(self):
         r = []
@@ -146,7 +149,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
             assert self.quiver.determinant() == self.quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
             assert self.incomplete_quiver.determinant() == self.incomplete_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
             assert self.vortex_quiver.determinant() == self.vortex_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
-
+            assert self.A4.determinant() == self.A4.mutate(i).determinant()
 
     def testPrefork(self):
         M = [1,0]
@@ -203,6 +206,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert self.vortex_quiver.mutate(2).forkWithPOR(2) 
 
     def testChordlessCycles(self):
+        assert set(self.A4.chordless_cycles()) == set()
         assert set(self.vortex_quiver.chordless_cycles()) == set([(0,1,2),(0,1,3),(0,2,3),(1,2,3)]), f"missing chordless cycles {set(self.vortex_quiver.chordless_cycles())}"
 
     def testWindingDictionary(self):
@@ -215,6 +219,21 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert self.incomplete_quiver.proper()
         assert self.quiver.proper()
         assert not self.vortex_quiver.proper(), f"incorrectly found proper ordering {self.vortex_quiver.proper()} of a vortex"
+
+    def testCasals(self):
+        assert self.quiver.casals_det()==0
+        assert self.incomplete_quiver.casals_det()==0
+        assert self.vortex_quiver.casals_det()==0
+        assert self.A4.casals_det()==1
+        for i in range(self.quiver.n):
+            assert self.vortex_quiver.mutate(i).casals_det()==0
+            assert self.A4.mutate(i).casals_det()==1
+
+    def testSeven(self):
+        for i in range(self.quiver.n):
+            assert self.A4.seven_congruence()==self.A4.mutate(i).seven_congruence()
+            assert self.quiver.seven_congruence()==self.quiver.mutate(i).seven_congruence()
+            assert self.vortex_quiver.seven_congruence()==self.vortex_quiver.mutate(i).seven_congruence()
 
 
 class ForkEdgeTestCase(unittest.TestCase):
