@@ -760,7 +760,8 @@ class mutationClass():
         self.gcdVector = self.initialQ.gcd_vector()
         self.B_rank = matrix_rank(self.initialQ.matrix)
         self.alexander_poly = self.initialQ.alexander_poly()
-
+        self.casals_det = self.initialQ.casals_det()
+        self.sevens_ker = self.initialQ.seven_congruence()
 
         if self.initialQ.acyclic():
             self.mutationAcyclic = True

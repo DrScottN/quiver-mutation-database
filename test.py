@@ -403,7 +403,6 @@ class SubquiverTestCase(unittest.TestCase):
 
 class QuiverInvariants3TestCase(unittest.TestCase):
     def setUp(self):
-        #These are disconnected quivers with only oriented cycles on 0,2,1.
         self.quiver_c1 = Quiver([[0,-3,6], [3,0,-5], [-6,5,0]])
         self.quiver_c2 = Quiver([[0,-5,6], [5,0,-5], [-6,5,0]])
         self.quiver_a1 = Quiver([[0,2,-6], [-2,0,5], [6,-5,0]])
@@ -413,6 +412,8 @@ class QuiverInvariants3TestCase(unittest.TestCase):
         self.orientedCycles = [(0,2,1), (0,2,1), (0,1,2), (0,2,1)]
         self.markovs = [3**2+5**2+6**2 - 3*5*6, 5**2+5**2+6**2 - 5*5*6, 2**2+5**2+6**2 - 2*5*6, 3**2 + 6**2]
         self.gcd_vecs = [(3,1,1), (1,5,1), (2,1,1), (3,3,6)]
+        self.casals_dets = [0, 0, 2, 2]
+        self.sevens_kers = [1, 1, 0, 0]
 
     def testAcyclic(self):
         for q in self.quivers:
@@ -450,6 +451,14 @@ class QuiverInvariants3TestCase(unittest.TestCase):
     def testGCDvecs(self):
         for i in range(len(self.quivers)):
             assert self.quivers[i].gcd_vector() == self.gcd_vecs[i], f"incorrect gcd vector, {i, self.gcd_vecs[i], self.quivers[i].gcd_vector()}"
+
+    def testCasals(self):
+        for i in range(len(self.quivers)):
+            assert self.quivers[i].casals_det() == self.casals_dets[i]
+
+    def testSeven(self):
+        for i in range(len(self.quivers)):
+            assert self.quivers[i].seven_congruence() == self.sevens_kers[i]
 
 class RealizableAlexandersTestCase(unittest.TestCase):
     def testSearchA1(self):
@@ -790,6 +799,23 @@ class updateMutationClassTests(unittest.TestCase):
         assert not self.vortexConnClass.alexander_poly
         assert not self.vortexClass.totallyProper
         assert not self.vortexConnClass.totallyProper
+
+    def testCasals(self):
+        c = self.A3Class.casals_det
+        for Q in self.A3Class.vertices:
+            assert c == Q.casals_det()
+        c = self.vortexClass.casals_det
+        for Q in self.vortexClass.vertices:
+            assert c == Q.casals_det()
+
+    def testSevenUnal(self):
+        s = self.A2Class.sevens_ker
+        for Q in self.A2Class.vertices:
+            assert s == Q.seven_congruence()
+        s = self.bigClass.sevens_ker
+        for Q in self.bigClass.vertices:
+            assert s == Q.seven_congruence()
+
         
 class SurfaceQuiverTests(unittest.TestCase):
     def setUp(self):
