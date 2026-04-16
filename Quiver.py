@@ -634,17 +634,19 @@ def surface_quiver(quiver):
                             if try_block(vV, BV, ('V', (i,j,k,u,h))): return True
         else:
             u = outlet_verts[0]
-        #now have u with one block attached.
+        #now have u with at most one block attached.
         # outlet => B1 (i or j) B2 BIIIab BIV BV
         # this version tries with no assumptions; could instead check nbrs+current count
         for i in outlet_verts+unused_verts: #2+ outlets
             if i==u: continue
-            if try_block(vI, BI, ('I',(i,u))): return True
-            if try_block(vI, BI, ('I',(u,i))): return True
-            for j in outlet_verts+unused_verts:
-                if j in [i,u]: continue
-                if try_block(vII, BII, ('II',(u,i,j))): return True
-                if try_block(vII, BII, ('II',(u,j,i))): return True
+            if neighbor_count[u] < 6 and neighbor_count[i] < 6: #degree at most 5
+                if i not in neighbors_out[u] and try_block(vI, BI, ('I',(i,u))): return True
+                if i not in neighbors_in[u] and try_block(vI, BI, ('I',(u,i))): return True
+            if neighbor_count[i]<7 and neighbor_count[u]<7: #degree at most 6
+                for j in outlet_verts+unused_verts:
+                    if j in [i,u]: continue
+                    if j not in neighbors_out[u] and try_block(vII, BII, ('II',(u,i,j))): return True
+                    if j not in neighbors_in[u] and try_block(vII, BII, ('II',(u,j,i))): return True
             if i not in neighbors_in[u]: #u->i
                 for j,k in itertools.combinations([x for x in neighbors_out[i] if x in neighbors_in[u]], 2):
                     if try_block(vIV, BIV, ('IV',(i,j,k,u))): return True
