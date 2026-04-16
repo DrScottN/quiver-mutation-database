@@ -412,6 +412,46 @@ class Quiver():
         # Computes the gcd vector of self, as a tuple with ith entry the gcd of row i.
         return tuple(math.gcd(*[self.matrix[i,j] for j in range(self.n)]) for i in range(self.n))
         
+    def casals_det(self):
+        # return the mod-4 determinant of a quasi-cartan companion. This is a mutation invariant.
+        #  see arxiv: 2311.03601
+        #  uses slow det formula.
+        A = np.abs(self.matrix)
+        for i in range(self.n):
+            A[i,i] = 2
+        det = 0
+        for p in permutations(self.n):
+            a = 1
+            for i in range(self.n):
+                a *= (A[i, p[i]])%4
+            det = (det + a * sign_perm(p))%4
+        return det
+
+    def seven_congruence(self):
+        # return the 'corank' of A mod 4 up to congruence, via the dimension of a particular space
+        #  see https://www.sciencedirect.com/science/article/abs/pii/S0022404925000593 thm 1.7 (note it is written differently on arxiv)
+        #  very slow, we enumerate vectors.
+        V0 = []
+        V000 = []
+        A = np.abs(self.matrix)
+        for i in range(self.n):
+            A[i,i] = 2
+        for v in itertools.product([0,1], repeat=self.n):
+            v = np.array(v)
+            wp = v*A
+            if (wp%2==0).all():
+                V0.append(v)
+        for v in V0:
+            for delta in itertools.product([0,2], repeat=self.n):
+                vp = (v + np.array(delta))%4
+                wp = vp*A
+                if (wp%4==0).all():
+                    V000.append(v)
+                    break #try next v, we found a good delta.
+        #return the dimension of V000 over F_2
+        return math.log(len(V000), 2)
+
+
 
 
 def eigenvalues(M):
