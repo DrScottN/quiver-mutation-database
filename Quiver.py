@@ -626,12 +626,12 @@ def surface_quiver(quiver):
                             if try_block(vV, BV, ('V', (i,j,u,g,h))): return True
                         
                     elif len(neighbors_in[u])==1: 
-                        #i->j->u<-g->h<-j
+                        #i->j->k<-u->h<-j
                         i = neighbors_in[u]
-                        j,g = neighbors_out[u]
-                        if len(neighbors_in[j])==2:
-                            h = neighbors_in[j][0] if neighbors_in[j][1]==u else neighbors_in[j][1]
-                            if try_block(vV, BV, ('V', (i,j,u,g,h))): return True
+                        k,h = neighbors_out[u]
+                        if len(neighbors_in[k])==2:
+                            j = neighbors_in[k][0] if neighbors_in[k][1]==u else neighbors_in[k][1]
+                            if try_block(vV, BV, ('V', (i,j,k,u,h))): return True
         else:
             u = outlet_verts[0]
         #now have u with one block attached.

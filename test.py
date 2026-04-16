@@ -927,8 +927,8 @@ class SlowSurfaceTests(unittest.TestCase):
         assert not surface_quiver(self.E6.mutate(1)), f"incorrectly marked {self.E6.matrix} as being a surface quiver"
 
     def testSurfaceBlocksIso(self):
-        p1 = [3,2,0,1,5,4,6,7,8]
-        p2 = [5,4,3,2,1,0,8,6,7]
+        p1 = [3,2,0,1,5,4,6,7]
+        p2 = [5,4,3,2,1,0,6,7]
         for Q in [self.BV, self.BVp, self.BVpm]:
             assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
             assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
