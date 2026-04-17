@@ -123,6 +123,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert q.cyclic_order() != False, f'{r} mutated into something without a good cyclic ordering'
         assert q.determinant() == self.quiver.determinant(), f'determinant changed after mutating at {r}'
         assert not q.vortex(), f'acyclic quiver became a vortex after mutating at {r}'
+        assert q.vortex_free(), f'vortex free disagrees with .vortex()'
 
         for m in r[::-1]:
             q = q.mutate(m)
@@ -139,6 +140,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert q.cyclic_order() != False, f'{r} mutated into something without a good cyclic ordering'
         assert q.determinant() == self.incomplete_quiver.determinant(), f'determinant changed after mutating at {r}'
         assert not q.vortex(), f'acyclic quiver became a vortex after mutating at {r}'
+        assert q.vortex_free(), f'vortex free disagrees with .vortex()'
 
         for m in r[::-1]:
             q = q.mutate(m)
@@ -235,6 +237,13 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
             assert self.quiver.seven_congruence()==self.quiver.mutate(i).seven_congruence()
             assert self.vortex_quiver.seven_congruence()==self.vortex_quiver.mutate(i).seven_congruence()
 
+    def testVortex(self):
+        assert self.A4.vortex_free()
+        assert not self.A4.vortex()
+        assert not self.vortex_quiver.vortex_free()
+        assert self.vortex_quiver.mutate(2).vortex_free()
+        assert self.incomplete_quiver.vortex_free()
+        assert not self.incomplete_quiver.vortex()
 
 class ForkEdgeTestCase(unittest.TestCase):
     def setUp(self):
@@ -567,6 +576,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.members = []
         self.mat_ranks = []
         self.alexander_polys = []
+        self.has_vortex = []
         Q = isolatedQuiver(4)
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
@@ -574,6 +584,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.members.append(Q)
         self.mat_ranks.append(0)
         self.alexander_polys.append(polynomial.polynomial([1,-4,6,-4,1]))
+        self.has_vortex.append(False)
         Q = Quiver(np.matrix([[0,-3,0,0],[3,0,0,0], [0,0,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
@@ -581,6 +592,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.members.append(Q)
         self.mat_ranks.append(2)
         self.alexander_polys.append(polynomial.polynomial([1,-4,6,-4,1]) + 9*polynomial.polynomial([0,1,-2,1]))
+        self.has_vortex.append(False)
         Q = Quiver(np.matrix([[0,3,2,0],[-3,0,3,0],[-2,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
@@ -588,6 +600,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.members.append(Q)
         self.mat_ranks.append(2)
         self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-37,37,1]))
+        self.has_vortex.append(False)
         Q = Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
@@ -595,6 +608,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.members.append(Q)
         self.mat_ranks.append(2)
         self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-1,1,1]))
+        self.has_vortex.append(Unknown) #in fact, True, if we use connectivity.
         R = Quiver(-np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(vertices=[R,Q], edges={R: {Q:1}, Q:{R:2}}, perms=permutations(4)))
         self.acyclicL.append(False)
@@ -602,6 +616,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.members.append(Q)
         self.mat_ranks.append(2)
         self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-1,1,1]))
+        self.has_vortex.append(Unknown) #in fact, True, if we use connectivity.
         Q = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
@@ -609,6 +624,15 @@ class MutationClassInitTests(unittest.TestCase):
         self.members.append(Q)
         self.mat_ranks.append(2)
         self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,3,-3,1]))
+        self.has_vortex.append(Unknown) #in fact, True, if we use connectivity.
+        Q = Quiver(np.matrix([[0,2,-4,7],[-2,0,7,16],[4,-7,0,6], [-7,-16,-6,0]]))
+        self.classes.append(mutationClass(Q, perms=permutations(4)))
+        self.acyclicL.append(False)
+        self.gcd_vecs.append((1,1,1,1))
+        self.members.append(Q)
+        self.mat_ranks.append(4)
+        self.alexander_polys.append(False)
+        self.has_vortex.append(True)
 
         
     def testMembership(self):
@@ -641,6 +665,10 @@ class MutationClassInitTests(unittest.TestCase):
         for i in range(len(self.classes)):
             assert self.classes[i].alexander_poly == self.alexander_polys[i], f"Incorrect alexander poly {i, str(self.classes[i].alexander_poly)}"
             assert self.classes[i].totallyProper == True if self.acyclicL[i] else Unknown
+
+    def testHasVortexInit(self):
+        for i in range(len(self.classes)):
+            assert self.classes[i].hasVortex == self.has_vortex[i], f"incorrect vortex initialization for {i, self.classes[i].hasVortex}"
 
 class updateMutationClassTests(unittest.TestCase):
     def setUp(self):
@@ -770,8 +798,8 @@ class updateMutationClassTests(unittest.TestCase):
         assert not self.AcyclicEventuallyClass.hit_max_weight
 
     def testHasVortex(self):
-        assert not self.bigClass.hasVortex
-        assert not self.AcyclicEventuallyClass.hasVortex
+        assert self.bigClass.hasVortex is Unknown, f"disconnected large fork incorrectly knows about vortices: {self.bigClass.hasVortex}"
+        assert self.AcyclicEventuallyClass.hasVortex is False
         assert self.vortexClass.hasVortex
         assert self.vortexConnClass.hasVortex
 

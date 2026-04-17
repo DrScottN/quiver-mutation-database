@@ -71,9 +71,17 @@ class Quiver():
 
         return pfaffian(self.matrix.tolist())**2
     
+    def subquiver(self, Vs):
+        # Gives the subquiver of self with vertex set Vs
+        #  Vs is an enumeration of elements from 1 to n, vertex labels are not preserved.
+        #  currently no rule against Vs=[0,0,0], which would give an isolated quiver;
+        #  result is only a subquiver if Vs is a set of distinct elements.
+        return Quiver([[self.matrix[i,j] for i in Vs] for j in Vs]) 
+
     def subquiverRemoveOneVertex(self, v):
         # Takes the subquiver by removing the vertex v
-        return Quiver([[self.matrix[i,j] for i in range(self.n) if i != v] for j in range(self.n) if j != v])
+        return self.subquiver([i for i in range(self.n) if i != v]) # Quiver([[self.matrix[i,j] for i in range(self.n) if i != v] for j in range(self.n) if j != v])
+
 
     def connected(self):
         # Finds if the quiver is connected as a simple graph
@@ -237,7 +245,8 @@ class Quiver():
         return any(Q.threeCycle() and markovInvariant(Q.matrix) <= 4 and Q.abundant() for Q in [self.subquiverRemoveOneVertex(i) for i in self.vertices])
 
     def vortex(self):
-        # Returns whether the quiver is a vortex or not
+        # Returns whether the quiver is a vortex or not.
+        #  Vortices are defined in "Long Mutation Cycles" by FN
         if self.n != 4:
             return False
         
@@ -254,6 +263,13 @@ class Quiver():
         Q = self.subquiverRemoveOneVertex(apex)
 
         return Q.threeCycle()
+
+    def vortex_free(self):
+        # determines if the quiver has no vortex subquiver
+        for V in itertools.combinations(self.vertices, 4):
+            if self.subquiver(V).vortex():
+                return False
+        return True
 
     def oppositeQuiver(self):
         #return Quiver([[-self.matrix[j,i] for i in range(self.n)] for j in range(self.n)])
@@ -506,7 +522,7 @@ def surface_quiver(quiver):
     # Return if the quiver is a surface quiver by identifying a block decomposition.
     #  Block decomposition described in section 4 of "Skew-symmetric cluster algebras of finite mutation type" arxiv:0811.1703
     #  and in FST 13.1
-    
+
     # easy check
     if (2<quiver.matrix).any():
         return False
@@ -787,14 +803,9 @@ class mutationClass():
             self.mutationComplete = Unknown
             self.couldBeMutationComplete = True
 
-        if self.initialQ.vortex(): # need to update this for quivers without 4 vertices
-            self.hasVortex = True
-            self.couldBeMutationVortexFree = False
-        else:
-            self.hasVortex = Unknown
-            self.couldBeMutationVortexFree = True
-
         self.is_surface_quiver = Unknown
+
+        self.hasVortex = False if self.mutationAcyclic is True else Unknown
         # Setup possible mutation-invariants
         for Q in self.vertices:
             if self.max_weight and np.max(np.abs(Q.matrix)) > 2:
@@ -802,6 +813,9 @@ class mutationClass():
                 self.finite = False
                 self.finiteFP = Unknown
                 self.finitePFP = Unknown
+            
+            if self.hasVortex is Unknown and not Q.vortex_free():
+                self.hasVortex = True
         if self.is_surface_quiver is Unknown:
             self.is_surface_quiver = bool(surface_quiver(self.initialQ))
             self.finite = True if self.is_surface_quiver else Unknown
@@ -898,7 +912,6 @@ class mutationClass():
         newMutClass = mutationClass(vertices = vertices, edges = commonEdges, perms = self.perms)
         newMutClass.couldBeMutationCyclic = self.couldBeMutationCyclic and other.couldBeMutationCyclic
         newMutClass.couldBeMutationComplete = self.couldBeMutationComplete and other.couldBeMutationComplete
-        newMutClass.couldBeMutationVortexFree = self.couldBeMutationVortexFree and other.couldBeMutationVortexFree
         newMutClass.couldBeFinite = self.couldBeFinite and other.couldBeFinite
         newMutClass.couldBeFiniteFP = self.couldBeFiniteFP and other.couldBeFiniteFP
         newMutClass.couldBeFinitePFP = self.couldBeFinitePFP and other.couldBeFinitePFP
@@ -937,7 +950,6 @@ class mutationClass():
         newMutClass = mutationClass(vertices = vertices, edges = edges, perms = self.perms)
         newMutClass.couldBeMutationCyclic = self.couldBeMutationCyclic and other.couldBeMutationCyclic
         newMutClass.couldBeMutationComplete = self.couldBeMutationComplete and other.couldBeMutationComplete
-        newMutClass.couldBeMutationVortexFree = self.couldBeMutationVortexFree and other.couldBeMutationVortexFree
         newMutClass.couldBeFinite = self.couldBeFinite and other.couldBeFinite
         newMutClass.couldBeFiniteFP = self.couldBeFiniteFP and other.couldBeFiniteFP
         newMutClass.couldBeFinitePFP = self.couldBeFinitePFP and other.couldBeFinitePFP
@@ -989,8 +1001,7 @@ class mutationClass():
 
                 if P not in self.edges:
                     # Update potentional mutation invariants
-                    self.couldBeMutationVortexFree = self.couldBeMutationVortexFree and not P.vortex()
-                    self.hasVortex = True if P.vortex() else self.hasVortex
+                    self.hasVortex = True if not P.vortex_free() else self.hasVortex
                     self.couldBeMutationComplete = self.couldBeMutationComplete and not P.complete()
                     self.mutationComplete = False if not P.complete() else self.mutationComplete
                     self.couldBeMutationCyclic = self.couldBeMutationCyclic and not P.acyclic()
@@ -1033,7 +1044,7 @@ class mutationClass():
             self.finite = self.couldBeFinite
             self.finiteFP = self.couldBeFiniteFP
             self.mutationAcyclic = not self.couldBeMutationCyclic
-            self.hasVortex = not self.couldBeMutationVortexFree
+            self.hasVortex = True if self.hasVortex is Unknown else self.hasVortex
             self.mutationComplete = self.couldBeMutationComplete
             self.hasMutationCycle = False if self.hasMutationCycle is Unknown else self.hasMutationCycle
             self.mutationAbundant = True if self.mutationAbundant is Unknown else self.mutationAbundant
