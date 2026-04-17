@@ -794,7 +794,7 @@ class mutationClass():
                 self.mutationCyclicSubquiverWitness = None
                 self.mutationAcyclic = Unknown
             self.couldBeMutationCyclic = True
-            self.totallyProper = Unknown if self.alexander_poly else False
+            self.totallyProper = Unknown if self.alexander_poly is not False else False
 
         if not self.initialQ.complete():
             self.mutationComplete = False
@@ -806,27 +806,23 @@ class mutationClass():
         self.is_surface_quiver = Unknown
 
         self.hasVortex = False if self.mutationAcyclic is True else Unknown
+        self.finite = Unknown
+        self.finiteFP = Unknown
+        self.finitePFP = Unknown
         # Setup possible mutation-invariants
         for Q in self.vertices:
             if self.max_weight and np.max(np.abs(Q.matrix)) > 2:
                 self.is_surface_quiver = False
                 self.finite = False
-                self.finiteFP = Unknown
-                self.finitePFP = Unknown
             
             if self.hasVortex is Unknown and not Q.vortex_free():
                 self.hasVortex = True
                 self.mutationAcyclic = False
         if self.is_surface_quiver is Unknown:
             self.is_surface_quiver = bool(surface_quiver(self.initialQ))
-            self.finite = True if self.is_surface_quiver else Unknown
-            self.finiteFP = True if self.is_surface_quiver else Unknown
-            self.finitePFP = True if self.is_surface_quiver else Unknown
-        
-        
-        self.couldBeFinite = False if not self.finite else True
-        self.couldBeFiniteFP = True
-        self.couldBeFinitePFP = True
+            self.finite = True if self.is_surface_quiver else self.finite
+            self.finiteFP = True if self.is_surface_quiver else self.finiteFP
+            self.finitePFP = True if self.is_surface_quiver else self.finitePFP
 
         self.hasMutationCycle = Unknown
         self.mutationAbundant = False if not self.initialQ.abundant() else Unknown
@@ -911,11 +907,10 @@ class mutationClass():
         commonEdges.update({Q : other.edges[Q] for Q in otherVertices if Q not in commonVertices})
 
         newMutClass = mutationClass(vertices = vertices, edges = commonEdges, perms = self.perms)
-        newMutClass.couldBeMutationCyclic = self.couldBeMutationCyclic and other.couldBeMutationCyclic
-        newMutClass.couldBeMutationComplete = self.couldBeMutationComplete and other.couldBeMutationComplete
-        newMutClass.couldBeFinite = self.couldBeFinite and other.couldBeFinite
-        newMutClass.couldBeFiniteFP = self.couldBeFiniteFP and other.couldBeFiniteFP
-        newMutClass.couldBeFinitePFP = self.couldBeFinitePFP and other.couldBeFinitePFP
+        
+        #we may know more about this than usual, update
+        newMutClass._setProperties(self)
+        newMutClass._setProperties(other)
 
         return newMutClass
 
@@ -949,13 +944,27 @@ class mutationClass():
         edges = {Q : {**selfEdges[Q], **otherEdges[Q]} for Q in vertices}
 
         newMutClass = mutationClass(vertices = vertices, edges = edges, perms = self.perms)
-        newMutClass.couldBeMutationCyclic = self.couldBeMutationCyclic and other.couldBeMutationCyclic
-        newMutClass.couldBeMutationComplete = self.couldBeMutationComplete and other.couldBeMutationComplete
-        newMutClass.couldBeFinite = self.couldBeFinite and other.couldBeFinite
-        newMutClass.couldBeFiniteFP = self.couldBeFiniteFP and other.couldBeFiniteFP
-        newMutClass.couldBeFinitePFP = self.couldBeFinitePFP and other.couldBeFinitePFP
 
+        #we know more about this than usual, update
+        newMutClass._setProperties(self)
+        newMutClass._setProperties(other)
+        
         return newMutClass
+
+    def _setProperties(self, other):
+        # Helper function that updates properties of this mutation class to match those in the other class.
+        #  Assumes that the two classes intersect. Otherwise this can cause unreachable state.
+        self.finite = self.finite if self.finite is not Unknown else other.finite
+        self.finitePFP = self.finitePFP if self.finitePFP is not Unknown else other.finitePFP
+        self.finiteFP = self.finiteFP if self.finiteFP is not Unknown else other.finiteFP
+        self.hasVortex = self.hasVortex if self.hasVortex is not Unknown else other.hasVortex
+        self.hasMutationCycle = self.hasMutationCycle if self.hasMutationCycle is not Unknown else other.hasMutationCycle
+        self.mutationAbundant = self.mutationAbundant if self.mutationAbundant is not Unknown else other.mutationAbundant
+        self.mutationAcyclic = self.mutationAcyclic if self.mutationAcyclic is not Unknown else other.mutationAcyclic
+        self.totallyProper = self.totallyProper if self.totallyProper is not Unknown else other.totallyProper
+        self.mutationComplete = self.mutationComplete if self.mutationComplete is not Unknown else other.mutationComplete
+        self.mutationCyclicSubquiver = self.mutationCyclicSubquiver if self.mutationCyclicSubquiver is not Unknown else other.mutationCyclicSubquiver
+        # handled by init: self.mutationConnected, determinant, gcdVector, B_rank, alexander_poly, casals_det, sevens_ker, 
 
     def emptyIntersection(self,other):
         return self.intersection(other) is None
@@ -985,12 +994,12 @@ class mutationClass():
             for k in Q.vertices:
                 P = Q.mutate(k) # Mutate the Quiver
                 if P.forkWithPOR(k): # Check if the new quiver P is a fork with por k
-                    self.couldBeFinite = False
+                    self.finite = False
                     continue
 
                 if P.preForkWithPOR(k): # Check if the new quiver P is a pre-fork with por k
-                    self.couldBeFiniteFP = False
-                    self.couldBeFinite = False
+                    self.finiteFP = False
+                    self.finite = False
                     continue
                     
                 
@@ -1042,8 +1051,8 @@ class mutationClass():
 
         if len(self.forefront) == 0 and not self.hit_max_weight: #if we pruned, don't be overconfident.
             self.finitePFP = True
-            self.finite = self.couldBeFinite
-            self.finiteFP = self.couldBeFiniteFP
+            self.finite = True if self.finite is Unknown else self.finite
+            self.finiteFP = True if self.finiteFP is Unknown else self.finiteFP
             self.mutationAcyclic = not self.couldBeMutationCyclic
             self.hasVortex = True if self.hasVortex is Unknown else self.hasVortex
             self.mutationComplete = self.couldBeMutationComplete

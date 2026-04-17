@@ -1072,5 +1072,34 @@ class MutationCycleTests(unittest.TestCase):
     def testMutCycleDetected(self):
         assert self.A3Class.hasMutationCycle
 
+class UnknownTests(unittest.TestCase):
+    def testIs(self):
+        assert Unknown is Unknown
+        assert not Unknown is False
+        assert not Unknown is True
+        assert not False is Unknown
+        assert not True is Unknown
+
+    def testIsNot(self):
+        assert Unknown is not False
+        assert Unknown is not True
+        assert False is not Unknown
+        assert True is not Unknown
+        assert not Unknown is not Unknown
+
+    def testAnd(self):
+        assert Unknown & True is Unknown
+        assert Unknown & False is False
+        assert Unknown & Unknown is Unknown
+        assert (True & Unknown) is (Unknown & True)
+        assert (False & Unknown) is (Unknown & False)
+
+    def testOr(self):
+        assert Unknown | True is True
+        assert Unknown | False is Unknown
+        assert Unknown | Unknown is Unknown
+        assert (True | Unknown) is (Unknown | True)
+        assert (False | Unknown) is (Unknown | False)
+
 if __name__ == "__main__":
     unittest.main()
