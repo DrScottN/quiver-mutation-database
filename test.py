@@ -1069,8 +1069,37 @@ class MutationCycleTests(unittest.TestCase):
         self.A3Class.update()
         self.A3Class.update()
 
+        self.markovClass = mutationClass(Quiver([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]), perms=permutations(4))
+        self.markovClass.update()
+        self.markovClass.update()
+        self.markovClass.update()
+
+        self.finiteForklessClass = mutationClass(Quiver([[0,19,19,-19],[-19,0,19,19],[-19,-19,0,19],[19,-19,-19,0]]), perms=permutations(4))
+        self.finiteForklessClass.update()
+        self.finiteForklessClass.update()
+
+        self.A1Class = mutationClass(isolatedQuiver(1), perms=permutations(1))
+        self.A1Class.update()
+
     def testMutCycleDetected(self):
+        assert self.A1Class.hasMutationCycle, f"mutation cycle of length 1 was ignored"
         assert self.A3Class.hasMutationCycle
+        assert self.markovClass.hasMutationCycle
+        assert not self.finiteForklessClass.hasMutationCycle
+
+    def testFiniteForklessDetected(self):
+        assert self.A1Class.finite
+        assert self.A1Class.finiteFP
+        assert self.A1Class.finitePFP
+        assert self.A3Class.finite
+        assert self.A3Class.finiteFP
+        assert self.A3Class.finitePFP
+        assert self.markovClass.finite
+        assert self.markovClass.finitePFP
+        assert self.markovClass.finiteFP
+        assert self.finiteForklessClass.finiteFP
+        assert self.finiteForklessClass.finitePFP
+        assert not self.finiteForklessClass.finite
 
 class UnknownTests(unittest.TestCase):
     def testIs(self):
