@@ -598,7 +598,7 @@ def surface_quiver(quiver):
     def block_decomp():
         nonlocal B,v,blocks
         # recursive function for finding a block decomposition
-        #  B is matrix so far, v counts how matched vertices are (0 is unused, 1 is out, 2 is filled)
+        #  B is matrix so far, v counts how matched vertices are (0 is unused, 1 is outlet, 2 is dead)
         outlet_verts = []
         matched_verts = []
         unused_verts = []
