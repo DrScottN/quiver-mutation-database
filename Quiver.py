@@ -816,6 +816,7 @@ class mutationClass():
             
             if self.hasVortex is Unknown and not Q.vortex_free():
                 self.hasVortex = True
+                self.mutationAcyclic = False
         if self.is_surface_quiver is Unknown:
             self.is_surface_quiver = bool(surface_quiver(self.initialQ))
             self.finite = True if self.is_surface_quiver else Unknown
