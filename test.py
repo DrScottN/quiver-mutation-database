@@ -716,7 +716,7 @@ class updateMutationClassTests(unittest.TestCase):
         assert len(self.A3Result) == 0
         assert len(self.A2Result) == 0
         assert len(self.AcyclicEventuallyResult) != 0
-        assert len(self.bigClassResult) ==0 #pruned away
+        assert len(self.bigClassResult) == 0 #pruned away
         assert len(self.vortexClassResult) !=0
 
 
@@ -791,6 +791,15 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.A2Class.mutationAcyclic
         assert self.A3Class.mutationAcyclic
         assert self.AcyclicEventuallyClass.mutationAcyclic
+        assert not self.bigClass.mutationAcyclic
+
+    def testForklessParts(self):
+        assert self.markovClass.finitePFP
+        assert self.markovClass.finite
+        assert self.A2Class.finite
+        assert self.A3Class.finiteFP
+        assert self.bigClass.finiteFP is Unknown
+        assert self.bigClass.finitePFP is Unknown
 
     def testBigWeightPruning(self):
         assert self.bigClass.hit_max_weight

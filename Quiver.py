@@ -1040,7 +1040,7 @@ class mutationClass():
 
         self.forefront = newForefront # Update the forefront to be the new quivers we saw this round
 
-        if len(self.forefront) == 0:
+        if len(self.forefront) == 0 and not self.hit_max_weight: #if we pruned, don't be overconfident.
             self.finitePFP = True
             self.finite = self.couldBeFinite
             self.finiteFP = self.couldBeFiniteFP
