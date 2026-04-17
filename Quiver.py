@@ -506,6 +506,7 @@ def surface_quiver(quiver):
     # Return if the quiver is a surface quiver by identifying a block decomposition.
     #  Block decomposition described in section 4 of "Skew-symmetric cluster algebras of finite mutation type" arxiv:0811.1703
     #  and in FST 13.1
+    
     # easy check
     if (2<quiver.matrix).any():
         return False
@@ -515,7 +516,7 @@ def surface_quiver(quiver):
     neighbors_in = [[j for j in range(n) if quiver.matrix[i,j] <0] for i in range(n)]
     neighbor_count = [len(neighbors_in[i] + neighbors_out[i]) for i in range(n)]
 
-    #more easy checks
+    # more easy checks
     if max(neighbor_count) > 8:
         return False
     if max([len(neighbors_in[i]) for i in range(n)]) > 4:
@@ -523,16 +524,18 @@ def surface_quiver(quiver):
     if max([len(neighbors_out[i]) for i in range(n)]) > 4:
         return False
     # constructors for the blocks. 
-    # B_ gives the matrix, v_ gives the covering count of each vertex by that matrix.
+    #  B_ gives the matrix of the block, 
+    #  v_ gives the covering count of each vertex in Q by that matrix 
+    #   (v[i]==0 means i is not in any block, v[i]==2 means i is dead).
 
-    # single arrow, out out i->j
+    #single arrow, out out i->j
     def vI(i,l):
         return np.array([x in [i,l] for x in range(n)], dtype=np.int8)
     def BI(i,l):
         B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,l] += 1
         return B - np.transpose(B)
-    # oriented cycle, out out out i->j->k->i
+    #oriented cycle, out out out i->j->k->i
     def vII(i,j,k):
         return np.array([x in [i,j,k] for x in range(n)], dtype=np.int8)
     def BII(i,j,k):
@@ -541,7 +544,7 @@ def surface_quiver(quiver):
         B[j,k] += 1
         B[k,i] += 1
         return B - np.transpose(B)
-    # sink, out dead dead j->i<-k
+    #sink, out dead dead j->i<-k
     def vIII(i,j,k):
         return np.array([(x==i) + 2*(x in [j,k]) for x in range(n)], dtype=np.int8)
     def BIIIa(i,j,k):
@@ -720,8 +723,6 @@ class mutationClass():
     # Could easily use this to build a graph visualization of mutation classes
 
     # The class will be split up into two main ideas: essentially a set for mutations and a tool for exploring mutation-classes
-
-    # Will implement mutationClass unions and intersections
 
     def __init__(self, Q = None, perms = None, vertices = None, edges = None, max_weight=2**16):
         # Takes in a quiver Q as the first member of our mutation class. perms is required.
