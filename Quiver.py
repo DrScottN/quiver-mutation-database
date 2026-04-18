@@ -497,9 +497,10 @@ def sink_set(quiver):
 def generate_acyclics_from_Alexander(alex):
     # Takes an Alexander polynomial alex and generates all acyclic quivers with that polynomial.
     #  Iterator. Assumes alex is uni-variate. Not efficient.
+    if alex is False: return
     degree = max([j[0] for j in alex.coeffDict.keys() if alex.coeffDict[j]!=0])
     markov = degree + alex.coeffDict[(degree-1,)]
-    if markov < 0:
+    if markov < 0 or markov is false:
         return
 
     for w in itertools.product(list(range(math.isqrt(markov)+1)), repeat=(degree*(degree-1))//2):
