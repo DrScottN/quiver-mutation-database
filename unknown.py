@@ -36,22 +36,25 @@ class unknown:
     def __ror__(self,other):
         return self.__or__(other)
 
-    def __not__(self):
+    def __bool__(self):
         raise Exception("You just tried to convert Unknown to a Boolean. Can't do that!")
 
+        return self
+
+    def __invert__(self):
         return self
 
 def test():
     Values = [Unknown, True, False]
 
-    for a in Values:
+    for a in Values[:1]:
         for b in Values:
             print("-----------------")
             print(a, b)
-            print(a and b)
-            print(a or b)
+            print(a & b)
+            print(a | b)
             print(a == b)
-            print(a is b)
+            print(~b)
 
 # Can now import unknown.Unknown as Unknown and use it as desired
 Unknown = unknown()
