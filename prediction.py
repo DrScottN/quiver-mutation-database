@@ -4,7 +4,7 @@ from Quiver import *
 # mutation equivalence or mutation acyclicity
 #  includes variations with more/less compute, certainty, and data. 
 
-def invariants_dict(Q):
+def invariants_dict(Q, include_surface=True):
     # return a dict of mutation invariants of Q. 
     invs = dict()
     invs["rank"] = Q.n
@@ -13,7 +13,8 @@ def invariants_dict(Q):
     invs["Casal's Det"] = Q.casals_det()
     invs["Seven's Congruence"] = Q.seven_congruence()
     invs["gcd"] = Q.gcd_vector() 
-    invs["surf quiver"] = surface_quiver(Q)
+    if include_surface: invs["surf quiver"] = surface_quiver(Q)[0] 
+    #note, block decomp is not an invariant but the surface type is.
     return invs
 
 def mutation_equivalent_local(Q,R, up_to_ismorphism=False):
