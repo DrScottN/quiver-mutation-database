@@ -1274,27 +1274,27 @@ def main():
                 mutAcyclic += 1
                 mutAcyclicClasses.append(M)
                 break
-            elif M.mutationCyclicSubquiver is not None and M.mutationCyclicSubquiver:
+            elif M.mutationCyclicSubquiver is True:
                 numMutCyclicSubquiver += 1
                 mutCyclicSubquiverClasses.append(M)
                 break
                 #print(M.rep)
                 #print('---------')
-            elif M.finite is not None and M.finite:
+            elif M.finite is True:
                 numFinite += 1
                 mutationFiniteClasses.append(M)
                 break
-            elif M.mutationVortexFree is False:
+            elif M.hasVortex is True:
                 numVortex += 1
                 mutationVortexClasses.append(M)
                 #print(f"Found {numVortex} quivers with vortices in the mutation-class so far. Must be mutation-cyclic.")
                 break
-            elif M.finiteFP is not None and M.finiteFP:
+            elif M.finiteFP is True:
                 numFiniteFP += 1
                 mutationFiniteFPClasses.append(M)
                 #print(f"Found {numFiniteFP} quivers with Finite Forkless Part in the mutation-class so far. Must be mutation-cyclic.")
                 break
-            elif M.finitePFP is not None and M.finitePFP:
+            elif M.finitePFP is True:
                 numFinitePFP += 1
                 mutationFinitePFPClasses.append(M)
                 #print(f"Found {numFinitePFP} quivers with Finite Pre-Forkless Part in the mutation-class so far. Must be mutation-cyclic.")
