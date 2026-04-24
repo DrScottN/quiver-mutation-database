@@ -233,8 +233,8 @@ class Quiver():
 
     def hasMutCyclicSubquiver(self):
         # Returns whether the quiver has a 3-cycle as a subquiver
-        if self.n != 4:
-            raise Exception("Not implemented for more than four vertices")
+        #if self.n != 4:
+        #    raise Exception("Not implemented for more than four vertices")
         
         def markovInvariant(matrix):
             if len(matrix) != 3:
@@ -242,7 +242,7 @@ class Quiver():
             
             return (matrix[0,1]**2) + (matrix[1,2]**2) + (matrix[2,0]**2) - abs(matrix[0,1]*matrix[1,2]*matrix[2,0])
 
-        return any(Q.threeCycle() and markovInvariant(Q.matrix) <= 4 and Q.abundant() for Q in [self.subquiverRemoveOneVertex(i) for i in self.vertices])
+        return any(Q.threeCycle() and markovInvariant(Q.matrix) <= 4 and Q.abundant() for Q in [self.subquiver(s) for s in itertools.combinations(self.vertices, 3)])
 
     def vortex(self):
         # Returns whether the quiver is a vortex or not.
