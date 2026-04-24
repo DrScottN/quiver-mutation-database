@@ -295,9 +295,9 @@ class QuiverInvariants3dcTestCase(unittest.TestCase):
     def testCyclicSubquiver(self):
         for i in range(len(self.quivers)):
             if self.areMutCyclic[i]:
-                assert self.quivers[i].hasMutCyclicSubquiver(), 'mutation cyclic subquiver is incorrectly unnoticed'
+                assert self.quivers[i].hasMutCyclicThreeCycle(), 'mutation cyclic subquiver is incorrectly unnoticed'
             else:
-                assert not self.quivers[i].hasMutCyclicSubquiver(), 'mutation acyclic quiver is incorrectly marked as mutation cyclic'
+                assert not self.quivers[i].hasMutCyclicThreeCycle(), 'mutation acyclic quiver is incorrectly marked as mutation cyclic'
         
     def testCycles(self):
         for q in self.quivers:
@@ -381,11 +381,11 @@ class SubquiverTestCase(unittest.TestCase):
         self.markov_manual = lambda M : (M[0,1]**2) + (M[1,2]**2) + (M[2,0]**2) - abs(M[0,1]*M[1,2]*M[2,0])
 
     def testCyclicSubquivers(self):
-        assert self.markov_vortex.hasMutCyclicSubquiver()
-        assert not self.mutated_vortex.hasMutCyclicSubquiver()
-        assert not self.small_weight.hasMutCyclicSubquiver()
-        assert self.mutated_small.hasMutCyclicSubquiver()
-        assert not self.big_problem.hasMutCyclicSubquiver()
+        assert self.markov_vortex.hasMutCyclicThreeCycle()
+        assert not self.mutated_vortex.hasMutCyclicThreeCycle()
+        assert not self.small_weight.hasMutCyclicThreeCycle()
+        assert self.mutated_small.hasMutCyclicThreeCycle()
+        assert not self.big_problem.hasMutCyclicThreeCycle()
 
     def testMarkov(self):
         for i in self.markov_vortex.vertices:
@@ -782,7 +782,7 @@ class updateMutationClassTests(unittest.TestCase):
     def testMuCyclic(self):
         assert not self.markovClass.mutationAcyclic
         assert self.markovClass.mutationCyclicSubquiver
-        assert self.markovClass.mutationCyclicSubquiverWitness.hasMutCyclicSubquiver()
+        assert self.markovClass.mutationCyclicSubquiverWitness.hasMutCyclicThreeCycle()
         assert self.A2Class.mutationAcyclic
         assert self.A3Class.mutationAcyclic
         assert not self.A2Class.mutationCyclicSubquiver
