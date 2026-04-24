@@ -500,7 +500,7 @@ def generate_acyclics_from_Alexander(alex):
     if alex is False: return
     degree = max([j[0] for j in alex.coeffDict.keys() if alex.coeffDict[j]!=0])
     markov = degree + alex.coeffDict[(degree-1,)]
-    if markov < 0 or markov is false:
+    if markov < 0 or markov is False:
         return
 
     for w in itertools.product(list(range(math.isqrt(markov)+1)), repeat=(degree*(degree-1))//2):
@@ -785,7 +785,6 @@ class mutationClass():
             self.mutationAcyclic = True
             self.mutationCyclicSubquiver = False
             self.mutationCyclicSubquiverWitness = None
-            self.couldBeMutationCyclic = False
             self.totallyProper = True
         else:
             if self.initialQ.hasMutCyclicSubquiver():
@@ -794,16 +793,9 @@ class mutationClass():
                 self.mutationCyclicSubquiver = Unknown
                 self.mutationCyclicSubquiverWitness = None
                 self.mutationAcyclic = Unknown
-            self.couldBeMutationCyclic = True
             self.totallyProper = Unknown if self.alexander_poly is not False else False
 
-        if not self.initialQ.complete():
-            self.mutationComplete = False
-            self.couldBeMutationComplete = False
-        else:
-            self.mutationComplete = Unknown
-            self.couldBeMutationComplete = True
-
+        self.mutationComplete = False if self.initialQ.complete() is not True else Unknown
         self.is_surface_quiver = Unknown
 
         self.hasVortex = False if self.mutationAcyclic is True else Unknown
@@ -1013,16 +1005,15 @@ class mutationClass():
                 if P not in self.edges:
                     # Update potentional mutation invariants
                     self.hasVortex = True if not P.vortex_free() else self.hasVortex
-                    self.couldBeMutationComplete = self.couldBeMutationComplete and not P.complete()
                     self.mutationComplete = False if not P.complete() else self.mutationComplete
-                    self.couldBeMutationCyclic = self.couldBeMutationCyclic and not P.acyclic()
-                    if self.mutationAcyclic is Unknown and P.acyclic():
-                        self.mutationAcyclic = True
-                        self.hasVortex=False
-                        self.mutationAbundant = P.abundant()
-                    self.mutationAbundant = self.mutationAbundant and P.abundant()
+                    self.mutationAbundant = False if not P.abundant() else self.mutationAbundant
+                    if self.mutationAcyclic is Unknown:
+                        if P.acyclic():
+                            self.mutationAcyclic = True
+                            self.hasVortex=False
+                            self.mutationAbundant = P.abundant()
                     
-                    if self.couldBeMutationCyclic and self.mutationCyclicSubquiver is Unknown:
+                    if self.mutationAcyclic is Unknown or self.mutationAcyclic is False and self.mutationCyclicSubquiver is Unknown:
                         if P.hasMutCyclicSubquiver():
                             self.foundCyclicSubquiver(P)
                     
@@ -1054,9 +1045,9 @@ class mutationClass():
             self.finitePFP = True
             self.finite = True if self.finite is Unknown else self.finite
             self.finiteFP = True if self.finiteFP is Unknown else self.finiteFP
-            self.mutationAcyclic = not self.couldBeMutationCyclic
+            self.mutationAcyclic = False if self.mutationAcyclic is Unknown else True
             self.hasVortex = True if self.hasVortex is Unknown else self.hasVortex
-            self.mutationComplete = self.couldBeMutationComplete
+            self.mutationComplete = False if self.mutationComplete is Unknown else True
             self.hasMutationCycle = False if self.hasMutationCycle is Unknown else self.hasMutationCycle
             self.mutationAbundant = True if self.mutationAbundant is Unknown else self.mutationAbundant
             if not self.hasVortex and self.mutationComplete:
@@ -1261,7 +1252,7 @@ def main():
     reduced.remove(torus)
     numNonSpecial = len(reduced)
     print(f"{len(reduced)} quivers to test for mutation-acyclicity remaining.")
-    m = 12
+    m = 7
     print(f"Testing remaining by mutating up to {m} times.")
     mutClasses = [mutationClass(Q,perms) for Q in reduced]
     mutAcyclic = 0
@@ -1279,7 +1270,7 @@ def main():
     for M in mutClasses:
         for i in range(m):
             M.update()
-            if not M.couldBeMutationCyclic:
+            if M.mutationAcyclic is True:
                 mutAcyclic += 1
                 mutAcyclicClasses.append(M)
                 break
@@ -1293,7 +1284,7 @@ def main():
                 numFinite += 1
                 mutationFiniteClasses.append(M)
                 break
-            elif not M.couldBeMutationVortexFree:
+            elif M.mutationVortexFree is False:
                 numVortex += 1
                 mutationVortexClasses.append(M)
                 #print(f"Found {numVortex} quivers with vortices in the mutation-class so far. Must be mutation-cyclic.")
