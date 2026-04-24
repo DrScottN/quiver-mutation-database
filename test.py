@@ -1,5 +1,5 @@
 from Quiver import *
-from unknown import Unknown
+#from unknown import Unknown
 import unittest
 import random
 import itertools
@@ -665,7 +665,12 @@ class MutationClassInitTests(unittest.TestCase):
     def testAlexander(self):
         for i in range(len(self.classes)):
             assert self.classes[i].alexander_poly == self.alexander_polys[i], f"Incorrect alexander poly {i, str(self.classes[i].alexander_poly)}"
-            assert self.classes[i].totallyProper == True if self.acyclicL[i] else Unknown
+            if self.acyclicL[i] is True:
+                assert self.classes[i].totallyProper == True 
+            elif self.has_vortex[i] is True:
+                assert self.classes[i].totallyProper == False
+            else:
+                assert self.classes[i].totallyProper == Unknown #(True if self.acyclicL[i] else (False if self.has_vortex[i] else Unknown)), f"Incorrect total proper property {i}"
 
     def testHasVortexInit(self):
         for i in range(len(self.classes)):
@@ -709,7 +714,9 @@ class updateMutationClassTests(unittest.TestCase):
         self.vortexConnClass = mutationClass(Quiver(np.matrix([[0,2,-40,6],[-2,0,2,6],[40,-2,0,6], [-6,-6,-6,0]])), perms=permutations(4))
         self.vortexConnClass.update()
         self.vortexConnClass.update()
-        self.vortexConnClassResult=self.vortexClass.update()
+        self.vortexConnClass.update()
+        self.vortexConnClass.update()
+        self.vortexConnClassResult=self.vortexConnClass.update()
     
     def testResults(self):
         assert len(self.isolatedResult) == 0
@@ -719,6 +726,7 @@ class updateMutationClassTests(unittest.TestCase):
         assert len(self.AcyclicEventuallyResult) != 0
         assert len(self.bigClassResult) == 0 #pruned away
         assert len(self.vortexClassResult) !=0
+        assert len(self.vortexConnClassResult) ==0, f"had a forefront still {self.vortexConnClassResult[0].matrix}"
 
 
     def testUpdateMembership(self):
@@ -828,7 +836,7 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.A3Class.totallyProper
         for Q in self.AcyclicEventuallyClass.vertices:
             assert Q.alexander_poly() == self.AcyclicEventuallyClass.alexander_poly, f"alexander poly varies across class, {str(self.AcyclicEventuallyClass.alexander_poly)} vs {str(Q.alexander_poly())}"
-        assert self.AcyclicEventuallyClass.totallyProper
+        assert self.AcyclicEventuallyClass.totallyProper 
         assert not self.vortexClass.alexander_poly
         assert not self.vortexConnClass.alexander_poly
         assert not self.vortexClass.totallyProper

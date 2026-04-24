@@ -1012,6 +1012,7 @@ class mutationClass():
                             self.mutationAcyclic = True
                             self.hasVortex=False
                             self.mutationAbundant = P.abundant()
+                            self.totallyProper = True
                     
                     if (self.mutationAcyclic is Unknown or self.mutationAcyclic is False) and (self.mutationCyclicSubquiver is Unknown):
                         if P.hasMutCyclicThreeCycle():
