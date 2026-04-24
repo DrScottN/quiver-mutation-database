@@ -1013,7 +1013,7 @@ class mutationClass():
                             self.hasVortex=False
                             self.mutationAbundant = P.abundant()
                     
-                    if self.mutationAcyclic is Unknown or self.mutationAcyclic is False and self.mutationCyclicSubquiver is Unknown:
+                    if (self.mutationAcyclic is Unknown or self.mutationAcyclic is False) and (self.mutationCyclicSubquiver is Unknown):
                         if P.hasMutCyclicThreeCycle():
                             self.foundCyclicSubquiver(P)
                     
@@ -1045,9 +1045,9 @@ class mutationClass():
             self.finitePFP = True
             self.finite = True if self.finite is Unknown else self.finite
             self.finiteFP = True if self.finiteFP is Unknown else self.finiteFP
-            self.mutationAcyclic = False if self.mutationAcyclic is Unknown else True
+            self.mutationAcyclic = False if self.mutationAcyclic is Unknown else self.mutationAcyclic
             self.hasVortex = True if self.hasVortex is Unknown else self.hasVortex
-            self.mutationComplete = False if self.mutationComplete is Unknown else True
+            self.mutationComplete = False if self.mutationComplete is Unknown else self.mutationComplete
             self.hasMutationCycle = False if self.hasMutationCycle is Unknown else self.hasMutationCycle
             self.mutationAbundant = True if self.mutationAbundant is Unknown else self.mutationAbundant
             if not self.hasVortex and self.mutationComplete:
@@ -1252,7 +1252,7 @@ def main():
     reduced.remove(torus)
     numNonSpecial = len(reduced)
     print(f"{len(reduced)} quivers to test for mutation-acyclicity remaining.")
-    m = 7
+    m = 12
     print(f"Testing remaining by mutating up to {m} times.")
     mutClasses = [mutationClass(Q,perms) for Q in reduced]
     mutAcyclic = 0

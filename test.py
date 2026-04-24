@@ -787,7 +787,7 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.A3Class.mutationAcyclic
         assert not self.A2Class.mutationCyclicSubquiver
         assert self.A2Class.mutationCyclicSubquiverWitness is None
-        assert self.AcyclicEventuallyClass.mutationAcyclic is Unknown
+        assert self.AcyclicEventuallyClass.mutationAcyclic 
         assert not self.bigClass.mutationAcyclic
 
     def testForklessParts(self):
