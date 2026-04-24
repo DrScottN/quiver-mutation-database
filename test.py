@@ -382,9 +382,9 @@ class SubquiverTestCase(unittest.TestCase):
 
     def testCyclicSubquivers(self):
         assert self.markov_vortex.hasMutCyclicThreeCycle()
-        assert not self.mutated_vortex.hasMutCyclicSubquiver()
+        assert not self.mutated_vortex.hasMutCyclicThreeCycle()
         assert not self.small_weight.hasMutCyclicThreeCycle()
-        assert self.mutated_small.hasMutCyclicSubquiver()
+        assert self.mutated_small.hasMutCyclicThreeCycle()
         assert not self.big_problem.hasMutCyclicThreeCycle()
 
     def testMarkov(self):
