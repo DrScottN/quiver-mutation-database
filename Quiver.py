@@ -231,7 +231,7 @@ class Quiver():
         
         return not self.acyclic()
 
-    def hasMutCyclicSubquiver(self):
+    def hasMutCyclicThreeCycle(self):
         # Returns whether the quiver has a 3-cycle as a subquiver
         #if self.n != 4:
         #    raise Exception("Not implemented for more than four vertices")
@@ -787,7 +787,7 @@ class mutationClass():
             self.mutationCyclicSubquiverWitness = None
             self.totallyProper = True
         else:
-            if self.initialQ.hasMutCyclicSubquiver():
+            if self.initialQ.hasMutCyclicThreeCycle():
                 self.foundCyclicSubquiver(self.initialQ)
             else:
                 self.mutationCyclicSubquiver = Unknown
@@ -1014,7 +1014,7 @@ class mutationClass():
                             self.mutationAbundant = P.abundant()
                     
                     if self.mutationAcyclic is Unknown or self.mutationAcyclic is False and self.mutationCyclicSubquiver is Unknown:
-                        if P.hasMutCyclicSubquiver():
+                        if P.hasMutCyclicThreeCycle():
                             self.foundCyclicSubquiver(P)
                     
                     # Update vertices, edges, and forefront
