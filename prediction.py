@@ -66,8 +66,35 @@ def mutation_acyclic_local(Q, match_alexander=False):
     else:
         return Unknown
 
+def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=False, Q_class=None, R_class=None):
+    # Determines if Q is isomorphic to R using distance mutations, along with the invariants.
+    #  returns True if they are equivalent, False if they are not, and Unknown if we cannot determine either way.
+    #
+    #  up_to_isomorphism=True considers the problem up to isomorphism
+    #  return_classes=True returns a tuple (Result, Mutation_class_of_Q, Mutation_class_of_R)
+    #  Q_class, R_class may be provided for efficiency; distance is ignored if a class is given.
+    local_check = mutation_equivalent_local(Q, R, up_to_isomorphism=up_to_isomorphism)
+    if local_check is not Unknown:
+        return local_check
+    
+    #we may now assume same rank, etc.
+    if up_to_isomorphism:
+        perms = permutations(Q.n)
+    else:
+        perms = [list(range(Q.n))]
+    if Q_class is None:
+        Q_class = mutationClass(Q, perms=perms)
+        update_Q=True
+    else:
+        if Q_class.
+    if R_class is None:
+        R_class = mutationClass(R, perms=perms)
+        update_R=True
 
-def run_benchmark_acyclic(dataset, train=None, use_surface=True, use_exhaustive=False, seed=2842026):
+
+
+
+def run_benchmark_acyclic(dataset, depth_search=1, train=None, use_surface=True, use_exhaustive=False, seed=2842026):
     # Runs several variants of our benchmark against the given dataset, and prints the accuracies achieved.
     #  dataset: iterable of tuples, (quiver, correct_label), quiver is a quiver object and correct_label is a bool
     #  train (optional): iterable of (quiver, correct_label) pairs 
@@ -82,7 +109,12 @@ def run_benchmark_acyclic(dataset, train=None, use_surface=True, use_exhaustive=
     acyclic_count = 0
     cyclic_count = 0
     random.seed(seed)
+
+    correct=0
+    U_T_correct=0
+    U_F_correct=0
     # benchmark 1: blind attempts. 
+    print("Local tests")
     #  3 ways to round: unknown is incorrect; unknown as True, unknown takes False.
     for Q,l in dataset_copy:
         result = mutation_acyclic_local(Q, match_alexander==use_exhaustive)
@@ -100,12 +132,12 @@ def run_benchmark_acyclic(dataset, train=None, use_surface=True, use_exhaustive=
         else: 
             cyclic_count += 1
 
-    print("Local tests")
     print(f" Unknown->incorrect: {correct} ({100*correct/D}%)")
     print(f"*Unknown->True: {correct+U_T_correct} ({100*(correct+U_T_correct)/D}%)")
     print(f" Unknown->False: {correct+U_F_correct} ({100*(correct+U_F_correct)/D}%)")
-
+    print()
     # benchmark 2: with training data.
+    print("Comparing against a train set.")
     if train is None:
         # select a random selection of quivers of each label
         #  we choose to take samples of ~1/20 of the whole dataset; a bit weak if dataset contains few mutations from many classes
@@ -116,29 +148,91 @@ def run_benchmark_acyclic(dataset, train=None, use_surface=True, use_exhaustive=
         acyclic_egs = [d[0] for d in train if d[1]]
         cyclic_egs = [d[0] for d in train if not d[1]]
     # build useful invariant vectors for each class
-    def get_useful_invariants(egs):
-        # return a list of distinct invariant dicts. 
-        #  for each quiver in egs, compute the invariant dict and add it to the result if it is not implied by an existing vector.
-        #  remove any dicts it implies
-        
-        #def implies(T1, T2):
-        #    # generous ternary implies; meaning T1 has more info than T2.
-        #    if T2 is Unknown:
-        #        return True
-        #    if T1 is Unknown:
-        #        return False
-        #    return T1 == T2
-
-        
-        result_dicts = []
-        for Q in egs:
-            d = invariants_dict(Q, include_surface=use_surface)
-            d["Alexander poly"] = Q.alexander_poly()
-            if d not in result_dicts:
-                result_dicts.append(d)
-        return result_dicts
     acyclic_invariants = []
+    for Q in acyclic_egs:
+        d = invariants_dict(Q, include_surface=use_surface)
+        d["Alexander polynomial"] = Q.alexander_poly()
+        if d not in acyclic_invariants:
+            acyclic_invariants.append(d)
+
     cyclic_invariants = []
+    for Q in cyclic_egs:
+        d = invariants_dict(Q, include_surface=use_surface)
+        d["Alexander polynomial"] = Q.alexander_poly()
+        if d not in cyclic_invariants:
+            cyclic_invariants.append(d)
+
+    print(f"Found {len(cyclic_invariants)} distinct cyclic invariants and {len(acyclic_invariants)} distinct acyclic invariants.")
+    overlap = len([d in cyclic_invariants for d in acyclic_invariants])
+    if overlap > 0:
+        print("They intersect for {overlap} values.")
+    else:
+        print("The sets of invariants are distinct.")
+
+    #attempt to label the unlabeled with the invariants
+    correct_inv_with_cyclic_Alexander = 0
+    correct_inv_without_cyclic_Alexander = 0
+    undetermined_with_cyclic_Alexander = [0,0] #pair, [#correct label is False, #correct label is True]
+    undetermined_without_cyclic_Alexander = [0,0]
+    for Q,l in dataset_not_local:
+        d = invariants_dict(Q, include_surface=use_surface)
+        d["Alexander polynomial"] = Q.alexander_poly()
+        #match if invariants are in acyclic, in cyclic (without alexander considered), and in cyclic with alexander considered
+        match (d in acyclic_invariants, any([all([d[k] == inv[k] for k in d.keys()]) for inv in cyclic_invariants]), d in cyclic_invariants):
+            case (True, True, True):
+                #ambiguous still
+                undetermined_with_cyclic_Alexander[l] += 1 #hack; True=1 as an int while False=0, so this increments the count according to label.
+                undetermined_without_cyclic_Alexander[l] += 1
+            case (True, False, False):
+                if l==True:
+                    correct_inv_without_cyclic_Alexander += 1
+                    correct_inv_with_cyclic_Alexander += 1
+            case (True, True, False):
+                undetermined_without_cyclic_Alexander[l] += 1
+                if l==True:
+                    correct_inv_with_cyclic_Alexander += 1
+            case (False, True, True):
+                if l==False:
+                    correct_inv_without_cyclic_Alexander += 1
+                    correct_inv_with_cyclic_Alexander += 1
+            case (False, True, False):
+                undetermined_with_cyclic_Alexander[l] += 1
+                if l==False:
+                    correct_inv_without_cyclic_Alexander += 1
+            case (False, False, False):
+                undetermined_with_cyclic_Alexander[l] += 1
+                undetermined_without_cyclic_Alexander[l] += 1
+            case (*, False, True):
+                assert False, "Implementation error in heuristic."
+
+    print("Ignoring Alexander Polynomial for cyclic examples:")
+    c = correct + correct_inv_without_cyclic_Alexander
+    print(f" Unknown->incorrect: {c} ({100*(c)/D}%)")
+    print(f"*Unknown->True: {c+undetermined_without_cyclic_Alexander[True]} ({100*(c+undetermined_without_cyclic_Alexander[True])/D}%)")
+    print(f" Unknown->False: {c+undetermined_without_cyclic_Alexander[False]} ({100*(c+undetermined_without_cyclic_Alexander[False])/D}%)")
+    
+    print("Using Alexander Polynomials for the cyclic examples:")
+    c = correct + correct_inv_with_cyclic_Alexander
+    print(f" Unknown->incorrect: {c} ({100*(c)/D}%)")
+    print(f" Unknown->True: {c+undetermined_with_cyclic_Alexander[True]} ({100*(c+undetermined_with_cyclic_Alexander[True])/D}%)")
+    print(f" Unknown->False: {c+undetermined_with_cyclic_Alexander[False]} ({100*(c+undetermined_with_cyclic_Alexander[False])/D}%)")
+
+    # benchmark 3: Apply mutations
+
+    #TODO
+
+    if not use_exhaustive: 
+        return #do not do the following if exhaustive search is disabled.
+
+    # benchmark 4: Exhaustively search acyclics.
+    print("Comparing to all acyclics with sufficiently small weights.")
+    #TODO
+
+
+
+
+
+
 
 
 
