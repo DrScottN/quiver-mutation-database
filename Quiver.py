@@ -1076,14 +1076,14 @@ def isolatedQuiver(n):
 
     return Quiver(m,False)
 
-def generateLowWeightQuivers(n):
-    # Generates the set of all possible quivers with low weights (|w| <= 2) of a given rank n
+def generateLowWeightQuivers(n, weight_max=2):
+    # Generates the set of all possible quivers with low weights (|w| <= weight_max) of a given rank n
 
     seed = isolatedQuiver(n)
     
     result = [seed]
 
-    lowWeights = [-2,-1,0,1,2]
+    lowWeights = list(range(-weight_max, weight_max+1)) #[-2,-1,0,1,2]
 
     def oneStep(l, i, j):
         # takes in a list of quivers and produces a new list of quivers
