@@ -1228,13 +1228,13 @@ def test():
     raise Exception("Testing finished")
 
 
-def main():
-    n = 4
+def main(n=4, weight_max=2):
+    #n = 4
     perms = permutations(n)
     box = isomorphismClass(boxQuiver(2,2),perms)[0]
     torus = isomorphismClass(dreadedTorus(),perms)[0]
     print("Generating low weight quivers:")
-    quivers = generateLowWeightQuivers(n)
+    quivers = generateLowWeightQuivers(n, weight_max=weight_max)
     numQuivers = len(quivers)
     print(f"{len(quivers)} low weight quivers generated. Reducing by isomorphism")
     reduced = reduceByIsomorphism(quivers)
