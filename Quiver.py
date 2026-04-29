@@ -449,14 +449,15 @@ class Quiver():
         # Computes the gcd vector of self, as a tuple with ith entry the gcd of row i.
         return tuple(math.gcd(*[self.matrix[i,j] for j in range(self.n)]) for i in range(self.n))
 
-    def gcd_two_path(self):
+    def gcdTwoPath(self):
+        """Computes the gcd vector of all pairs of (not-necessarily-oriented) paths.
+        """
         d = 0
         for i in range(self.n):
             for j in range(i+1, self.n):
                 for k in range(k, self.n):
                     t = math.gcd([abs(self.matrix[i,j]*self.matrix[j,k]), abs(self.matrix[j,i]*self.matrix[i,k]), abs(self.matrix[j,k]*self.matrix[k,i])])
                     d = math.gcd(d, t)
-
         return d
         
     def casals_det(self):
