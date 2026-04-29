@@ -13,7 +13,7 @@ Unknown = unknown()
 
 class Quiver():
     def __init__(self, matrix, validate = True):
-        if validate and not isinstance(matrix, np.matrix):
+        if validate and not isinstance(matrix, np.ndarray):
             if len(matrix) != len(matrix[0]):
                 raise Exception("Not a square matrix")
             else:
@@ -22,7 +22,7 @@ class Quiver():
                         if a != -matrix[j][i]:
                             raise Exception("Not a skew-symmetric matrix")
 
-        self.matrix = np.matrix(matrix, dtype=object) #matrix # type object lets us put arbitrary python in there.
+        self.matrix = np.array(matrix, dtype=object) #matrix # type object lets us put arbitrary python in there.
         self.n = len(matrix)
         self.vertices = [v for v in range(self.n)]
         self.numEdges = sum(self.matrix[i,j] for i in self.vertices for j in self.vertices if self.matrix[i,j] > 0)
@@ -389,7 +389,7 @@ class Quiver():
         sigma = self.cyclic_order()
         if sigma==False:
             return False
-        U = np.matrix([[-(i<j)*self.matrix[sigma[i],sigma[j]] for j in range(self.n)] for i in range(self.n)], dtype=object)
+        U = np.array([[-(i<j)*self.matrix[sigma[i],sigma[j]] for j in range(self.n)] for i in range(self.n)], dtype=object)
         for i in range(self.n):
             U[i,i]=1
         return U
@@ -400,11 +400,11 @@ class Quiver():
         U = self.Umatrix()
         if U is False:
             return False
-        #compute trace of U U^-1 (= U (I + N + N^2 + ...))
-        N = np.transpose(np.matlib.identity(self.n, dtype=object) - U)
+        #compute trace of U U^-T (= U (I + N + N^2 + ...))
+        N = np.transpose(np.identity(self.n, dtype='object') - U)
         Cosquare = U.copy()
         for e in range(1,self.n):
-            Cosquare += U * N**e
+            Cosquare += U @ np.linalg.matrix_power(N, e)
         trace = 0
         for i in range(self.n):
             trace += Cosquare[i,i]
@@ -415,7 +415,7 @@ class Quiver():
         U = self.Umatrix()
         if U is False:
             return False
-        Ux = np.matrix([[U[i,j]*polynomial.polynomial([0,1]) for i in range(self.n)] for j in range(self.n)], dtype=object) - np.matrix([[U[j,i]*polynomial.polynomial([1]) for i in range(self.n)] for j in range(self.n)], dtype=object)
+        Ux = np.array([[U[i,j]*polynomial.polynomial([0,1]) for i in range(self.n)] for j in range(self.n)], dtype=object) - np.array([[U[j,i]*polynomial.polynomial([1]) for i in range(self.n)] for j in range(self.n)], dtype=object)
         det = polynomial.polynomial([0])
         for p in permutations(self.n):
             a = polynomial.polynomial([1])
@@ -432,7 +432,7 @@ class Quiver():
         # return the mod-4 determinant of a quasi-cartan companion. This is a mutation invariant.
         #  see arxiv: 2311.03601
         #  uses slow det formula.
-        A = np.abs(self.matrix)
+        A = np.vectorize(abs)(self.matrix)
         for i in range(self.n):
             A[i,i] = 2
         det = 0
@@ -449,23 +449,23 @@ class Quiver():
         #  very slow, we enumerate vectors.
         V0 = []
         V000 = []
-        A = np.abs(self.matrix)
+        A = np.vectorize(abs)(self.matrix)
         for i in range(self.n):
             A[i,i] = 2
         for v in itertools.product([0,1], repeat=self.n):
             v = np.array(v)
-            wp = v*A
+            wp = v@A
             if (wp%2==0).all():
                 V0.append(v)
         for v in V0:
             for delta in itertools.product([0,2], repeat=self.n):
                 vp = (v + np.array(delta))%4
-                wp = vp*A
+                wp = vp@A
                 if (wp%4==0).all():
                     V000.append(v)
                     break #try next v, we found a good delta.
         #return the dimension of V000 over F_2
-        return math.log(len(V000), 2)
+        return len(V000).bit_length() - 1
 
 
 
@@ -507,7 +507,7 @@ def generate_acyclics_from_Alexander(alex):
         # iterates over all combinations of weights < sqrt(markov), which is much too large
         #  faster is to build subquivers that are smaller than markov. Even faster potentially is to use more coefficients and a solver.
         
-        X = np.matrix([[0 for i in range(degree)] for j in range(degree)])
+        X = np.array([[0 for i in range(degree)] for j in range(degree)])
         #print(degree, np.tril_indices(X.shape[0], k = -1), w)
         X[np.tril_indices(X.shape[0], k = -1)] = w
         Q = Quiver(X - np.transpose(X))
@@ -549,14 +549,14 @@ def surface_quiver(quiver):
     def vI(i,l):
         return np.array([x in [i,l] for x in range(n)], dtype=np.int8)
     def BI(i,l):
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.zeros((n,n), dtype='object')
         B[i,l] += 1
         return B - np.transpose(B)
     #oriented cycle, out out out i->j->k->i
     def vII(i,j,k):
         return np.array([x in [i,j,k] for x in range(n)], dtype=np.int8)
     def BII(i,j,k):
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.zeros((n,n), dtype='object')
         B[i,j] += 1
         B[j,k] += 1
         B[k,i] += 1
@@ -565,13 +565,13 @@ def surface_quiver(quiver):
     def vIII(i,j,k):
         return np.array([(x==i) + 2*(x in [j,k]) for x in range(n)], dtype=np.int8)
     def BIIIa(i,j,k):
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.zeros((n,n), dtype='object')
         B[j,i] += 1
         B[k,i] += 1
         return B - np.transpose(B)
     #source, out dead dead j<-i->k
     def BIIIb(i,j,k):
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.zeros((n,n), dtype='object')
         B[i,j] += 1
         B[i,k] += 1
         return B - np.transpose(B)
@@ -579,7 +579,7 @@ def surface_quiver(quiver):
     def vIV(i,j,k,l):
         return np.array([(x in [i,l]) + 2*(x in [j,k]) for x in range(n)], dtype=np.int8)
     def BIV(i,j,k,l):
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.zeros((n,n), dtype='object')
         B[i,j] += 1
         B[i,k] += 1
         B[j,l] += 1
@@ -590,7 +590,7 @@ def surface_quiver(quiver):
     def vV(i,j,k,g,h):
         return np.array([(x==i) + 2*(x in [j,k,g,h]) for x in range(n)], dtype=np.int8)
     def BV(i,j,k,g,h):
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.zeros((n,n), dtype='object')
         B[i,j] += 1
         B[j,k] += 1
         B[j,h] += 1
@@ -602,7 +602,7 @@ def surface_quiver(quiver):
         return B - np.transpose(B)
 
     #init vars; these are shared among the recursive functions below via 'nonlocal'.
-    B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+    B = np.zeros((n,n), dtype='object')
     v = np.zeros(n,dtype=np.int8)
     blocks = []
     def check_status():
@@ -765,7 +765,7 @@ class mutationClass():
         self.max_weight = max_weight
         self.hit_max_weight = False
         for Q in self.vertices:
-            if self.max_weight and np.max(np.abs(Q.matrix)) > self.max_weight:
+            if self.max_weight and np.max(np.vectorize(abs)(Q.matrix)) > self.max_weight:
                 self.hit_max_weight = True
                 #do we wish to do anything here?
 
@@ -804,7 +804,7 @@ class mutationClass():
         self.finitePFP = Unknown
         # Setup possible mutation-invariants
         for Q in self.vertices:
-            if self.max_weight and np.max(np.abs(Q.matrix)) > 2:
+            if self.max_weight and np.max(np.vectorize(abs)(Q.matrix)) > 2:
                 self.is_surface_quiver = False
                 self.finite = False
             
@@ -996,7 +996,7 @@ class mutationClass():
                     continue
                     
                 
-                if self.max_weight and np.max(np.abs(P.matrix)) > self.max_weight:
+                if self.max_weight and np.max(np.vectorize(abs)(P.matrix)) > self.max_weight:
                     self.hit_max_weight = True
                     continue
 

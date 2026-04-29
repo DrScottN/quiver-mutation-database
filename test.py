@@ -98,8 +98,8 @@ class QuiverMutation3vertTestCase(unittest.TestCase):
 class QuiverMutation4vertTestCase(unittest.TestCase):
     def setUp(self):
         self.quiver = Quiver([[0,2,0,6], [-2,0,1,0], [0,-1,0,7], [-6,0,-7,0]])
-        self.incomplete_quiver = Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]]))
-        self.vortex_quiver = Quiver(np.matrix([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]]))
+        self.incomplete_quiver = Quiver(np.array([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]]))
+        self.vortex_quiver = Quiver(np.array([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]]))
         self.A4 = Quiver([[0,1,0,0],[-1,0,1,0],[0,-1,0,1],[0,0,-1,0]])
     
     def testCommutingMutations(self):
@@ -248,9 +248,9 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
 
 class ForkEdgeTestCase(unittest.TestCase):
     def setUp(self):
-        self.iso2 = Quiver(np.matrix([[0,0],[0,0]]))
-        self.twoForks = Quiver(np.matrix([[0,5,-15,0,0,0],[-5,0,2,0,0,0],[15,-2,0,0,0,0],[0,0,0,0,6,-105],[0,0,0,-6,0,10],[0,0,0,105,-10,0]]))
-        self.prefork = Quiver(np.matrix([[0,1,4,-17],[-1,0,5,-18],[-4,-5,0,3],[17,18,-3,0]]))
+        self.iso2 = Quiver(np.array([[0,0],[0,0]]))
+        self.twoForks = Quiver(np.array([[0,5,-15,0,0,0],[-5,0,2,0,0,0],[15,-2,0,0,0,0],[0,0,0,0,6,-105],[0,0,0,-6,0,10],[0,0,0,105,-10,0]]))
+        self.prefork = Quiver(np.array([[0,1,4,-17],[-1,0,5,-18],[-4,-5,0,3],[17,18,-3,0]]))
         self.forkWithExtra = Quiver([[0,-3,6,0], [3,0,-5,0], [-6,5,0,0], [0,0,0,0]])
 
     def testNotForks(self):
@@ -391,7 +391,7 @@ class SubquiverTestCase(unittest.TestCase):
         for i in self.markov_vortex.vertices:
             R = self.markov_vortex.subquiverRemoveOneVertex(i)
             if not R.acyclic():
-                assert self.markov_manual(R.matrix) == R.markov()
+                assert self.markov_manual(R.matrix) == R.markov(), f"incorrect markov for {i, R.matrix}, {self.markov_manual(R.matrix)} vs {R.markov()}"
         
         for i in self.big_problem.vertices:
             R = self.big_problem.subquiverRemoveOneVertex(i)
@@ -468,7 +468,7 @@ class QuiverInvariants3TestCase(unittest.TestCase):
 
     def testSeven(self):
         for i in range(len(self.quivers)):
-            assert self.quivers[i].seven_congruence() == self.sevens_kers[i]
+            assert self.quivers[i].seven_congruence() == self.sevens_kers[i], f"incorrect seven invariant {i}, expected {self.sevens_kers[i]} but got {self.quivers[i].seven_congruence()}"
 
 class RealizableAlexandersTestCase(unittest.TestCase):
     def testSearchA1(self):
@@ -586,7 +586,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.mat_ranks.append(0)
         self.alexander_polys.append(polynomial.polynomial([1,-4,6,-4,1]))
         self.has_vortex.append(False)
-        Q = Quiver(np.matrix([[0,-3,0,0],[3,0,0,0], [0,0,0,0], [0,0,0,0]]))
+        Q = Quiver(np.array([[0,-3,0,0],[3,0,0,0], [0,0,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
         self.gcd_vecs.append((3,3,0,0))
@@ -594,7 +594,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.mat_ranks.append(2)
         self.alexander_polys.append(polynomial.polynomial([1,-4,6,-4,1]) + 9*polynomial.polynomial([0,1,-2,1]))
         self.has_vortex.append(False)
-        Q = Quiver(np.matrix([[0,3,2,0],[-3,0,3,0],[-2,-3,0,0], [0,0,0,0]]))
+        Q = Quiver(np.array([[0,3,2,0],[-3,0,3,0],[-2,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(True)
         self.gcd_vecs.append((1,3,1,0))
@@ -602,7 +602,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.mat_ranks.append(2)
         self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-37,37,1]))
         self.has_vortex.append(False)
-        Q = Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
+        Q = Quiver(np.array([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
         self.gcd_vecs.append((2,2,2,0))
@@ -610,7 +610,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.mat_ranks.append(2)
         self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-1,1,1]))
         self.has_vortex.append(Unknown) #in fact, True, if we use connectivity.
-        R = Quiver(-np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
+        R = Quiver(-np.array([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(vertices=[R,Q], edges={R: {Q:1}, Q:{R:2}}, perms=permutations(4)))
         self.acyclicL.append(False)
         self.gcd_vecs.append((2,2,2,0))
@@ -618,7 +618,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.mat_ranks.append(2)
         self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-1,1,1]))
         self.has_vortex.append(Unknown) #in fact, True, if we use connectivity.
-        Q = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
+        Q = Quiver(np.array([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
         self.gcd_vecs.append((3,3,3,0))
@@ -626,7 +626,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.mat_ranks.append(2)
         self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,3,-3,1]))
         self.has_vortex.append(Unknown) #in fact, True, if we use connectivity.
-        Q = Quiver(np.matrix([[0,2,-4,7],[-2,0,7,16],[4,-7,0,6], [-7,-16,-6,0]]))
+        Q = Quiver(np.array([[0,2,-4,7],[-2,0,7,16],[4,-7,0,6], [-7,-16,-6,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
         self.acyclicL.append(False)
         self.gcd_vecs.append((1,1,1,1))
@@ -658,7 +658,7 @@ class MutationClassInitTests(unittest.TestCase):
         assert self.classes[2] != self.classes[3]
         assert self.classes[2] != self.classes[4]
         assert self.classes[0] == self.classes[0]
-        C = mutationClass(Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])), perms=permutations(4))
+        C = mutationClass(Quiver(np.array([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])), perms=permutations(4))
         C.update()
         assert self.classes[3] == C, "Incorrect equality from update"
     
@@ -678,40 +678,40 @@ class MutationClassInitTests(unittest.TestCase):
 
 class updateMutationClassTests(unittest.TestCase):
     def setUp(self):
-        self.markovClass = mutationClass(Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.markovClass = mutationClass(Quiver(np.array([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])), perms=permutations(4))
         self.markovClass.update()
         self.markovResult = self.markovClass.update()
 
         self.isolatedClass = mutationClass(isolatedQuiver(4), perms=permutations(4))
         self.isolatedResult = self.isolatedClass.update()
 
-        self.A2Class = mutationClass(Quiver(np.matrix([[0,1,0,0],[-1,0,0,0],[0,0,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.A2Class = mutationClass(Quiver(np.array([[0,1,0,0],[-1,0,0,0],[0,0,0,0], [0,0,0,0]])), perms=permutations(4))
         self.A2Class.update()
         self.A2Result = self.A2Class.update()
 
-        self.A3Class = mutationClass(Quiver(np.matrix([[0,1,0,0],[-1,0,1,0],[0,-1,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.A3Class = mutationClass(Quiver(np.array([[0,1,0,0],[-1,0,1,0],[0,-1,0,0], [0,0,0,0]])), perms=permutations(4))
         self.A3Class.update()
         self.A3Class.update()
         self.A3Class.update()
         self.A3Class.update()
         self.A3Result = self.A3Class.update()
 
-        self.AcyclicEventuallyClass = mutationClass(Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.AcyclicEventuallyClass = mutationClass(Quiver(np.array([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])), perms=permutations(4))
         self.AcyclicEventuallyClass.update()
         self.AcyclicEventuallyClass.update()
         self.AcyclicEventuallyClass.update()
         self.AcyclicEventuallyResult = self.AcyclicEventuallyClass.update()
 
-        self.bigClass = mutationClass(Quiver(np.matrix([[0,2000,-300,0],[-2000,0,20,0],[300,-20,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.bigClass = mutationClass(Quiver(np.array([[0,2000,-300,0],[-2000,0,20,0],[300,-20,0,0], [0,0,0,0]])), perms=permutations(4))
         self.bigClass.update()
         self.bigClassResult = self.bigClass.update()
 
-        self.vortexClass = mutationClass(Quiver(np.matrix([[0,2,-4,6],[-2,0,2,6],[4,-2,0,6], [-6,-6,-6,0]])), perms=permutations(4))
+        self.vortexClass = mutationClass(Quiver(np.array([[0,2,-4,6],[-2,0,2,6],[4,-2,0,6], [-6,-6,-6,0]])), perms=permutations(4))
         self.vortexClass.update()
         self.vortexClass.update()
         self.vortexClassResult=self.vortexClass.update()
 
-        self.vortexConnClass = mutationClass(Quiver(np.matrix([[0,2,-40,6],[-2,0,2,6],[40,-2,0,6], [-6,-6,-6,0]])), perms=permutations(4))
+        self.vortexConnClass = mutationClass(Quiver(np.array([[0,2,-40,6],[-2,0,2,6],[40,-2,0,6], [-6,-6,-6,0]])), perms=permutations(4))
         self.vortexConnClass.update()
         self.vortexConnClass.update()
         self.vortexConnClass.update()
@@ -730,18 +730,18 @@ class updateMutationClassTests(unittest.TestCase):
 
 
     def testUpdateMembership(self):
-        assert Quiver(np.matrix([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])) in self.markovClass
+        assert Quiver(np.array([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]])) in self.markovClass
         assert isolatedQuiver(4) in self.isolatedClass
         assert isolatedQuiver(4) not in self.A3Class
-        assert Quiver(np.matrix([[0,1,-1,0],[-1,0,1,0],[1,-1,0,0], [0,0,0,0]])) in self.A3Class
-        assert Quiver(np.matrix([[0,-1,0,0],[1,0,1,0],[0,-1,0,0], [0,0,0,0]])) in self.A3Class
-        assert Quiver(np.matrix([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) not in self.A3Class
-        assert Quiver(np.matrix([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) in self.A2Class
-        assert Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])).mutate(1).mutate(0).mutate(1).mutate(0) in self.AcyclicEventuallyClass
-        assert Quiver(-np.matrix([[0,2,-5,0],[-2,0,6,0],[5,-6,0,0], [0,0,0,0]])) in self.AcyclicEventuallyClass
-        assert Quiver(np.matrix([[0,2,-4,0],[-2,0,6,0],[4,-6,0,0], [0,0,0,0]])) not in self.AcyclicEventuallyClass
-        assert Quiver(np.matrix([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]])) in self.vortexClass
-        assert Quiver(np.matrix([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]])).mutate(1) in self.vortexClass
+        assert Quiver(np.array([[0,1,-1,0],[-1,0,1,0],[1,-1,0,0], [0,0,0,0]])) in self.A3Class
+        assert Quiver(np.array([[0,-1,0,0],[1,0,1,0],[0,-1,0,0], [0,0,0,0]])) in self.A3Class
+        assert Quiver(np.array([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) not in self.A3Class
+        assert Quiver(np.array([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) in self.A2Class
+        assert Quiver(np.array([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])).mutate(1).mutate(0).mutate(1).mutate(0) in self.AcyclicEventuallyClass
+        assert Quiver(-np.array([[0,2,-5,0],[-2,0,6,0],[5,-6,0,0], [0,0,0,0]])) in self.AcyclicEventuallyClass
+        assert Quiver(np.array([[0,2,-4,0],[-2,0,6,0],[4,-6,0,0], [0,0,0,0]])) not in self.AcyclicEventuallyClass
+        assert Quiver(np.array([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]])) in self.vortexClass
+        assert Quiver(np.array([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]])).mutate(1) in self.vortexClass
         
 
     def testUpdatedIntersection(self):
@@ -783,9 +783,9 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.isolatedClass.leastEdges == 0
 
     def testRep(self):
-        assert Quiver(np.matrix([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])) not in self.AcyclicEventuallyClass.possibleReps
-        assert Quiver(np.matrix([[0,2,-1,0],[-2,0,0,0],[1,0,0,0], [0,0,0,0]])) in self.AcyclicEventuallyClass.possibleReps
-        assert Quiver(np.matrix([[0,1,-1,0],[-1,0,1,0],[1,-1,0,0], [0,0,0,0]])) not in self.A3Class.possibleReps
+        assert Quiver(np.array([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])) not in self.AcyclicEventuallyClass.possibleReps
+        assert Quiver(np.array([[0,2,-1,0],[-2,0,0,0],[1,0,0,0], [0,0,0,0]])) in self.AcyclicEventuallyClass.possibleReps
+        assert Quiver(np.array([[0,1,-1,0],[-1,0,1,0],[1,-1,0,0], [0,0,0,0]])) not in self.A3Class.possibleReps
 
     def testMuCyclic(self):
         assert not self.markovClass.mutationAcyclic
@@ -863,30 +863,30 @@ class SurfaceQuiverTests(unittest.TestCase):
     def setUp(self):
         n = 6
         i,j,k,l,h,g = 0,1,2,3,4,5
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.array(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,l] += 1
         self.BI = Quiver(B - np.transpose(B))
         self.BIm = self.BI.mutate(0)
 
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.array(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[j,k] += 1
         B[k,i] += 1
         self.BII = Quiver(B - np.transpose(B))
         self.BIIm = self.BII.mutate(0).mutate(1).mutate(2).mutate(1)
 
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.array(np.zeros((n,n), dtype='object'), dtype='object')
         B[j,i] += 1
         B[k,i] += 1
         self.BIIIa = Quiver(B - np.transpose(B))
         self.BIIIam = self.BIIIa.mutate(0)
 
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.array(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[i,k] += 1
         self.BIIIb = Quiver(B - np.transpose(B))
 
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.array(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[i,k] += 1
         B[j,l] += 1
@@ -894,7 +894,7 @@ class SurfaceQuiverTests(unittest.TestCase):
         B[l,i] += 1
         self.BIV = Quiver(B - np.transpose(B))
 
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.array(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[j,k] += 1
         B[j,h] += 1
@@ -957,7 +957,7 @@ class SlowSurfaceTests(unittest.TestCase):
     def setUp(self):
         n = 6
         i,j,k,l,h,g = 0,1,2,3,4,5
-        B = np.matrix(np.zeros((n,n), dtype='object'), dtype='object')
+        B = np.array(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
         B[j,k] += 1
         B[j,h] += 1
@@ -970,7 +970,7 @@ class SlowSurfaceTests(unittest.TestCase):
         self.BVm = self.BV.mutate(0)
 
         i,j,k,l,h,g = 0,1,2,3,4,5
-        B = np.matrix(np.zeros((8,8), dtype='object'), dtype='object')
+        B = np.array(np.zeros((8,8), dtype='object'), dtype='object')
         B[i,j] += 1
         B[j,k] += 1
         B[j,h] += 1
@@ -1027,10 +1027,10 @@ class SlowSurfaceTests(unittest.TestCase):
 
 class TestLinAlg(unittest.TestCase):
     def setUp(self):
-        self.quiver = Quiver(np.matrix([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
-        self.M = np.matrix([[2,0],[0,3]])
-        self.N = np.matrix([[2,-1],[-2,2]])
-        self.vortex = Quiver(np.matrix([[0,1,2,3],[-1,0,2,-2],[-2,-2,0,3],[-3,2,3,0]]))
+        self.quiver = Quiver(np.array([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
+        self.M = np.array([[2,0],[0,3]])
+        self.N = np.array([[2,-1],[-2,2]])
+        self.vortex = Quiver(np.array([[0,1,2,3],[-1,0,2,-2],[-2,-2,0,3],[-3,2,3,0]]))
 
     def testEign(self):
         np.testing.assert_almost_equal(eigenvalues(self.quiver.matrix), np.array([0+3*np.emath.sqrt(-3.), 0-3*np.emath.sqrt(-3.), 0, 0]))
@@ -1046,9 +1046,9 @@ class TestLinAlg(unittest.TestCase):
 
 class IsomorphismClassTests(unittest.TestCase):
     def setUp(self):
-        self.markov = Quiver(np.matrix([[0,2,-2],[-2,0,2],[2,-2,0]]))
-        self.empty = Quiver(np.matrix([[0]]))
-        self.A3 = Quiver(np.matrix([[0,1,0],[-1,0,1],[0,-1,0]]))
+        self.markov = Quiver(np.array([[0,2,-2],[-2,0,2],[2,-2,0]]))
+        self.empty = Quiver(np.array([[0]]))
+        self.A3 = Quiver(np.array([[0,1,0],[-1,0,1],[0,-1,0]]))
 
     def testNotIso(self):
         assert self.markov not in isomorphismClass(self.empty, permutations(1))
@@ -1067,7 +1067,7 @@ class IsomorphismClassTests(unittest.TestCase):
 
 class MutationCycleTests(unittest.TestCase):
     def setUp(self):
-        self.A3Class = mutationClass(Quiver(np.matrix([[0,1,0,0],[-1,0,1,0],[0,-1,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.A3Class = mutationClass(Quiver(np.array([[0,1,0,0],[-1,0,1,0],[0,-1,0,0], [0,0,0,0]])), perms=permutations(4))
         self.A3Class.update()
         self.A3Class.update()
         self.A3Class.update()
