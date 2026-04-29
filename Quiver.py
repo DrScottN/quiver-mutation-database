@@ -35,7 +35,7 @@ class Quiver():
         return '\n'.join(str(r) for r in self.matrix)
 
     def __eq__(self, other):
-        return (self.matrix == other.matrix).all() #previously no .all
+        return (self.matrix == other.matrix).all()
 
     def __lt__(self, other):
         # Lexicographical order on matrix elements
@@ -86,13 +86,20 @@ class Quiver():
 
     def connected(self):
         # Finds if the quiver is connected as a simple graph
-        seen = [0] + [j for j in range(1,self.n) if self.matrix[0,j] != 0]
+        seen = [0]
+        unseen = []
+        for j in range(1, self.n):
+            if self.matrix[0,j] != 0:
+                seen.append(j)
+            else:
+                unseen.append(j)
+        #seen = [0] + [j for j in range(1,self.n) if self.matrix[0,j] != 0]
         numSeen = 1
 
         while numSeen < len(seen):
             extension = []
             for j in seen[numSeen:]:
-                extension.extend([k for k in range(self.n) if self.matrix[j,k] != 0 and k not in extension])
+                extension.extend([k for k in unseen if self.matrix[j,k] != 0 and k not in extension])
 
             numSeen = len(seen)
             seen.extend([k for k in extension if k not in seen])
@@ -290,6 +297,16 @@ class Quiver():
                     newMatrix[i,j] += add
 
         return Quiver(newMatrix)
+
+    def matrix_mutate(self, k):
+        # Gives the quiver formed by mutating at vertex k
+        #  slower than the mutation method above.
+        C = np.identity(self.n, dtype='object')
+        C[k,:]= np.vectorize(lambda x : max(x,0))(self.matrix[k,:])
+        C[k,k]=-1
+
+        return Quiver(np.transpose(C) @ self.matrix @ C)
+
 
     def hasSourceSink(self):
         # Checks whether a source or sink exists
@@ -1229,7 +1246,7 @@ def test():
     raise Exception("Testing finished")
 
 
-def main(n=4, weight_max=2):
+def main(n=4, weight_max=2, mutations=5):
     #n = 4
     perms = permutations(n)
     box = isomorphismClass(boxQuiver(2,2),perms)[0]
@@ -1254,7 +1271,7 @@ def main(n=4, weight_max=2):
     if torus in reduced: reduced.remove(torus)
     numNonSpecial = len(reduced)
     print(f"{len(reduced)} quivers to test for mutation-acyclicity remaining.")
-    m = 12
+    m = mutations
     print(f"Testing remaining by mutating up to {m} times.")
     mutClasses = [mutationClass(Q,perms) for Q in reduced]
     mutAcyclic = 0

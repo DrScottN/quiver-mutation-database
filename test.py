@@ -35,7 +35,7 @@ class QuiverInitializationTestCase(unittest.TestCase):
         assert not self.quiver_iso.abundant(), 'incorrect abundance'
 
     def testNoSkewSymm(self):
-        with self.assertRaises(Exception, msg="No error when creating a non-skew-symmetric matrix. Will break Quiver.__lt__"):
+        with self.assertRaises(Exception, msg="No error when creating a non-skew-symmetric matrix. Will break Quiver.__lt__ and __eq__"):
             Quiver([[0,1],[-2,0]])
     
     def testBadMatrix(self):
