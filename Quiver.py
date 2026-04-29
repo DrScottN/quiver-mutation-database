@@ -39,13 +39,13 @@ class Quiver():
 
     def __lt__(self, other):
         # Lexicographical order on matrix elements
-        if self.__eq__(other):
-            return False
-        elif self.n != other.n:
+        #if self.__eq__(other): #implied by a lack of strict ineqs; equality check is quite slow.
+        #    return False
+        if self.n != other.n:
             raise Exception("Attempted to compare two quivers of different size")
 
         for i in range(self.n):
-            for j in range(self.n):
+            for j in range(i+1,self.n):
                 if self.matrix[i,j] < other.matrix[i,j]:
                     return True
                 elif self.matrix[i,j] > other.matrix[i,j]:
@@ -1249,8 +1249,8 @@ def main(n=4, weight_max=2):
     reduced = removeVortices(reduced)
     numNonVortex = len(reduced)
     print(f"{len(reduced)} non-vortices remaining. Removing the box quiver and dreaded torus:")
-    reduced.remove(box)
-    reduced.remove(torus)
+    if box in reduced: reduced.remove(box)
+    if torus in reduced: reduced.remove(torus)
     numNonSpecial = len(reduced)
     print(f"{len(reduced)} quivers to test for mutation-acyclicity remaining.")
     m = 12
