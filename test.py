@@ -34,6 +34,15 @@ class QuiverInitializationTestCase(unittest.TestCase):
         assert self.quiver.abundant(), 'incorrect abundance'
         assert not self.quiver_iso.abundant(), 'incorrect abundance'
 
+    def testNoSkewSymm(self):
+        with self.assertRaises(Exception, msg="No error when creating a non-skew-symmetric matrix. Will break Quiver.__lt__"):
+            Quiver([[0,1],[-2,0]])
+    
+    def testBadMatrix(self):
+        with self.assertRaises(Exception, msg="allowed nonsensical matrix input"):
+            Quiver([[0,3],[0,3]])
+        
+
 class QuiverConnectedIsolatedTestCase(unittest.TestCase):
     def testA1Isolated(self):
         q = Quiver([[0,1,0],[-1,0,0],[0,0,0]])

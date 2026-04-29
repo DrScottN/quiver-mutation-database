@@ -39,6 +39,7 @@ class Quiver():
 
     def __lt__(self, other):
         # Lexicographical order on matrix elements
+        #   assumes skew-symmetric matrix
         #if self.__eq__(other): #implied by a lack of strict ineqs; equality check is quite slow.
         #    return False
         if self.n != other.n:
