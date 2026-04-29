@@ -87,22 +87,25 @@ class Quiver():
     def connected(self):
         # Finds if the quiver is connected as a simple graph
         seen = [0]
-        unseen = []
+        unseen = set([])
         for j in range(1, self.n):
             if self.matrix[0,j] != 0:
                 seen.append(j)
             else:
-                unseen.append(j)
+                unseen.add(j)
         #seen = [0] + [j for j in range(1,self.n) if self.matrix[0,j] != 0]
         numSeen = 1
 
         while numSeen < len(seen):
-            extension = []
+            extension = set([])
             for j in seen[numSeen:]:
-                extension.extend([k for k in unseen if self.matrix[j,k] != 0 and k not in extension])
+                for k in unseen:
+                    if self.matrix[j,k] != 0:
+                        extension.add(k)
+                unseen = unseen-extension
 
             numSeen = len(seen)
-            seen.extend([k for k in extension if k not in seen])
+            seen.extend(extension)
 
         return numSeen == self.n
     
@@ -898,6 +901,8 @@ class mutationClass():
         elif isinstance(other, Quiver):
             other = mutationClass(other, self.perms)
 
+        if not self._consistentProperties(other):
+            return None
         # Now we are looking at the union of exactly two mutation classes
 
         selfVertices = set(self.vertices)
@@ -938,6 +943,9 @@ class mutationClass():
         elif isinstance(other, Quiver):
             other = mutationClass(other, self.perms)
 
+        if not self._consistentProperties(other):
+            return None
+
         # Now just have one intersection to do with the mutation class other
 
         selfVertices = set(self.vertices)
@@ -976,6 +984,24 @@ class mutationClass():
         self.mutationComplete = self.mutationComplete if self.mutationComplete is not Unknown else other.mutationComplete
         self.mutationCyclicSubquiver = self.mutationCyclicSubquiver if self.mutationCyclicSubquiver is not Unknown else other.mutationCyclicSubquiver
         # handled by init: self.mutationConnected, determinant, gcdVector, B_rank, alexander_poly, casals_det, sevens_ker, 
+
+    def _consistentProperties(self, other):
+        #def consistent_ternary(X,Y):
+        #    # Could X and Y agree?
+        #    if (X is Unknown) or (Y is Unknown):
+        #        return True
+        #    if X == Y:
+        #        return True
+        #    return False
+
+        if self.mutationConnected != other.mutationConnected: return False
+        if self.determinant != other.determinant: return False
+        if self.gcdVector != other.gcdVector: return False
+        if self.B_rank != other.B_rank: return False
+        if self.casals_det != other.casals_det: return False
+        if self.sevens_ker != other.sevens_ker: return False
+        #doesn't help: if not consistent_ternary(self.finite, other.finite): return False
+        return True
 
     def emptyIntersection(self,other):
         return self.intersection(other) is None
