@@ -73,23 +73,42 @@ def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=
     #  up_to_isomorphism=True considers the problem up to isomorphism
     #  return_classes=True returns a tuple (Result, Mutation_class_of_Q, Mutation_class_of_R)
     #  Q_class, R_class may be provided for efficiency; distance is ignored if a class is given.
+    if up_to_isomorphism:
+        permsQ = permutations(Q.n)
+        permsR = permutations(R.n)
+    else:
+        permsQ = [list(range(Q.n))]
+        permsR = [list(range(R.n))]
+
+    update = False
+    if Q_class is None:
+        Q_class = mutationClass(Q, perms=permsQ)
+        update = True
+    if R_class is None:
+        R_class = mutationClass(R, perms=permsR)
+        update = True
+
     local_check = mutation_equivalent_local(Q, R, up_to_isomorphism=up_to_isomorphism)
     if local_check is not Unknown:
-        return local_check
+        return (local_check, Q_class, R_class) if return_classes else local_check
     
     #we may now assume same rank, etc.
-    if up_to_isomorphism:
-        perms = permutations(Q.n)
-    else:
-        perms = [list(range(Q.n))]
-    if Q_class is None:
-        Q_class = mutationClass(Q, perms=perms)
-        update_Q=True
-    else:
-        if Q_class.
-    if R_class is None:
-        R_class = mutationClass(R, perms=perms)
-        update_R=True
+
+    if update:
+        distance = (distance+1)//2
+        for d in range(distance):
+            R_Class.update()
+            Q_class.update()
+    
+    #check if overlap found
+    if union := R_class.union(Q_class):
+        return (True, union, union) if return_classes else True
+
+    #check if invariants are consistent
+    if not R_class.agrees(Q_class): #not implemented
+        return (False, Q_class, R_class) if return_classes else False
+
+    return (Unknown, Q_class, R_class) if return_classes else Unknown
 
 
 
@@ -202,7 +221,7 @@ def run_benchmark_acyclic(dataset, depth_search=1, train=None, use_surface=True,
             case (False, False, False):
                 undetermined_with_cyclic_Alexander[l] += 1
                 undetermined_without_cyclic_Alexander[l] += 1
-            case (*, False, True):
+            case (_b, False, True):
                 assert False, "Implementation error in heuristic."
 
     print("Ignoring Alexander Polynomial for cyclic examples:")
@@ -220,6 +239,13 @@ def run_benchmark_acyclic(dataset, depth_search=1, train=None, use_surface=True,
     # benchmark 3: Apply mutations
 
     #TODO
+    acyclic_eg_classes = [mutationClass(Q) for Q in acyclic_egs]
+    cyclic_eg_classes = [mutationClass(Q) for Q in cyclic_egs]
+    for QC in acyclic_eg_classes + cyclic_eg_classes:
+        for d in range(depth_search):
+            QC.update()
+
+    # compare each still-available quiver with each class TODO
 
     if not use_exhaustive: 
         return #do not do the following if exhaustive search is disabled.
