@@ -705,6 +705,13 @@ class updateMutationClassTests(unittest.TestCase):
         self.A3Class.update()
         self.A3Result = self.A3Class.update()
 
+        self.A3ClassDifferent = mutationClass(Quiver(np.array([[0,1,-1,0],[-1,0,1,0],[1,-1,0,0], [0,0,0,0]])), perms=permutations(4))
+        self.A3ClassDifferent.update()
+        self.A3ClassDifferent.update()
+        self.A3ClassDifferent.update()
+        self.A3ClassDifferent.update()
+        self.A3ClassDifferentResult = self.A3ClassDifferent.update()
+
         self.AcyclicEventuallyClass = mutationClass(Quiver(np.array([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])), perms=permutations(4))
         self.AcyclicEventuallyClass.update()
         self.AcyclicEventuallyClass.update()
@@ -731,11 +738,12 @@ class updateMutationClassTests(unittest.TestCase):
         assert len(self.isolatedResult) == 0
         assert len(self.markovResult) == 0
         assert len(self.A3Result) == 0
+        assert len(self.A3ClassDifferentResult) == len(self.A3Result)
         assert len(self.A2Result) == 0
         assert len(self.AcyclicEventuallyResult) != 0
         assert len(self.bigClassResult) == 0 #pruned away
         assert len(self.vortexClassResult) !=0
-        assert len(self.vortexConnClassResult) ==0, f"had a forefront still {self.vortexConnClassResult[0].matrix}"
+        assert len(self.vortexConnClassResult) ==0, f"has a forefront still {self.vortexConnClassResult[0].matrix}"
 
 
     def testUpdateMembership(self):
@@ -745,6 +753,9 @@ class updateMutationClassTests(unittest.TestCase):
         assert Quiver(np.array([[0,1,-1,0],[-1,0,1,0],[1,-1,0,0], [0,0,0,0]])) in self.A3Class
         assert Quiver(np.array([[0,-1,0,0],[1,0,1,0],[0,-1,0,0], [0,0,0,0]])) in self.A3Class
         assert Quiver(np.array([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) not in self.A3Class
+        assert Quiver(np.array([[0,1,-1,0],[-1,0,1,0],[1,-1,0,0], [0,0,0,0]])) in self.A3ClassDifferent
+        assert Quiver(np.array([[0,-1,0,0],[1,0,1,0],[0,-1,0,0], [0,0,0,0]])) in self.A3ClassDifferent
+        assert Quiver(np.array([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) not in self.A3ClassDifferent
         assert Quiver(np.array([[0,-1,0,0],[1,0,0,0],[0,0,0,0], [0,0,0,0]])) in self.A2Class
         assert Quiver(np.array([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]])).mutate(1).mutate(0).mutate(1).mutate(0) in self.AcyclicEventuallyClass
         assert Quiver(-np.array([[0,2,-5,0],[-2,0,6,0],[5,-6,0,0], [0,0,0,0]])) in self.AcyclicEventuallyClass
@@ -759,6 +770,9 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.markovClass.intersection(self.AcyclicEventuallyClass) is None
         assert self.markovClass.intersection(self.isolatedClass) is None
         assert self.markovClass.intersection(self.markovClass) == self.markovClass
+        assert self.A3Class.intersection(self.A3ClassDifferent) == self.A3ClassDifferent.intersection(self.A3Class)
+        assert self.A3Class.intersection(self.A3ClassDifferent) == self.A3Class
+
 
     def testUpdatedUnion(self):
         assert self.markovClass.union(self.A2Class) is None
@@ -766,6 +780,8 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.markovClass.union(self.AcyclicEventuallyClass) is None
         assert self.markovClass.union(self.isolatedClass) is None
         assert self.markovClass.union(self.markovClass) == self.markovClass
+        assert self.A3Class.union(self.A3ClassDifferent) == self.A3Class
+        assert self.A3Class.union(self.A3ClassDifferent) == self.A3ClassDifferent.union(self.A3Class)
 
     def testUpdatedFinite(self):
         assert self.markovClass.finite
@@ -866,6 +882,16 @@ class updateMutationClassTests(unittest.TestCase):
         s = self.bigClass.sevens_ker
         for Q in self.bigClass.vertices:
             assert s == Q.seven_congruence()
+
+    def testAgreement(self):
+        assert not self.markovClass.agrees(self.isolatedClass)
+        assert not self.A3Class.agrees(self.isolatedClass)
+        assert not self.bigClass.agrees(self.isolatedClass)
+        assert self.markovClass.agrees(self.markovClass)
+        assert self.A2Class.agrees(self.A2Class)
+        assert self.A3ClassDifferent.agrees(self.A3Class)
+        assert self.A3Class.agrees(self.A3ClassDifferent)
+
 
         
 class SurfaceQuiverTests(unittest.TestCase):
