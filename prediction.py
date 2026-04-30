@@ -67,12 +67,14 @@ def mutation_acyclic_local(Q, match_alexander=False):
         return Unknown
 
 def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=False, Q_class=None, R_class=None):
-    # Determines if Q is isomorphic to R using distance mutations, along with the invariants.
-    #  returns True if they are equivalent, False if they are not, and Unknown if we cannot determine either way.
-    #
-    #  up_to_isomorphism=True considers the problem up to isomorphism
-    #  return_classes=True returns a tuple (Result, Mutation_class_of_Q, Mutation_class_of_R)
-    #  Q_class, R_class may be provided for efficiency; distance is ignored if a class is given.
+    """Determines if Q is isomorphic to R using ~distance mutations, along with the invariants.
+    returns True if they are equivalent, False if they are not, and Unknown if we cannot determine either way.
+    
+    up_to_isomorphism=True considers the problem up to isomorphism
+    return_classes=True returns a tuple (Result, Mutation_class_of_Q, Mutation_class_of_R)
+    Q_class, R_class may be provided for efficiency; distance is ignored if a class is given.
+    attempts to replace Q,R with non-forks in distance mutations if class is not provided. 
+     This may result in more than distance mutations being applied."""
     if up_to_isomorphism:
         permsQ = permutations(Q.n)
         permsR = permutations(R.n)
@@ -82,9 +84,11 @@ def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=
 
     update = False
     if Q_class is None:
+        Q = descend_fork(Q, maxSteps=distance)
         Q_class = mutationClass(Q, perms=permsQ)
         update = True
     if R_class is None:
+        R = descend_fork(R, maxSteps=distance)
         R_class = mutationClass(R, perms=permsR)
         update = True
 
@@ -105,7 +109,7 @@ def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=
         return (True, union, union) if return_classes else True
 
     #check if invariants are consistent
-    if not R_class.agrees(Q_class): #not implemented
+    if R_class.agrees(Q_class) is False: #not implemented
         return (False, Q_class, R_class) if return_classes else False
 
     return (Unknown, Q_class, R_class) if return_classes else Unknown

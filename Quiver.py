@@ -510,6 +510,26 @@ def matrix_rank(M):
     # Computes the rank of a given matrix, cast to int64
     return np.linalg.matrix_rank(np.int64(M))
 
+def descend_fork(Q, maxSteps=-1):
+    """If Q is a fork, mutate at the point of return until either we reach a non-fork or determine there is no forkless part.
+    Returns the resulting quiver.
+    If maxSteps is set, will apply at most maxSteps mutations."""
+    prevMutation = -1 #the last mutation performed, to prevent stutter/loops.
+    while maxSteps != 0:
+        foundDescent = False
+        maxSteps -= 1
+        for r in range(Q.n):
+            if r==prevMutation:
+                continue
+            if Q.forkWithPOR(r):
+                Q = Q.mutate(r)
+                foundDescent = True
+                prevMutation = r
+                break
+        if not foundDescent:
+            break
+    return Q
+    
 
 def sink_set(quiver):
     # Calculates all sink/source mutation equivalent quivers
@@ -996,14 +1016,6 @@ class mutationClass():
         # handled by init: self.mutationConnected, determinant, gcdVector, B_rank, alexander_poly, casals_det, sevens_ker, 
 
     def _consistentProperties(self, other):
-        #def consistent_ternary(X,Y):
-        #    # Could X and Y agree?
-        #    if (X is Unknown) or (Y is Unknown):
-        #        return True
-        #    if X == Y:
-        #        return True
-        #    return False
-
         if self.mutationConnected != other.mutationConnected: return False
         if self.determinant != other.determinant: return False
         if self.gcdVector != other.gcdVector: return False
@@ -1012,6 +1024,29 @@ class mutationClass():
         if self.sevens_ker != other.sevens_ker: return False
         #doesn't help: if not consistent_ternary(self.finite, other.finite): return False
         return True
+
+    def agrees(self, other):
+        """Determine if self and other could be mutation equivalent, given current data."""
+        if not self._consistentProperties(other):
+            return False
+        # check conditional invariants
+
+        def consistentTernary(X,Y):
+           """Determines if X and Y could agree"""
+           if (X is Unknown) or (Y is Unknown):
+               return True
+           if X == Y:
+               return True
+           return False
+
+        if not consistentTernary(self.totallyProper, other.totallyProper):
+            False
+        if (self.totallyProper | other.totallyProper) is True:
+            if self.alexander_poly != other.alexander_poly:
+                return False
+
+        
+        
 
     def emptyIntersection(self,other):
         return self.intersection(other) is None
