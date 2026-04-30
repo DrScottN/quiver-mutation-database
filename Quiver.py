@@ -102,7 +102,7 @@ class Quiver():
                     if self.matrix[seen[j],k] != 0 and k not in seen:
                         seen.append(k)
 
-            numSeen = len(seen)
+            numSeen = go_to
             if len(seen) == self.n:
                 return True
 

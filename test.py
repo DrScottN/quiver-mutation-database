@@ -9,30 +9,37 @@ class QuiverInitializationTestCase(unittest.TestCase):
         self.quiver = Quiver([[0,2], [-2,0]])
         self.quiver = self.quiver.mutate(1)
         self.quiver_iso = Quiver([[0,0],[0,0]])
+        self.D5 = Quiver([[0,0,0,0,1],[0,0,0,-1,0],[0,0,0,-1,0],[0,1,1,0,-1],[-1,0,0,1,0]])
 
     def testLen(self):
         assert self.quiver.n == 2, 'incorrect rank n'
         assert self.quiver_iso.n == 2, 'incorrect rank n'
+        assert self.D5.n == 5
     
     def testVerts(self):
         assert self.quiver.vertices == [0,1], 'incorrect list of vertices'
         assert self.quiver_iso.vertices == [0,1], 'incorrect list of vertices'
+        assert self.D5.vertices == [0,1,2,3,4]
 
     def testEdges(self):
         assert self.quiver.numEdges == 2, 'incorrect number of edges'
         assert self.quiver_iso.numEdges == 0, 'incorrect number of edges'
+        assert self.D5.numEdges == 4
 
     def testDet(self):
         assert self.quiver.determinant() == 4, 'incorrect determinant'
         assert self.quiver_iso.determinant() == 0, 'incorrect determinant'
+        assert self.D5.determinant() == 0
 
     def testConnected(self):
         assert self.quiver.connected(), 'incorrect connectedness'
         assert not self.quiver_iso.connected(), 'incorrect connectedness'
+        assert self.D5.connected()
 
     def testAbundant(self):
         assert self.quiver.abundant(), 'incorrect abundance'
         assert not self.quiver_iso.abundant(), 'incorrect abundance'
+        assert not self.D5.abundant()
 
     def testNoSkewSymm(self):
         with self.assertRaises(Exception, msg="No error when creating a non-skew-symmetric matrix. Will break Quiver.__lt__ and __eq__"):
