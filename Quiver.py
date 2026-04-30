@@ -87,27 +87,26 @@ class Quiver():
     def connected(self):
         # Finds if the quiver is connected as a simple graph
         seen = [0]
-        unseen = set([])
+        #unseen = set([])
         for j in range(1, self.n):
             if self.matrix[0,j] != 0:
                 seen.append(j)
-            else:
-                unseen.add(j)
+            #else:
+                #unseen.add(j)
         #seen = [0] + [j for j in range(1,self.n) if self.matrix[0,j] != 0]
         numSeen = 1
-
         while numSeen < len(seen):
-            extension = set([])
-            for j in seen[numSeen:]:
-                for k in unseen:
-                    if self.matrix[j,k] != 0:
-                        extension.add(k)
-                unseen = unseen-extension
+            go_to = len(seen)
+            for j in range(numSeen,go_to):
+                for k in range(1,self.n):
+                    if self.matrix[seen[j],k] != 0 and k not in seen:
+                        seen.append(k)
 
             numSeen = len(seen)
-            seen.extend(extension)
+            if len(seen) == self.n:
+                return True
 
-        return numSeen == self.n
+        return False #len(seen) == self.n
     
     def sources(self):
         # Get the sources in a quiver
