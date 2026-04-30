@@ -1045,6 +1045,24 @@ class mutationClass():
             if self.alexander_poly != other.alexander_poly:
                 return False
 
+        if not consistentTernary(self.mutationAcyclic, other.mutationAcyclic):
+            False
+        if not consistentTernary(self.mutationCyclicSubquiver, other.mutationCyclicSubquiver):
+            False
+        if not consistentTernary(self.mutationComplete, other.mutationComplete):
+            False
+        if not consistentTernary(self.is_surface_quiver, other.is_surface_quiver):
+            False
+        if not consistentTernary(self.hasVortex, other.hasVortex):
+            False
+        if not consistentTernary(self.finite, other.finite):
+            False
+        if not consistentTernary(self.finiteFP, other.finiteFP):
+            False
+        if not consistentTernary(self.finitePFP, other.finitePFP):
+            False
+        return True
+        
         
         
 
