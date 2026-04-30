@@ -208,7 +208,7 @@ class Quiver():
         Q = self.subquiverRemoveOneVertex(i)
         P = self.subquiverRemoveOneVertex(j)
 
-        if not Q.forkWithPOR(r) or not P.forkWithPOR(r):
+        if not Q.forkWithPOR(r -(i<r)) or not P.forkWithPOR(r - (j<r)):
             return False
 
         for k in self.vertices:
@@ -221,16 +221,12 @@ class Quiver():
         # Returns true if pre-fork with point of return r
         # else false (even if it is a fork with por r)
         
-        for i in self.vertices:
-            for j in self.vertices:
-                if j == i or r in [i,j]:
-                    continue
+        for i,j in itertools.combinations([x for x in self.vertices if x != r], 2):
+            if self.matrix[i,j] > 1:
+                continue
 
-                if self.matrix[i,j] > 1:
-                    continue
-
-                if self.preForkWithVertices(r, i, j):
-                    return True
+            if self.preForkWithVertices(r, i, j):
+                return True
 
         return False
 

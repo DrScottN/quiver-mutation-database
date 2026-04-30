@@ -110,6 +110,8 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         self.incomplete_quiver = Quiver(np.array([[0,2,-3,0],[-2,0,2,0],[3,-2,0,0], [0,0,0,0]]))
         self.vortex_quiver = Quiver(np.array([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]]))
         self.A4 = Quiver([[0,1,0,0],[-1,0,1,0],[0,-1,0,1],[0,0,-1,0]])
+        self.PreFork0 = Quiver(np.array([[0, 1258, 0, -42], [-1258, 0, -1978, 30],[0, 1978, 0, -66],[42, -30, 66, 0]], dtype=object))
+        self.PreFork1 = Quiver(np.array([[0, 1258, 1, -42], [-1258, 0, -1978, 30],[-1, 1978, 0, -66],[42, -30, 66, 0]], dtype=object))
     
     def testCommutingMutations(self):
         assert self.quiver == self.quiver.mutate(2).mutate(0).mutate(2).mutate(0), 'commuting mutation cycle did not cycle'
@@ -163,19 +165,21 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
             assert self.vortex_quiver.determinant() == self.vortex_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
             assert self.A4.determinant() == self.A4.mutate(i).determinant()
 
-    def testPrefork(self):
+    def testForkAgain(self):
+        assert self.PreFork0.preForkWithPOR(3)
+        assert self.PreFork1.preForkWithPOR(3)
         M = [1,0]
         q = self.quiver
         for m in M:
             q = q.mutate(m)
-        assert q.preForkWithPOR(M[-1]), f'applying mutation sequence {M} did not produce a prefork with por {M[-1]}'
+        assert q.forkWithPOR(M[-1]), f'applying mutation sequence {M} did not produce a fork with por {M[-1]}'
         q = self.incomplete_quiver
         for m in M:
             q = q.mutate(m)
-        assert not any([q.preForkWithPOR(i) for i in range(q.n)]), f'incorrectly marked a disconnected quiver as a prefork'
+        assert not any([q.forkWithPOR(i) for i in range(q.n)]), f'incorrectly marked a disconnected quiver as a prefork'
 
     def testPrefork2(self):
-        M = [1,0,1]
+        M = [0,1,0,3]
         q = self.quiver
         for m in M:
             q = q.mutate(m)
@@ -724,7 +728,6 @@ class updateMutationClassTests(unittest.TestCase):
 
         self.vortexClass = mutationClass(Quiver(np.array([[0,2,-4,6],[-2,0,2,6],[4,-2,0,6], [-6,-6,-6,0]])), perms=permutations(4))
         self.vortexClass.update()
-        self.vortexClass.update()
         self.vortexClassResult=self.vortexClass.update()
 
         self.vortexConnClass = mutationClass(Quiver(np.array([[0,2,-40,6],[-2,0,2,6],[40,-2,0,6], [-6,-6,-6,0]])), perms=permutations(4))
@@ -733,6 +736,11 @@ class updateMutationClassTests(unittest.TestCase):
         self.vortexConnClass.update()
         self.vortexConnClass.update()
         self.vortexConnClassResult=self.vortexConnClass.update()
+
+        self.allForkClass = mutationClass(Quiver([[0,100,90,-12],[-100,0,10,13],[-90,-10,0,12],[12,-13,-12,0]]), perms=permutations(4))
+        self.allForkClass.update()
+        self.allForkClassResult=self.allForkClass.update()
+        
     
     def testResults(self):
         assert len(self.isolatedResult) == 0
@@ -744,6 +752,7 @@ class updateMutationClassTests(unittest.TestCase):
         assert len(self.bigClassResult) == 0 #pruned away
         assert len(self.vortexClassResult) !=0
         assert len(self.vortexConnClassResult) ==0, f"has a forefront still {self.vortexConnClassResult[0].matrix}"
+        assert len(self.allForkClassResult)==0
 
 
     def testUpdateMembership(self):
@@ -762,6 +771,8 @@ class updateMutationClassTests(unittest.TestCase):
         assert Quiver(np.array([[0,2,-4,0],[-2,0,6,0],[4,-6,0,0], [0,0,0,0]])) not in self.AcyclicEventuallyClass
         assert Quiver(np.array([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]])) in self.vortexClass
         assert Quiver(np.array([[0,2,-4,-6],[-2,0,2,-6],[4,-2,0,-6], [6,6,6,0]])).mutate(1) in self.vortexClass
+        assert Quiver([[0,100,90,-12],[-100,0,10,13],[-90,-10,0,12],[12,-13,-12,0]]).mutate(3) not in self.allForkClass #resulted in a fork.
+        assert Quiver(np.array([[0,1,-1,0],[-1,0,1,0],[1,-1,0,0], [0,0,0,0]])) not in self.allForkClass
         
 
     def testUpdatedIntersection(self):
@@ -772,6 +783,7 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.markovClass.intersection(self.markovClass) == self.markovClass
         assert self.A3Class.intersection(self.A3ClassDifferent) == self.A3ClassDifferent.intersection(self.A3Class)
         assert self.A3Class.intersection(self.A3ClassDifferent) == self.A3Class
+        assert self.allForkClass.intersection(self.allForkClass) == self.allForkClass
 
 
     def testUpdatedUnion(self):
@@ -791,6 +803,15 @@ class updateMutationClassTests(unittest.TestCase):
         assert not self.AcyclicEventuallyClass.finite
         assert not self.bigClass.finite
         assert not self.vortexClass.finite
+        assert not self.allForkClass.finite
+
+    def testUpdatedFFP(self):
+        assert self.markovClass.finiteFP
+        assert self.markovClass.finitePFP
+        assert self.A2Class.finitePFP
+        assert self.allForkClass.finiteFP
+        assert self.allForkClass.finitePFP
+        assert not self.vortexClass.finiteFP
 
     def testUpdatedConnected(self):
         assert not self.markovClass.mutationConnected 
@@ -799,6 +820,7 @@ class updateMutationClassTests(unittest.TestCase):
         assert not self.isolatedClass.mutationConnected 
         assert self.vortexClass.mutationConnected is not False
         assert self.vortexConnClass.mutationConnected is not False
+        assert self.allForkClass.mutationConnected 
 
     def testLeastEdges(self):
         assert self.markovClass.leastEdges == 6
@@ -892,6 +914,12 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.A3ClassDifferent.agrees(self.A3Class)
         assert self.A3Class.agrees(self.A3ClassDifferent)
 
+    def testMutationCycles(self):
+        assert self.markovClass.hasMutationCycle
+        assert self.A3Class.hasMutationCycle
+        assert self.A2Class.hasMutationCycle
+        assert self.vortexClass.hasMutationCycle
+        assert self.allForkClass.hasMutationCycle is False
 
         
 class SurfaceQuiverTests(unittest.TestCase):
