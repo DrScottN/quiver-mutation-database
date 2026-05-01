@@ -11,9 +11,9 @@ def invariants_dict(Q, include_surface=True):
     invs["rank"] = Q.n
     invs["connected"] = Q.connected()
     invs["B rank"] = matrix_rank(Q.matrix)
-    invs["Casal's Det"] = Q.casals_det()
+    invs["Casal's Det"] = Q.casalsDeterminant()
     invs["Seven's Congruence"] = Q.seven_congruence()
-    invs["gcd"] = Q.gcd_vector() 
+    invs["gcd"] = Q.gcdVector() 
     if include_surface: invs["surf quiver"] = bool(surface_quiver(Q))
     #note, block decomp is not an invariant but being surface type is
     return invs
@@ -37,7 +37,7 @@ def mutation_equivalent_local(Q,R, up_to_isomorphism=False):
     if invariants_dict(Q) != invariants_dict(R):
         return False
     if Q.acyclic() or R.acyclic():
-        if Q.alexander_poly() != R.alexander_poly():
+        if Q.alexanderPolynomial() != R.alexanderPolynomial():
             return False
     return Unknown
 
@@ -60,7 +60,7 @@ def mutation_acyclic_local(Q, match_alexander=False):
     if Q.determinant()**2 > (2*Q.markov())**Q.n:
         return False
     if match_alexander:
-        for R in generate_acyclics_from_Alexander(Q.alexander_poly()):
+        for R in generate_acyclics_from_Alexander(Q.alexanderPolynomial()):
             if mutation_equivalent_local(Q,R) is not False:
                 return Unknown #Heuristically, likely to be True
         return False
@@ -176,14 +176,14 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     acyclic_invariants = []
     for Q in acyclic_egs:
         d = invariants_dict(Q, include_surface=use_surface)
-        d["Alexander polynomial"] = Q.alexander_poly()
+        d["Alexander polynomial"] = Q.alexanderPolynomial()
         if d not in acyclic_invariants:
             acyclic_invariants.append(d)
 
     cyclic_invariants = []
     for Q in cyclic_egs:
         d = invariants_dict(Q, include_surface=use_surface)
-        d["Alexander polynomial"] = Q.alexander_poly()
+        d["Alexander polynomial"] = Q.alexanderPolynomial()
         if d not in cyclic_invariants:
             cyclic_invariants.append(d)
 
@@ -192,7 +192,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     if overlap > 0:
         print(f"They intersect for {overlap} values.")
     else:
-        print("The sets of invariants are distinct.")
+        print("The sets of invariants are mutually distinct.")
     print()
 
     #attempt to label the unlabeled with the invariants
@@ -202,7 +202,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     undetermined_without_cyclic_Alexander = [0,0]
     for Q,l in dataset_not_local:
         d = invariants_dict(Q, include_surface=use_surface)
-        d["Alexander polynomial"] = Q.alexander_poly()
+        d["Alexander polynomial"] = Q.alexanderPolynomial()
         #match if invariants are in acyclic, in cyclic (without alexander considered), and in cyclic with alexander considered
         match (d in acyclic_invariants, any([all([d[k] == inv[k] for k in d.keys()]) for inv in cyclic_invariants]), d in cyclic_invariants):
             case (True, True, True):
@@ -303,7 +303,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     for n in ns:
         for R in generateAcyclicsBelowMarkov(max_markov, n):
             d = invariants_dict(R, include_surface=use_surface)
-            d["Alexander polynomial"] = R.alexander_poly()
+            d["Alexander polynomial"] = R.alexanderPolynomial()
             if d not in acyclic_invs:
                 acyclic_invs.append(d)
     
@@ -312,7 +312,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     unknown_cyclic = 0
     for Q,l in dataset_not_local:
         d = invariants_dict(Q, include_surface=use_surface)
-        d["Alexander polynomial"] = Q.alexander_poly()
+        d["Alexander polynomial"] = Q.alexanderPolynomial()
         if d not in acyclic_invs:
             assert not l, f"Invariants {d} are not acyclic yet label is cyclic"
             correct_exhaustive += 1

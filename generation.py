@@ -25,7 +25,7 @@ def removeAcyclic(quivers):
 
 def removeVortices(quivers):
     # Removes all quivers that have vortices
-    return [q for q in quivers if q.vortex_free()]
+    return [q for q in quivers if q.vortexFree()]
 
 def removeQuiversWithMutCyclicThreeCycle(quivers):
     # Removes all quivers that have a mutation-cyclic 3-cycle as a subquiver

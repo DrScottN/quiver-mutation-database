@@ -263,7 +263,7 @@ class Quiver():
         Q = self.subquiverRemoveOneVertex(apex)
         return Q.threeCycle()
 
-    def vortex_free(self):
+    def vortexFree(self):
         """ determines if the quiver has no vortex subquiver """
         for V in itertools.combinations(self.vertices, 4):
             if self.subquiver(V).vortex():
@@ -287,7 +287,7 @@ class Quiver():
                     newMatrix[i,j] += add
         return Quiver(newMatrix)
 
-    def matrix_mutate(self, k):
+    def matrixMutate(self, k):
         """ Gives the quiver formed by mutating at vertex k via matrix mutation """
         # empirically slower than the mutation method above.
         C = np.identity(self.n, dtype='object')
@@ -300,13 +300,13 @@ class Quiver():
         """ Checks whether a source or sink exists """
         return len(self.sources()) + len(self.sinks()) > 0     
 
-    def chordless_cycles(self):
+    def chordlessCycles(self):
         """ Iterator for all chordless cycles in the quiver. Formatted as list of vertex indices. """
         
         def neighbors(v):
             return [j for j in range(self.n) if self.matrix[v,j] != 0]
         
-        def chordless_cycles_at(v):
+        def chordlessCyclesAt(v):
             """ Iterator for chordless cycles with minimal element v """
             paths = []
             ends = [u for u in neighbors(v) if u > v]
@@ -324,13 +324,13 @@ class Quiver():
                     paths.append([P+[u], chord + N])   
 
         for i in range(self.n):
-            for C in chordless_cycles_at(i):
+            for C in chordlessCyclesAt(i):
                 yield tuple(C)
 
-    def winding_data(self, sigma):
+    def windingData(self, sigma):
         """ Using linear order sigma (a permutation of the indices), return winding numbers and edges against direction of traversal of the chordless cycles. """
         winding_dict = dict()
-        for C in self.chordless_cycles():
+        for C in self.chordlessCycles():
             wind = 0 #times orbited
             lefts = 0 #arrows against flow
             for i in range(len(C)):
@@ -340,7 +340,7 @@ class Quiver():
         return winding_dict
 
 
-    def cyclic_order(self):
+    def cyclicOrder(self):
         """ 
         Return the cyclic ordering of the quiver with all chordless cycles having winding number 1 (if oriented) or 0 (if acyclic). 
          Returns False if no such order exists. 
@@ -351,7 +351,7 @@ class Quiver():
             return [0,1]
         for sigma_p in permutations(self.n-1): #[[0,1,2,3], [0,2,1,3], [0,1,3,2], [0,2,3,1], [0,3,1,2], [0,3,2,1]]:
             sigma = sigma_p + (self.n-1,)
-            W = self.winding_data(sigma)
+            W = self.windingData(sigma)
             good = True
             for C in W.keys():
                 wind, left = W[C]
@@ -375,7 +375,7 @@ class Quiver():
     def proper(self):
         """ returns a proper cyclic ordering (but not necessarily totally proper) if it exists. """
         for p in permutations(self.n):
-            winding = self.winding_data(p)
+            winding = self.windingData(p)
             next_p = False
             for C, x in winding.items():
                 ell = x[1]
@@ -395,7 +395,7 @@ class Quiver():
          Return False if this quiver has no potentailly totally proper order.
         """
         
-        sigma = self.cyclic_order()
+        sigma = self.cyclicOrder()
         if sigma==False:
             return False
         U = np.array([[-(i<j)*self.matrix[sigma.index(i),sigma.index(j)] for j in range(self.n)] for i in range(self.n)], dtype=object)
@@ -421,7 +421,7 @@ class Quiver():
             trace += Cosquare[i,i]
         return self.n - trace
         
-    def alexander_poly(self):
+    def alexanderPolynomial(self):
         """ 
         Computes the alexander polynomial (expressed as a polynomial object). 
         Returns False if the quiver is not potentially totally proper.
@@ -438,7 +438,7 @@ class Quiver():
             det += a * sign_perm(p)
         return det
 
-    def gcd_vector(self):
+    def gcdVector(self):
         """ Computes the gcd vector of self, as a tuple with ith entry the gcd of row i. """
         return tuple(math.gcd(*[self.matrix[i,j] for j in range(self.n)]) for i in range(self.n))
 
@@ -452,7 +452,7 @@ class Quiver():
                     d = math.gcd(d, t)
         return d
         
-    def casals_det(self):
+    def casalsDeterminant(self):
         """ return the mod-4 determinant of a quasi-cartan companion. This is a mutation invariant. """
         #  see arxiv: 2311.03601
         #  uses slow det formula.
@@ -557,7 +557,7 @@ def generate_acyclics_from_Alexander(alex):
         #print(degree, np.tril_indices(X.shape[0], k = -1), w)
         X[np.tril_indices(X.shape[0], k = -1)] = w
         Q = Quiver(X - np.transpose(X))
-        if Q.alexander_poly() != alex:
+        if Q.alexanderPolynomial() != alex:
             continue
         #to avoid repeats; this is very slow.
         if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sink_set(Q)]):
@@ -850,10 +850,10 @@ class mutationClass():
         self.determinant = self.initialQ.determinant()
         self.leastEdges = self.initialQ.numEdges
         self.size = 1
-        self.gcdVector = self.initialQ.gcd_vector()
+        self.gcdVector = self.initialQ.gcdVector()
         self.B_rank = matrix_rank(self.initialQ.matrix)
-        self.alexander_poly = self.initialQ.alexander_poly()
-        self.casals_det = self.initialQ.casals_det()
+        self.alexanderPolynomial = self.initialQ.alexanderPolynomial()
+        self.casalsDeterminant = self.initialQ.casalsDeterminant()
         self.sevens_ker = self.initialQ.seven_congruence()
 
         if self.initialQ.acyclic():
@@ -868,7 +868,7 @@ class mutationClass():
                 self.mutationCyclicSubquiver = Unknown
                 self.mutationCyclicSubquiverWitness = None
                 self.mutationAcyclic = Unknown
-            self.totallyProper = Unknown if self.alexander_poly is not False else False
+            self.totallyProper = Unknown if self.alexanderPolynomial is not False else False
 
         self.mutationComplete = False if self.initialQ.complete() is not True else Unknown
         self.is_surface_quiver = Unknown
@@ -883,7 +883,7 @@ class mutationClass():
                 self.is_surface_quiver = False
                 self.finite = False
             
-            if self.hasVortex is Unknown and not Q.vortex_free():
+            if self.hasVortex is Unknown and not Q.vortexFree():
                 self.hasVortex = True
                 self.mutationAcyclic = False
         if self.is_surface_quiver is Unknown:
@@ -1043,7 +1043,7 @@ class mutationClass():
         self.totallyProper = self.totallyProper if self.totallyProper is not Unknown else other.totallyProper
         self.mutationComplete = self.mutationComplete if self.mutationComplete is not Unknown else other.mutationComplete
         self.mutationCyclicSubquiver = self.mutationCyclicSubquiver if self.mutationCyclicSubquiver is not Unknown else other.mutationCyclicSubquiver
-        # handled by init: self.mutationConnected, determinant, gcdVector, B_rank, alexander_poly, casals_det, sevens_ker, 
+        # handled by init: self.mutationConnected, determinant, gcdVector, B_rank, alexanderPolynomial, casalsDeterminant, sevens_ker, 
 
     def _consistentProperties(self, other):
         """check if self and other might intersect/union. helper function to skip pointless intersections/unions."""
@@ -1051,7 +1051,7 @@ class mutationClass():
         if self.determinant != other.determinant: return False
         if self.gcdVector != other.gcdVector: return False
         if self.B_rank != other.B_rank: return False
-        if self.casals_det != other.casals_det: return False
+        if self.casalsDeterminant != other.casalsDeterminant: return False
         if self.sevens_ker != other.sevens_ker: return False
         #doesn't help: if not consistent_ternary(self.finite, other.finite): return False
         return True
@@ -1073,7 +1073,7 @@ class mutationClass():
         if not consistentTernary(self.totallyProper, other.totallyProper):
             False
         if (self.totallyProper | other.totallyProper) is True:
-            if self.alexander_poly != other.alexander_poly:
+            if self.alexanderPolynomial != other.alexanderPolynomial:
                 return False
 
         if not consistentTernary(self.mutationAcyclic, other.mutationAcyclic):
@@ -1121,13 +1121,13 @@ class mutationClass():
         data.append(encoding(self.hasVortex))
 
         data.append(encoding(self.totallyProper))
-        data.append(encoding(self.alexander_poly))
+        data.append(encoding(self.alexanderPolynomial))
 
         data.append(encoding(self.initialQ.n))
         data.append(encoding(self.determinant))
-        data.append(encoding(self.gcd_vector))
+        data.append(encoding(self.gcdVector))
         data.append(encoding(self.B_rank))
-        data.append(encoding(self.casals_det))
+        data.append(encoding(self.casalsDeterminant))
         data.append(encoding(self.sevens_ker))
 
         data.append(encoding(self.hasMutationCycle))
@@ -1182,7 +1182,7 @@ class mutationClass():
 
                 if P not in self.edges:
                     # Update potentional mutation invariants
-                    self.hasVortex = True if not P.vortex_free() else self.hasVortex
+                    self.hasVortex = True if not P.vortexFree() else self.hasVortex
                     self.mutationComplete = False if not P.complete() else self.mutationComplete
                     self.mutationAbundant = False if not P.abundant() else self.mutationAbundant
                     if self.mutationAcyclic is Unknown:
