@@ -9,9 +9,9 @@ def reduceByIsomorphism(quivers):
     # isomorphism classes with the least lexi element as the representative
     # The value of the dict item is the number of times it appears in the list
     n = quivers[0].n
-    perms = permutations(n)
+    #perms = permutations(n)
     
-    classes = [isomorphismClass(q, perms)[0] for q in quivers]
+    classes = [isomorphismRep(q) for q in quivers]#[isomorphismClass(q, perms)[0] for q in quivers]
 
     return Counter(classes)
 

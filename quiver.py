@@ -35,7 +35,7 @@ class Quiver():
         return '\n'.join(str(r) for r in self.matrix)
 
     def __eq__(self, other):
-        return (self.matrix == other.matrix).all()
+        return np.array_equal(self.matrix, other.matrix) #.all()
 
     def __lt__(self, other):
         """ 
