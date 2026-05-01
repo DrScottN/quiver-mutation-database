@@ -1325,6 +1325,40 @@ def isomorphismClass(quiver, perms):
 
     return isoClass
 
+def isomorphismRep(Q):
+    """Returns the lex min rep of Q in its isomorphism class"""
+    #assumes perms is all the permutations.
+    maxWeight = 0
+    opts1=[]
+    opts2=[]
+    for i,j in itertools.combinations(range(quiver.n), 2):
+        v = abs(quiver.matrix[i,j])
+        if maxWeight < v:
+            maxWeight = v
+            count = 0
+            if quiver.matrix[i,j] > 0: 
+                opts1.append(j)
+                opts2.append(i)
+            else: 
+                opts1.append(i)
+                opts2.append(j)
+        if count == 0 and maxWeight == v:
+            count += 1
+    isoCandidates = []
+    for i in range(len(p1)):
+        p1,p2 = opts1[i], opts2[i]
+        L = [j for j in range(Q.n) if j not in [p1,p2]]
+        for pTail in itertools.permutations(L):
+            p = (p1, p2) + pTail
+            isoCandidates.append(isomorphicQuiver(quiver, p))
+    return min(isoCandidates)
+    
+
+        
+    
+
+
+
 def boxQuiver(a,b):
     """ Returns the box quiver with sides a and b """
     M = [[0 for i in range(4)] for j in range(4)]
