@@ -835,7 +835,7 @@ class mutationClass():
         
         self.perms = perms
         self.possibleReps = [self.initialQ]
-        self.possibleIsoReps = [isomorphismClass(self.initialQ, perms)[0]]
+        self.possibleIsoReps = [isomorphismRep(self.initialQ)] #[isomorphismClass(self.initialQ, perms)[0]]
 
         self.maxWeight = maxWeight
         self.hitMaxWeight = False
@@ -1203,7 +1203,7 @@ class mutationClass():
                     
                     # Update the representative lists
                     if P.numEdges <= self.leastEdges:
-                        I = isomorphismClass(P, self.perms)[0]
+                        I = isomorphismRep(P) #isomorphismClass(P, self.perms)[0]
                         if P.numEdges < self.leastEdges:
                             self.possibleReps = []
                             self.possibleIsoReps = []
@@ -1331,26 +1331,26 @@ def isomorphismRep(Q):
     maxWeight = 0
     opts1=[]
     opts2=[]
-    for i,j in itertools.combinations(range(quiver.n), 2):
-        v = abs(quiver.matrix[i,j])
+    for i,j in itertools.combinations(range(Q.n), 2):
+        v = abs(Q.matrix[i,j])
         if maxWeight < v:
             maxWeight = v
-            count = 0
-            if quiver.matrix[i,j] > 0: 
+            opts1=[]
+            opts2=[]
+        if maxWeight == v:
+            if Q.matrix[i,j] > 0: 
                 opts1.append(j)
                 opts2.append(i)
             else: 
                 opts1.append(i)
                 opts2.append(j)
-        if count == 0 and maxWeight == v:
-            count += 1
     isoCandidates = []
-    for i in range(len(p1)):
+    for i in range(len(opts1)):
         p1,p2 = opts1[i], opts2[i]
         L = [j for j in range(Q.n) if j not in [p1,p2]]
         for pTail in itertools.permutations(L):
             p = (p1, p2) + pTail
-            isoCandidates.append(isomorphicQuiver(quiver, p))
+            isoCandidates.append(isomorphicQuiver(Q, p))
     return min(isoCandidates)
     
 

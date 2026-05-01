@@ -543,8 +543,10 @@ class QuiverIsoClass(unittest.TestCase):
     def setUp(self):
         self.quiver1 = Quiver([[0,3,2],[-3,0,1],[-2,-1,0]])
         self.quiver2 = Quiver([[0,3,1],[-3,0,2],[-1,-2,0]])
+        self.quiver3 = Quiver([[0,8,11,-19],[-8,0,19,7],[-11,-19,0,4],[19,-7,-4,0]])
         self.Iso1 = isomorphismClass(self.quiver1, permutations(3))
         self.Iso2 = isomorphismClass(self.quiver2, permutations(3))
+        self.Iso3 = isomorphismClass(self.quiver3, permutations(4))
 
     def testDistinct(self):
         assert self.quiver1 in self.Iso1, "incorrectly misses quiver from its own iso class"
@@ -572,6 +574,11 @@ class QuiverIsoClass(unittest.TestCase):
         Qp = Quiver(B)
         for R in sinkSet(self.quiver1):
             assert not any([Rp < Qp for Rp in isomorphismClass(R, permutations(3)) if (np.tril(Rp.matrix) >= 0).all()])
+    
+    def testIsoRep(self):
+        assert isomorphismRep(self.quiver1) == self.Iso1[0]
+        assert isomorphismRep(self.quiver2) == self.Iso2[0]
+        assert isomorphismRep(self.quiver3) == self.Iso3[0]
 
 class QuiverHashing(unittest.TestCase):
     def setUp(self):
