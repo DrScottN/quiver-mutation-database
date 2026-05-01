@@ -1,4 +1,4 @@
-from Quiver import *
+from quiver import *
 import random
 
 # Contains algorithms and helper functions mirroring how we would solve 

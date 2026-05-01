@@ -813,11 +813,11 @@ class mutationClass():
 
     # The class will be split up into two main ideas: essentially a set for mutations and a tool for exploring mutation-classes
 
-    def __init__(self, Q = None, perms = None, vertices = None, edges = None, max_weight=2**16):
+    def __init__(self, Q = None, perms = None, vertices = None, edges = None, maxWeight=2**16):
         """ 
         Takes in a quiver Q as the first member of our mutation class. perms is required.
-         set max_weight=False to ignore weight checks 
-         (which stop mutations in a direction if a quiver with more than max_weight arrows between any pair of vertices is encountered).
+         set maxWeight=False to ignore weight checks 
+         (which stop mutations in a direction if a quiver with more than maxWeight arrows between any pair of vertices is encountered).
         """
         if Q is None:
             if vertices is None or edges is None:
@@ -837,11 +837,11 @@ class mutationClass():
         self.possibleReps = [self.initialQ]
         self.possibleIsoReps = [isomorphismClass(self.initialQ, perms)[0]]
 
-        self.max_weight = max_weight
-        self.hit_max_weight = False
+        self.maxWeight = maxWeight
+        self.hit_maxWeight = False
         for Q in self.vertices:
-            if self.max_weight and np.max(np.vectorize(abs)(Q.matrix)) > self.max_weight:
-                self.hit_max_weight = True
+            if self.maxWeight and np.max(np.vectorize(abs)(Q.matrix)) > self.maxWeight:
+                self.hit_maxWeight = True
                 #do we wish to do anything here?
 
 
@@ -851,7 +851,7 @@ class mutationClass():
         self.leastEdges = self.initialQ.numEdges
         self.size = 1
         self.gcdVector = self.initialQ.gcdVector()
-        self.B_rank = matrixRank(self.initialQ.matrix)
+        self.BRank = matrixRank(self.initialQ.matrix)
         self.alexanderPolynomial = self.initialQ.alexanderPolynomial()
         self.casalsDeterminant = self.initialQ.casalsDeterminant()
         self.sevens_ker = self.initialQ.sevenCongruence()
@@ -871,7 +871,7 @@ class mutationClass():
             self.totallyProper = Unknown if self.alexanderPolynomial is not False else False
 
         self.mutationComplete = False if self.initialQ.complete() is not True else Unknown
-        self.is_surfaceQuiver = Unknown
+        self.isSurfaceQuiver = Unknown
 
         self.hasVortex = False if self.mutationAcyclic is True else Unknown
         self.finite = Unknown
@@ -879,18 +879,18 @@ class mutationClass():
         self.finitePFP = Unknown
         # Setup possible mutation-invariants
         for Q in self.vertices:
-            if self.max_weight and np.max(np.vectorize(abs)(Q.matrix)) > 2:
-                self.is_surfaceQuiver = False
+            if self.maxWeight and np.max(np.vectorize(abs)(Q.matrix)) > 2:
+                self.isSurfaceQuiver = False
                 self.finite = False
             
             if self.hasVortex is Unknown and not Q.vortexFree():
                 self.hasVortex = True
                 self.mutationAcyclic = False
-        if self.is_surfaceQuiver is Unknown:
-            self.is_surfaceQuiver = bool(surfaceQuiver(self.initialQ))
-            self.finite = True if self.is_surfaceQuiver else self.finite
-            self.finiteFP = True if self.is_surfaceQuiver else self.finiteFP
-            self.finitePFP = True if self.is_surfaceQuiver else self.finitePFP
+        if self.isSurfaceQuiver is Unknown:
+            self.isSurfaceQuiver = bool(surfaceQuiver(self.initialQ))
+            self.finite = True if self.isSurfaceQuiver else self.finite
+            self.finiteFP = True if self.isSurfaceQuiver else self.finiteFP
+            self.finitePFP = True if self.isSurfaceQuiver else self.finitePFP
 
         self.hasMutationCycle = Unknown
         self.mutationAbundant = False if not self.initialQ.abundant() else Unknown
@@ -1043,14 +1043,14 @@ class mutationClass():
         self.totallyProper = self.totallyProper if self.totallyProper is not Unknown else other.totallyProper
         self.mutationComplete = self.mutationComplete if self.mutationComplete is not Unknown else other.mutationComplete
         self.mutationCyclicSubquiver = self.mutationCyclicSubquiver if self.mutationCyclicSubquiver is not Unknown else other.mutationCyclicSubquiver
-        # handled by init: self.mutationConnected, determinant, gcdVector, B_rank, alexanderPolynomial, casalsDeterminant, sevens_ker, 
+        # handled by init: self.mutationConnected, determinant, gcdVector, BRank, alexanderPolynomial, casalsDeterminant, sevens_ker, 
 
     def _consistentProperties(self, other):
         """check if self and other might intersect/union. helper function to skip pointless intersections/unions."""
         if self.mutationConnected != other.mutationConnected: return False
         if self.determinant != other.determinant: return False
         if self.gcdVector != other.gcdVector: return False
-        if self.B_rank != other.B_rank: return False
+        if self.BRank != other.BRank: return False
         if self.casalsDeterminant != other.casalsDeterminant: return False
         if self.sevens_ker != other.sevens_ker: return False
         #doesn't help: if not consistent_ternary(self.finite, other.finite): return False
@@ -1082,7 +1082,7 @@ class mutationClass():
             False
         if not consistentTernary(self.mutationComplete, other.mutationComplete):
             False
-        if not consistentTernary(self.is_surfaceQuiver, other.is_surfaceQuiver):
+        if not consistentTernary(self.isSurfaceQuiver, other.isSurfaceQuiver):
             False
         if not consistentTernary(self.hasVortex, other.hasVortex):
             False
@@ -1117,7 +1117,7 @@ class mutationClass():
         data.append(encoding(self.mutationFiniteClasses))
         data.append(encoding(self.mutationFiniteFPClasses))
         data.append(encoding(self.mutationFinitePFPClasses))
-        data.append(encoding(self.is_surfaceQuiver))
+        data.append(encoding(self.isSurfaceQuiver))
         data.append(encoding(self.hasVortex))
 
         data.append(encoding(self.totallyProper))
@@ -1126,7 +1126,7 @@ class mutationClass():
         data.append(encoding(self.initialQ.n))
         data.append(encoding(self.determinant))
         data.append(encoding(self.gcdVector))
-        data.append(encoding(self.B_rank))
+        data.append(encoding(self.BRank))
         data.append(encoding(self.casalsDeterminant))
         data.append(encoding(self.sevens_ker))
 
@@ -1174,8 +1174,8 @@ class mutationClass():
                     continue
                     
                 
-                if self.max_weight and np.max(np.vectorize(abs)(P.matrix)) > self.max_weight:
-                    self.hit_max_weight = True
+                if self.maxWeight and np.max(np.vectorize(abs)(P.matrix)) > self.maxWeight:
+                    self.hit_maxWeight = True
                     continue
 
                 self.edges[Q][P] = k # If neither a fork or pre-fork with por k, then we can add it to our edges
@@ -1220,7 +1220,7 @@ class mutationClass():
 
         self.forefront = newForefront # Update the forefront to be the new quivers we saw this round
 
-        if len(self.forefront) == 0 and not self.hit_max_weight: #if we pruned, don't be overconfident.
+        if len(self.forefront) == 0 and not self.hit_maxWeight: #if we pruned, don't be overconfident.
             self.finitePFP = True
             self.finite = True if self.finite is Unknown else self.finite
             self.finiteFP = True if self.finiteFP is Unknown else self.finiteFP

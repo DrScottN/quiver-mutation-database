@@ -1,4 +1,4 @@
-from Quiver import *
+from quiver import *
 import sys
 import time
 

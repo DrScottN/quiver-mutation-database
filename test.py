@@ -1,4 +1,4 @@
-from Quiver import *
+from quiver import *
 #from unknown import Unknown
 import unittest
 import random
@@ -694,7 +694,7 @@ class MutationClassInitTests(unittest.TestCase):
 
     def testBRankInit(self):
         for i in range(len(self.classes)):
-            assert self.classes[i].B_rank == self.mat_ranks[i], f"Incorrect matrix rank {i}"
+            assert self.classes[i].BRank == self.mat_ranks[i], f"Incorrect matrix rank {i}"
 
     def testEq(self):
         assert self.classes[0] != self.classes[1]
@@ -885,9 +885,9 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.bigClass.finitePFP is Unknown
 
     def testBigWeightPruning(self):
-        assert self.bigClass.hit_max_weight
-        assert not self.A2Class.hit_max_weight
-        assert not self.AcyclicEventuallyClass.hit_max_weight
+        assert self.bigClass.hit_maxWeight
+        assert not self.A2Class.hit_maxWeight
+        assert not self.AcyclicEventuallyClass.hit_maxWeight
 
     def testHasVortex(self):
         assert self.bigClass.hasVortex is Unknown, f"disconnected large fork incorrectly knows about vortices: {self.bigClass.hasVortex}"
@@ -902,11 +902,11 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.vortexConnClass.mutationAbundant
 
     def testClassSurfaceQuiver(self):
-        assert self.isolatedClass.is_surfaceQuiver
-        assert self.A2Class.is_surfaceQuiver
-        assert self.A3Class.is_surfaceQuiver
-        assert not self.bigClass.is_surfaceQuiver
-        assert not self.AcyclicEventuallyClass.is_surfaceQuiver
+        assert self.isolatedClass.isSurfaceQuiver
+        assert self.A2Class.isSurfaceQuiver
+        assert self.A3Class.isSurfaceQuiver
+        assert not self.bigClass.isSurfaceQuiver
+        assert not self.AcyclicEventuallyClass.isSurfaceQuiver
 
     def testAlexanderPreserved(self):
         for Q in self.A3Class.vertices:
