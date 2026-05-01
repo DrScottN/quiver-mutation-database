@@ -119,6 +119,9 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         self.A4 = Quiver([[0,1,0,0],[-1,0,1,0],[0,-1,0,1],[0,0,-1,0]])
         self.PreFork0 = Quiver(np.array([[0, 1258, 0, -42], [-1258, 0, -1978, 30],[0, 1978, 0, -66],[42, -30, 66, 0]], dtype=object))
         self.PreFork1 = Quiver(np.array([[0, 1258, 1, -42], [-1258, 0, -1978, 30],[-1, 1978, 0, -66],[42, -30, 66, 0]], dtype=object))
+        self.acyclicMutated = Quiver([[0,2,-13,0],[-2,0,21,5],[13,-21,0,-24],[0,-5,24,0]])
+        self.box22 = Quiver([[0,2,1,0],[-2,0,0,3],[-1,0,0,2],[0,-3,-2,0]])
+        self.box31 = Quiver([[0,2,1,0],[-2,0,0,3],[-1,0,0,-2],[0,-3,2,0]])
     
     def testCommutingMutations(self):
         assert self.quiver == self.quiver.mutate(2).mutate(0).mutate(2).mutate(0), 'commuting mutation cycle did not cycle'
@@ -171,6 +174,12 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
             assert self.incomplete_quiver.determinant() == self.incomplete_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
             assert self.vortex_quiver.determinant() == self.vortex_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
             assert self.A4.determinant() == self.A4.mutate(i).determinant()
+
+    def testAcyclicity(self):
+        assert not self.acyclicMutated.acyclic()
+        assert self.quiver.acyclic()
+        assert not self.vortex_quiver.acyclic()
+        assert not self.incomplete_quiver.acyclic()
 
     def testForkAgain(self):
         assert self.PreFork0.preForkWithPOR(3)
@@ -237,11 +246,17 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert self.vortex_quiver.winding_data([3,2,1,0])[(0,1,3)] == (1,1), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(0,1,3)]}"
         assert self.vortex_quiver.winding_data([3,2,1,0])[(0,2,3)] == (0,2), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(0,2,3)]}"
         assert self.vortex_quiver.winding_data([3,2,1,0])[(1,2,3)] == (1,1), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(1,2,3)]}"
+        assert self.box22.winding_data([0,1,2,3])[(0,1,3,2)] == (0,2), f"incorrect winding, got {self.box22.winding_data([0,1,2,3])[(0,1,3,2)]}"
+        assert self.box31.winding_data([0,1,3,2])[(0,1,3,2)] == (0,1), f"incorrect winding, got {self.box31.winding_data([0,1,3,2])[(0,1,3,2)]}"
+        assert self.box31.winding_data([2,0,1,3])[(0,1,3,2)] == (1,1), f"incorrect winding, got {self.box31.winding_data([2,0,1,3])[(0,1,3,2)]}"
 
     def testProper(self):
         assert self.incomplete_quiver.proper()
         assert self.quiver.proper()
         assert not self.vortex_quiver.proper(), f"incorrectly found proper ordering {self.vortex_quiver.proper()} of a vortex"
+        assert self.acyclicMutated.proper(), f"failed to find proper ordering of mutation acyclic quiver."
+        assert self.box22.proper()
+        assert self.box31.proper()
 
     def testCasals(self):
         assert self.quiver.casals_det()==0
@@ -265,6 +280,15 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert self.vortex_quiver.mutate(2).vortex_free()
         assert self.incomplete_quiver.vortex_free()
         assert not self.incomplete_quiver.vortex()
+        assert not self.acyclicMutated.vortex()
+        assert self.acyclicMutated.vortex_free()
+    
+    def testMarkovValues(self):
+        assert self.vortex_quiver.markov() is False
+        assert self.box22.markov() == 4+4+9+1, f"incorrect markov invariant, {self.box22.markov()}"
+        assert self.box31.markov() == 4+4+9+1+2*2*3*1, f"incorrect markov invariant, {self.box31.markov()}"
+        assert self.acyclicMutated.markov() == 39+30, f"incorrect markov invariant, {self.acyclicMutated.markov()}"
+        assert self.acyclicMutated.determinant() == (5*13 - 2*24)**2
 
 class ForkEdgeTestCase(unittest.TestCase):
     def setUp(self):

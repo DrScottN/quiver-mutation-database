@@ -389,7 +389,7 @@ class Quiver():
             for C, x in winding.items():
                 ell = x[1]
                 r = len(C)-ell
-                if (ell > 0 and x[0] == 1-ell) or (r > 0 and x[0] == r-1):
+                if (ell > 1 and x[0] == 1-ell) or (r > 1 and x[0] == r-1):
                     next_p = True
                     break
             if next_p:
@@ -405,7 +405,7 @@ class Quiver():
         sigma = self.cyclic_order()
         if sigma==False:
             return False
-        U = np.array([[-(i<j)*self.matrix[sigma[i],sigma[j]] for j in range(self.n)] for i in range(self.n)], dtype=object)
+        U = np.array([[-(i<j)*self.matrix[sigma.index(i),sigma.index(j)] for j in range(self.n)] for i in range(self.n)], dtype=object)
         for i in range(self.n):
             U[i,i]=1
         return U
