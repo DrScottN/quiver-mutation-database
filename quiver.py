@@ -1347,22 +1347,8 @@ def dreadedTorus():
 
     return Quiver(M)
 
-def test():
-    M = [[0,-2,-1,2],[2,0,0,-2],[1,0,0,0],[-2,2,0,0]]
-    Q = Quiver(M)
-    print(Q.determinant())
-    classes = [mutationClass(P, permutations(4)) for P in isomorphismClass(Q, permutations(4))]
 
-    for C in classes:
-        for i in range(8):
-            if not C.mutationCyclic:
-                raise Exception(f"Happened here for {C} at mutation {i+1}")
-            C.update()
-
-    raise Exception("Testing finished")
-
-
-def main(n=4, maxWeight=2, mutations=5):
+def main():
     print("You should be using generation.py")
 
 if __name__ == "__main__":
