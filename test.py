@@ -963,6 +963,7 @@ class SurfaceQuiverTests(unittest.TestCase):
         B[k,l] += 1
         B[l,i] += 1
         self.BIV = Quiver(B - np.transpose(B))
+        self.BIVm = self.BIV.mutate(3).mutate(0).mutate(4).mutate(0).mutate(3)
 
         B = np.array(np.zeros((n,n), dtype='object'), dtype='object')
         B[i,j] += 1
@@ -975,6 +976,13 @@ class SurfaceQuiverTests(unittest.TestCase):
         B[i,g] += 1
         self.BV = Quiver(B - np.transpose(B))
         self.BVm = self.BV.mutate(0)
+        self.BVm2 = self.BV.mutate(1).mutate(2).mutate(4).mutate(0).mutate(5)
+
+        self.A2 = Quiver([[0,-1],[1,0]])
+        self.A3 = Quiver([[0,1,0],[-1,0,1],[0,-1,0]])
+        self.A4 = Quiver([[0,1,0,0],[-1,0,1,0],[0,-1,0,1],[0,0,-1,0]])
+
+        self.D4 = Quiver(np.array((0, 1, 0, 0, -1, 0, -1, -1, 0, 1, 0, 0, 0, 1, 0, 0)).reshape((4,4)))
 
         #non egs
         self.MI = Quiver([[0,3],[-3,0]])
@@ -992,7 +1000,7 @@ class SurfaceQuiverTests(unittest.TestCase):
 
 
     def testSurfaceBlocks(self):
-        for Q in [self.BI, self.BII, self.BIIIa, self.BIIIb, self.BIV, self.BV]:
+        for Q in [self.A2, self.A3, self.A4, self.D4, self.BI, self.BII, self.BIIIa, self.BIIIb, self.BIV, self.BV]:
             r = surface_quiver(Q)
             assert r, f"couldn't recognize {Q.matrix}"
             blocks = r[1]
@@ -1007,14 +1015,14 @@ class SurfaceQuiverTests(unittest.TestCase):
             assert not surface_quiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surface_quiver(M)[1]}"
 
     def testSurfaceBlocksMutated(self):
-        for Q in [self.BIm, self.BIIm, self.BIIIam, self.BVm]:
+        for Q in [self.BIm, self.BIIm, self.BIIIam, self.BIVm, self.BVm, self.BVm2]:
             assert surface_quiver(Q), f"couldn't recognize {Q.matrix}"
         assert not surface_quiver(self.MIVm), f"incorrectly marked {self.MIVm.matrix} as being a surface quiver"
 
     def testSurfaceBlocksIso(self):
         p1 = [3,2,0,1,5,4]
         p2 = [5,4,3,2,1,0]
-        for Q in [self.BI, self.BII, self.BIIIa, self.BV, self.BIIm, self.BVm]:
+        for Q in [self.BI, self.BII, self.BIIIa, self.BV, self.BIIm, self.BIVm, self.BVm, self.BVm2]:
             assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
             assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
 
@@ -1058,13 +1066,21 @@ class SlowSurfaceTests(unittest.TestCase):
         self.BVp = Quiver(B - np.transpose(B))
         self.BVpm = self.BV.mutate(0)
 
+        self.A8 = Quiver(np.array((0, 1, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, -1, 0)).reshape((8,8)))
+        self.A8m = self.A8.mutate(2).mutate(3).mutate(4).mutate(1).mutate(2).mutate(0).mutate(6).mutate(7).mutate(6).mutate(7).mutate(5)
+        self.A8p = isomorphicQuiver(self.A8m, [5,4,1,7,0,2,3,6])
+
+        self.D9 = Quiver(np.array((0, 1, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0)).reshape(9,9))
+        self.D9m = self.D9.mutate(0).mutate(1).mutate(2).mutate(0).mutate(5).mutate(8).mutate(5).mutate(6).mutate(5).mutate(3).mutate(4)
+        self.D9p = isomorphicQuiver(self.D9m, [8,0,7,6,1,2,5,3,4])
+
         #non egs
         self.E6 = Quiver([[0,1,0,0,0,0],[-1,0,1,0,0,0],[0,-1,0,-1,-1,0],[0,0,1,0,0,0],[0,0,1,0,0,1],[0,0,0,0,-1,0]])
         self.X6 = Quiver([[0,1,-1,1,-1,-1],[-1,0,2,0,0,0],[1,-2,0,0,0,0],[-1,0,0,0,2,0],[1,0,0,-2,0,0],[1,0,0,0,0,0]])
 
 
     def testSurfaceBlocks(self):
-        for Q in [self.BV, self.BVp, self.BVpm]:
+        for Q in [self.BV, self.BVp, self.BVpm, self.A8, self.D9]:
             r = surface_quiver(Q)
             assert r, f"couldn't recognize {Q.matrix}"
             blocks = r[1]
@@ -1079,14 +1095,14 @@ class SlowSurfaceTests(unittest.TestCase):
             assert not surface_quiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surface_quiver(M)[1]}"
 
     def testSurfaceBlocksMutated(self):
-        for Q in [self.BVm]:
+        for Q in [self.BVm, self.A8m, self.A8p, self.D9m, self.D9p]:
             assert surface_quiver(Q), f"couldn't recognize {Q.matrix}"
         assert not surface_quiver(self.E6.mutate(1)), f"incorrectly marked {self.E6.matrix} as being a surface quiver"
 
     def testSurfaceBlocksIso(self):
-        p1 = [3,2,0,1,5,4,6,7]
-        p2 = [5,4,3,2,1,0,6,7]
-        for Q in [self.BV, self.BVp, self.BVpm]:
+        p1 = [3,2,0,1,5,4,6,7,8,9]
+        p2 = [5,4,3,2,1,0,6,7,8,9]
+        for Q in [self.BV, self.BVp, self.BVpm, self.A8, self.D9m]:
             assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
             assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
 
