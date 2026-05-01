@@ -566,6 +566,22 @@ def generate_acyclics_from_Alexander(alex):
 
         yield Q
 
+def generateAcyclicsBelowMarkov(markov, n, connected=True):
+    """Iterator for all acyclic quivers on n vertices with markov invariant <= markov.
+    checks connected if connected=True."""
+    for w in itertools.product(list(range(math.isqrt(markov)+1)), repeat=(n*(n-1))//2):
+        X = np.zeros((n,n), dtype='object')
+        X[np.tril_indices(n, k = -1)] = w
+        Q = Quiver(X - np.transpose(X))
+        if connected and not Q.connected():
+            continue
+        if Q.markov() <= markov:
+            #to avoid repeats; this is very slow.
+            if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sink_set(Q)]):
+                continue
+            yield Q
+
+
 def surface_quiver(quiver):
     # Return if the quiver is a surface quiver by identifying a block decomposition.
     #  Block decomposition described in section 4 of "Skew-symmetric cluster algebras of finite mutation type" arxiv:0811.1703

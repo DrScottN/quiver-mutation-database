@@ -83,18 +83,18 @@ def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=
         permsR = [list(range(R.n))]
 
     update = False
-    if Q_class is None:
+    if Qclass is None:
         Q = descend_fork(Q, maxSteps=distance)
-        Q_class = mutationClass(Q, perms=permsQ)
+        Qclass = mutationClass(Q, perms=permsQ)
         update = True
-    if R_class is None:
+    if Rclass is None:
         R = descend_fork(R, maxSteps=distance)
-        R_class = mutationClass(R, perms=permsR)
+        Rclass = mutationClass(R, perms=permsR)
         update = True
 
     local_check = mutation_equivalent_local(Q, R, up_to_isomorphism=up_to_isomorphism)
     if local_check is not Unknown:
-        return (local_check, Q_class, R_class) if return_classes else local_check
+        return (local_check, Qclass, Rclass) if return_classes else local_check
     
     #we may now assume same rank, etc.
 
@@ -105,26 +105,26 @@ def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=
             Q_class.update()
     
     #check if overlap found
-    if union := R_class.union(Q_class):
+    if union := Rclass.union(Qclass):
         return (True, union, union) if return_classes else True
 
     #check if invariants are consistent
     if R_class.agrees(Q_class) is False: #not implemented
-        return (False, Q_class, R_class) if return_classes else False
+        return (False, Qclass, Rclass) if return_classes else False
 
-    return (Unknown, Q_class, R_class) if return_classes else Unknown
-
-
+    return (Unknown, Qclass, Rclass) if return_classes else Unknown
 
 
-def run_benchmark_acyclic(dataset, depth_search=1, train=None, use_surface=True, use_exhaustive=False, seed=2842026):
-    # Runs several variants of our benchmark against the given dataset, and prints the accuracies achieved.
-    #  dataset: iterable of tuples, (quiver, correct_label), quiver is a quiver object and correct_label is a bool
-    #  train (optional): iterable of (quiver, correct_label) pairs 
-    #   (train may be used to guess other labels, if None then some benchmarks will sample examples from dataset)
-    #  use_surface: if True, computes the block decomposition for invariants.
-    #  use_exhaustive: if True, enumerates all acyclic quivers with relevant size.
-    #  seed: used for random in selecting subset of data, irrelevant if train is not None.
+
+
+def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, use_exhaustive=False, seed=2842026):
+    """Runs several variants of our benchmark against the given dataset, and prints the accuracies achieved.
+        dataset: iterable of tuples, (quiver, correct_label), quiver is a quiver object and correct_label is a bool
+        train (optional): iterable of (quiver, correct_label) pairs 
+        (train may be used to guess other labels, if None then some benchmarks will sample examples from dataset)
+        use_surface: if True, computes the block decomposition for invariants.
+        use_exhaustive: if True, enumerates all acyclic quivers with relevant size.
+        seed: used for random in selecting subset of data, irrelevant if train is not None."""
 
     dataset_copy = list(dataset) #could use itertool.tee(dataset, k) and run in parallel for memory savings
     D = len(dataset_copy)
@@ -242,27 +242,92 @@ def run_benchmark_acyclic(dataset, depth_search=1, train=None, use_surface=True,
 
     # benchmark 3: Apply mutations
 
-    #TODO
+    print("Applying mutations to our examples and checking for equivalence.")
     acyclic_eg_classes = [mutationClass(Q) for Q in acyclic_egs]
     cyclic_eg_classes = [mutationClass(Q) for Q in cyclic_egs]
     for QC in acyclic_eg_classes + cyclic_eg_classes:
-        for d in range(depth_search):
+        for d in range(depthSearch):
             QC.update()
-
-    # compare each still-available quiver with each class TODO
-
-    if not use_exhaustive: 
-        return #do not do the following if exhaustive search is disabled.
+    correct_with_mutations = 0
+    unknown_acyclic = 0
+    unknown_cyclic = 0
+    for Q,l in dataset_not_local:
+        acyclic_match = False
+        Qp = descend_fork(Q, maxSteps=depthSearch)
+        Qclass = mutationClass(Qp, perms=permsQ)
+        for Ra in acyclic_eg_classes:
+            res, Qclass, _ = mutation_equivalent(Qp, Ra.initialQ, depthSearch, Qclass = Qclass, Rclass = Ra, up_to_isomorphism=True, return_classes=True)
+            if res: 
+                acyclic_match = True
+                if not l:
+                    assert False, f"Quiver {Q.matrix} mutation equivalent to acyclic {Ra.initialQ.matrix} yet is labeled cyclic"
+                correct_with_mutations += 1
+                break
+        if acyclic_match:
+            continue
+        for Ra in cyclic_eg_classes:
+            res, Qclass, _ = mutation_equivalent(Qp, Ra.initialQ,Septh_search, Qclass = Qclass, Rclass = Ra, up_to_isomorphism=True, return_classes=True)
+            if res:
+                if l:
+                    assert False, f"Quiver {Q.matrix} mutation equivalent to cyclic {Ra.initialQ.matrix} yet is labeled acyclic"
+                correct_with_mutations += 1
+                break
+        if l:
+            unknown_acyclic +=1
+        else:
+            unknown_cyclic +=1
+    c = correct+corrected_with_mutations
+    print(f" Unknown->incorrect: {c} ({100*(c)/D}%)")
+    print(f"*Unknown->True: {c+unknown_acyclic} ({100*(c+unknown_acyclic)/D}%)")
+    print(f" Unknown->False: {c+unknown_cyclic} ({100*(c+unknown_cyclic)/D}%)")
+    
+    if not use_exhaustive: #do not do the following if exhaustive search is disabled.
+        return 
 
     # benchmark 4: Exhaustively search acyclics.
-    print("Comparing to all acyclics with sufficiently small weights.")
-    #TODO
+    print("Comparing to the invariants of all connected acyclics with sufficiently small weights.")
+    max_markov = 0
+    ns = []
+    for Q,l in dataset_not_local:
+        m = Q.markov()
+        if m and m > max_markov:
+            max_markov = m
+        if Q.n() not in ns:
+            ns.append(Q.n())
+    print(f"Max Markov Invariant: {max_markov}.")
+    acyclic_invs = []
+    for n in ns:
+        for R in generateAcyclicsBelowMarkov(max_markov, n):
+            d = invariants_dict(R, include_surface=use_surface)
+            d["Alexander polynomial"] = R.alexander_poly()
+            if d not in acyclic_invs:
+                acyclic_invs.append(d)
+    
+    correct_exhaustive = 0 
+    unknown_acyclic = 0
+    unknown_cyclic = 0
+    for Q,l in dataset_not_local:
+        d = invariants_dict(Q, include_surface=use_surface)
+        d["Alexander polynomial"] = Q.alexander_poly()
+        if d not in acyclic_invs:
+            assert not l, f"Invariants {d} are not acyclic yet label is cyclic"
+            correct_exhaustive += 1
+        else:
+            if l: unknown_acyclic+=1
+            else: unknown_cyclic+=1
+
+    c = correct+correct_exhaustive
+    print(f" Unknown->incorrect: {c} ({100*(c)/D}%)")
+    print(f"*Unknown->True: {c+unknown_acyclic} ({100*(c+unknown_acyclic)/D}%)")
+    print(f" Unknown->False: {c+unknown_cyclic} ({100*(c+unknown_cyclic)/D}%)")
+    
 
 
 
 
-
-
+def TestDataset2Class(acyclicQ, cyclicR, depth=3):
+    """Generates a dataset of quivers mutation equivalent to acyclicQ and cyclicR out to depth.
+    """
 
 
 

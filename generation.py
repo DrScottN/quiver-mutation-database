@@ -63,6 +63,24 @@ def generateQuivers(n, weight_max):
     return quivers, len(quivers)
 
 
+
+def generate2ClassDataset(acyclicQ, cyclicR, depth=3, labels=False):
+    """
+    Iterator for a dataset of quivers mutation equivalent to acyclicQ and cyclicR out to depth.
+    """
+    classQ = mutationClass(acyclicQ)
+    classR = mutationClass(cyclicR)
+    for d in range(depth):
+        classQ.update()
+        classR.update()
+    if labels: labelsQ = classQ.labels()
+    for v in classQ.vertices:
+        yield (v, labelsQ) if labels else (v, True)
+    if labels: labelsR = classR.labels()
+    for v in classR.vertices:
+        yield (v, labelsR) if labels else (v, False)
+
+
 def main(n=4, weight_max=2, mutations=5):
     perms = permutations(n)
     m = mutations
