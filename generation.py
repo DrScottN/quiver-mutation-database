@@ -53,12 +53,12 @@ def reduceQuivers(quivers, method):
 
     return reduced, len(reduced)
 
-def generateQuivers(n, weight_max):
+def generateQuivers(n, maxWeight):
     """
     Generates the whole class of quivers that we will be dealing with,
     Returned as a list as well as number of quivers generated
     """
-    quivers = generateLowWeightQuivers(n, weight_max=weight_max)
+    quivers = generateLowWeightQuivers(n, maxWeight=maxWeight)
 
     return quivers, len(quivers)
 
@@ -90,14 +90,14 @@ def generate2ClassDataset(acyclicQ, cyclicR, forklessDepth=3, depth=3, labels=Fa
             if d < depth:
                 todo.append((Qp,l,i,d+1))
 
-def main(n=4, weight_max=2, mutations=5):
+def main(n=4, maxWeight=2, mutations=5):
     perms = permutations(n)
     m = mutations
     
     print(LINEBREAK)
-    print(f"Generating low weight quivers with {n} vertices and weights at most {weight_max}:")
+    print(f"Generating low weight quivers with {n} vertices and weights at most {maxWeight}:")
     print(LINEBREAK)
-    quivers, numQuivers = generateQuivers(n, weight_max)
+    quivers, numQuivers = generateQuivers(n, maxWeight)
     
     print(f"{numQuivers} low weight quivers generated. Reducing by isomorphism")
     reduced, numIsoClasses = reduceQuivers(quivers, reduceByIsomorphism)
