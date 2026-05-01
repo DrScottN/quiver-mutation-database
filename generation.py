@@ -14,7 +14,7 @@ def reduceByIsomorphism(quivers):
     n = quivers[0].n
     #perms = permutations(n)
     
-    classes = [isomorphismRep(q) for q in quivers]#[isomorphismClass(q, perms)[0] for q in quivers]
+    classes = set([isomorphismRep(q) for q in quivers]) #[isomorphismClass(q, perms)[0] for q in quivers]
 
     return list(classes) # Counter(classes)
 
