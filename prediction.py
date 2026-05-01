@@ -10,11 +10,11 @@ def invariants_dict(Q, include_surface=True):
     invs = dict()
     invs["rank"] = Q.n
     invs["connected"] = Q.connected()
-    invs["B rank"] = matrix_rank(Q.matrix)
+    invs["B rank"] = matrixRank(Q.matrix)
     invs["Casal's Det"] = Q.casalsDeterminant()
-    invs["Seven's Congruence"] = Q.seven_congruence()
+    invs["Seven's Congruence"] = Q.sevenCongruence()
     invs["gcd"] = Q.gcdVector() 
-    if include_surface: invs["surf quiver"] = bool(surface_quiver(Q))
+    if include_surface: invs["surf quiver"] = bool(surfaceQuiver(Q))
     #note, block decomp is not an invariant but being surface type is
     return invs
 
@@ -60,7 +60,7 @@ def mutation_acyclic_local(Q, match_alexander=False):
     if Q.determinant()**2 > (2*Q.markov())**Q.n:
         return False
     if match_alexander:
-        for R in generate_acyclics_from_Alexander(Q.alexanderPolynomial()):
+        for R in generateAcyclicsFromAlexander(Q.alexanderPolynomial()):
             if mutation_equivalent_local(Q,R) is not False:
                 return Unknown #Heuristically, likely to be True
         return False
@@ -85,11 +85,11 @@ def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=
 
     update = False
     if Qclass is None:
-        Q = descend_fork(Q, maxSteps=distance)
+        Q = descendFork(Q, maxSteps=distance)
         Qclass = mutationClass(Q, perms=permsQ)
         update = True
     if Rclass is None:
-        R = descend_fork(R, maxSteps=distance)
+        R = descendFork(R, maxSteps=distance)
         Rclass = mutationClass(R, perms=permsR)
         update = True
 
@@ -256,7 +256,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     unknown_cyclic = 0
     for Q,l in dataset_not_local:
         acyclic_match = False
-        Qp = descend_fork(Q, maxSteps=depthSearch)
+        Qp = descendFork(Q, maxSteps=depthSearch)
         Qclass = mutationClass(Qp, perms=permutations(Q.n))
         for Ra in acyclic_eg_classes:
             res, Qclass, _ = mutation_equivalent(Qp, Ra.initialQ, depthSearch, Qclass = Qclass, Rclass = Ra, up_to_isomorphism=True, return_classes=True)

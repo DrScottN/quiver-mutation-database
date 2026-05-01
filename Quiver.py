@@ -467,7 +467,7 @@ class Quiver():
             det = (det + a * sign_perm(p))%4
         return det
 
-    def seven_congruence(self):
+    def sevenCongruence(self):
         """ return the 'corank' of A mod 4 up to congruence, via the dimension of a particular space """
         #  see https://www.sciencedirect.com/science/article/abs/pii/S0022404925000593 thm 1.7 (note it is written differently on arxiv)
         #  very slow, we enumerate vectors.
@@ -501,11 +501,11 @@ def eigenvalues(M):
     """
     return np.linalg.eig(np.int64(M)).eigenvalues
 
-def matrix_rank(M):
+def matrixRank(M):
     """ Computes the rank of a given matrix, cast to int64 """
-    return np.linalg.matrix_rank(np.int64(M))
+    return np.linalg.matrixRank(np.int64(M))
 
-def descend_fork(Q, maxSteps=-1):
+def descendFork(Q, maxSteps=-1):
     """If Q is a fork, mutate at the point of return until either we reach a non-fork or determine there is no forkless part.
     Returns the resulting quiver.
     If maxSteps is set, will apply at most maxSteps mutations."""
@@ -526,7 +526,7 @@ def descend_fork(Q, maxSteps=-1):
     return Q
     
 
-def sink_set(quiver):
+def sinkSet(quiver):
     """ Calculates all sink/source mutation equivalent quivers """
     todo = [quiver]
     visited = []
@@ -540,7 +540,7 @@ def sink_set(quiver):
             todo.append(p)
     return visited
 
-def generate_acyclics_from_Alexander(alex):
+def generateAcyclicsFromAlexander(alex):
     """ Takes an Alexander polynomial alex and generates all acyclic quivers with that polynomial.
      Iterator. Assumes alex is uni-variate. Not Fast. """
     if alex is False: return
@@ -560,7 +560,7 @@ def generate_acyclics_from_Alexander(alex):
         if Q.alexanderPolynomial() != alex:
             continue
         #to avoid repeats; this is very slow.
-        if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sink_set(Q)]):
+        if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sinkSet(Q)]):
             continue
 
         yield Q
@@ -576,12 +576,12 @@ def generateAcyclicsBelowMarkov(markov, n, connected=True):
             continue
         if Q.markov() <= markov:
             #to avoid repeats; this is very slow.
-            if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sink_set(Q)]):
+            if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sinkSet(Q)]):
                 continue
             yield Q
 
 
-def surface_quiver(quiver):
+def surfaceQuiver(quiver):
     """ Return if the quiver is a surface quiver by identifying a block decomposition. """
     #  Block decomposition described in section 4 of "Skew-symmetric cluster algebras of finite mutation type" arxiv:0811.1703
     #  and in FST 13.1
@@ -851,10 +851,10 @@ class mutationClass():
         self.leastEdges = self.initialQ.numEdges
         self.size = 1
         self.gcdVector = self.initialQ.gcdVector()
-        self.B_rank = matrix_rank(self.initialQ.matrix)
+        self.B_rank = matrixRank(self.initialQ.matrix)
         self.alexanderPolynomial = self.initialQ.alexanderPolynomial()
         self.casalsDeterminant = self.initialQ.casalsDeterminant()
-        self.sevens_ker = self.initialQ.seven_congruence()
+        self.sevens_ker = self.initialQ.sevenCongruence()
 
         if self.initialQ.acyclic():
             self.mutationAcyclic = True
@@ -871,7 +871,7 @@ class mutationClass():
             self.totallyProper = Unknown if self.alexanderPolynomial is not False else False
 
         self.mutationComplete = False if self.initialQ.complete() is not True else Unknown
-        self.is_surface_quiver = Unknown
+        self.is_surfaceQuiver = Unknown
 
         self.hasVortex = False if self.mutationAcyclic is True else Unknown
         self.finite = Unknown
@@ -880,17 +880,17 @@ class mutationClass():
         # Setup possible mutation-invariants
         for Q in self.vertices:
             if self.max_weight and np.max(np.vectorize(abs)(Q.matrix)) > 2:
-                self.is_surface_quiver = False
+                self.is_surfaceQuiver = False
                 self.finite = False
             
             if self.hasVortex is Unknown and not Q.vortexFree():
                 self.hasVortex = True
                 self.mutationAcyclic = False
-        if self.is_surface_quiver is Unknown:
-            self.is_surface_quiver = bool(surface_quiver(self.initialQ))
-            self.finite = True if self.is_surface_quiver else self.finite
-            self.finiteFP = True if self.is_surface_quiver else self.finiteFP
-            self.finitePFP = True if self.is_surface_quiver else self.finitePFP
+        if self.is_surfaceQuiver is Unknown:
+            self.is_surfaceQuiver = bool(surfaceQuiver(self.initialQ))
+            self.finite = True if self.is_surfaceQuiver else self.finite
+            self.finiteFP = True if self.is_surfaceQuiver else self.finiteFP
+            self.finitePFP = True if self.is_surfaceQuiver else self.finitePFP
 
         self.hasMutationCycle = Unknown
         self.mutationAbundant = False if not self.initialQ.abundant() else Unknown
@@ -1082,7 +1082,7 @@ class mutationClass():
             False
         if not consistentTernary(self.mutationComplete, other.mutationComplete):
             False
-        if not consistentTernary(self.is_surface_quiver, other.is_surface_quiver):
+        if not consistentTernary(self.is_surfaceQuiver, other.is_surfaceQuiver):
             False
         if not consistentTernary(self.hasVortex, other.hasVortex):
             False
@@ -1117,7 +1117,7 @@ class mutationClass():
         data.append(encoding(self.mutationFiniteClasses))
         data.append(encoding(self.mutationFiniteFPClasses))
         data.append(encoding(self.mutationFinitePFPClasses))
-        data.append(encoding(self.is_surface_quiver))
+        data.append(encoding(self.is_surfaceQuiver))
         data.append(encoding(self.hasVortex))
 
         data.append(encoding(self.totallyProper))

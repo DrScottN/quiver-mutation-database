@@ -269,9 +269,9 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
 
     def testSeven(self):
         for i in range(self.quiver.n):
-            assert self.A4.seven_congruence()==self.A4.mutate(i).seven_congruence()
-            assert self.quiver.seven_congruence()==self.quiver.mutate(i).seven_congruence()
-            assert self.vortex_quiver.seven_congruence()==self.vortex_quiver.mutate(i).seven_congruence()
+            assert self.A4.sevenCongruence()==self.A4.mutate(i).sevenCongruence()
+            assert self.quiver.sevenCongruence()==self.quiver.mutate(i).sevenCongruence()
+            assert self.vortex_quiver.sevenCongruence()==self.vortex_quiver.mutate(i).sevenCongruence()
 
     def testVortex(self):
         assert self.A4.vortexFree()
@@ -512,29 +512,29 @@ class QuiverInvariants3TestCase(unittest.TestCase):
 
     def testSeven(self):
         for i in range(len(self.quivers)):
-            assert self.quivers[i].seven_congruence() == self.sevens_kers[i], f"incorrect seven invariant {i}, expected {self.sevens_kers[i]} but got {self.quivers[i].seven_congruence()}"
+            assert self.quivers[i].sevenCongruence() == self.sevens_kers[i], f"incorrect seven invariant {i}, expected {self.sevens_kers[i]} but got {self.quivers[i].sevenCongruence()}"
 
 class RealizableAlexandersTestCase(unittest.TestCase):
     def testSearchA1(self):
-        list_of_A1 = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,1])))
+        list_of_A1 = list(generateAcyclicsFromAlexander(polynomial.polynomial([-1,1])))
         assert len(list_of_A1)==1, "acyclics from alexander poly is wrong size"
         assert list_of_A1[0].matrix == np.array([0], dtype='object')
 
     def testSearchDisjoint4(self):
-        list_of_A1_A1_A1_A1 = list(generate_acyclics_from_Alexander(polynomial.polynomial([1,-4,6,-4,1,0,0])))
+        list_of_A1_A1_A1_A1 = list(generateAcyclicsFromAlexander(polynomial.polynomial([1,-4,6,-4,1,0,0])))
         assert len(list_of_A1_A1_A1_A1)==1, "acyclics from alexander poly is wrong size"
         assert not list_of_A1_A1_A1_A1[0].connected(), "incorrectly found connected quiver"
         assert (list_of_A1_A1_A1_A1[0].matrix == 0 * list_of_A1_A1_A1_A1[0].matrix).all(), "incorrect acyclic found"
 
     def testSearchSmall3(self):
-        disconn = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,2,-2,1])))
+        disconn = list(generateAcyclicsFromAlexander(polynomial.polynomial([-1,2,-2,1])))
         assert all([x.alexanderPolynomial() == polynomial.polynomial([-1,2,-2,1]) for x in disconn])
         assert all([not x.connected() for x in disconn])
         assert len(disconn) == 1, f"incorrect solution set {[Q.matrix for Q in disconn]}" #wts: 100
 
 
     def testSearchMid3(self):
-        conn = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,-17,17,1])))
+        conn = list(generateAcyclicsFromAlexander(polynomial.polynomial([-1,-17,17,1])))
         assert all([x.connected() for x in conn])
         assert all([x.alexanderPolynomial() == polynomial.polynomial([-1,-17,17,1]) for x in conn])
         assert len(conn) == 4, f"incorrect solution set {[Q.matrix for Q in conn]}" #wts: 321, 312, 420, 222
@@ -556,21 +556,21 @@ class QuiverIsoClass(unittest.TestCase):
         assert self.quiver1.markov() == self.quiver2.markov()
 
     def testSinks(self):
-        assert self.quiver1 in sink_set(self.quiver1)
-        assert self.quiver2 in sink_set(self.quiver2)
-        assert all([self.quiver2 not in isomorphismClass(R, permutations(3)) for R in sink_set(self.quiver1)])
-        assert all([self.quiver1 not in isomorphismClass(R, permutations(3)) for R in sink_set(self.quiver2)])
+        assert self.quiver1 in sinkSet(self.quiver1)
+        assert self.quiver2 in sinkSet(self.quiver2)
+        assert all([self.quiver2 not in isomorphismClass(R, permutations(3)) for R in sinkSet(self.quiver1)])
+        assert all([self.quiver1 not in isomorphismClass(R, permutations(3)) for R in sinkSet(self.quiver2)])
 
     def testMinRep(self):
         B = -self.quiver1.matrix
         Qp = Quiver(B)
-        for R in sink_set(self.quiver2):
+        for R in sinkSet(self.quiver2):
             assert not any([Rp < Qp for Rp in isomorphismClass(R, permutations(3)) if (np.tril(Rp.matrix) >= 0).all()])
 
     def testMinRep2(self):
         B = -self.quiver2.matrix
         Qp = Quiver(B)
-        for R in sink_set(self.quiver1):
+        for R in sinkSet(self.quiver1):
             assert not any([Rp < Qp for Rp in isomorphismClass(R, permutations(3)) if (np.tril(Rp.matrix) >= 0).all()])
 
 class QuiverHashing(unittest.TestCase):
@@ -902,11 +902,11 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.vortexConnClass.mutationAbundant
 
     def testClassSurfaceQuiver(self):
-        assert self.isolatedClass.is_surface_quiver
-        assert self.A2Class.is_surface_quiver
-        assert self.A3Class.is_surface_quiver
-        assert not self.bigClass.is_surface_quiver
-        assert not self.AcyclicEventuallyClass.is_surface_quiver
+        assert self.isolatedClass.is_surfaceQuiver
+        assert self.A2Class.is_surfaceQuiver
+        assert self.A3Class.is_surfaceQuiver
+        assert not self.bigClass.is_surfaceQuiver
+        assert not self.AcyclicEventuallyClass.is_surfaceQuiver
 
     def testAlexanderPreserved(self):
         for Q in self.A3Class.vertices:
@@ -931,10 +931,10 @@ class updateMutationClassTests(unittest.TestCase):
     def testSevenUnal(self):
         s = self.A2Class.sevens_ker
         for Q in self.A2Class.vertices:
-            assert s == Q.seven_congruence()
+            assert s == Q.sevenCongruence()
         s = self.bigClass.sevens_ker
         for Q in self.bigClass.vertices:
-            assert s == Q.seven_congruence()
+            assert s == Q.sevenCongruence()
 
     def testAgreement(self):
         assert not self.markovClass.agrees(self.isolatedClass)
@@ -1027,7 +1027,7 @@ class SurfaceQuiverTests(unittest.TestCase):
 
     def testSurfaceBlocks(self):
         for Q in [self.A2, self.A3, self.A4, self.D4, self.BI, self.BII, self.BIIIa, self.BIIIb, self.BIV, self.BV, self.dreadedTorus]:
-            r = surface_quiver(Q)
+            r = surfaceQuiver(Q)
             assert r, f"couldn't recognize {Q.matrix}"
             blocks = r[1]
             count_zero = 0
@@ -1038,23 +1038,23 @@ class SurfaceQuiverTests(unittest.TestCase):
                 assert len(b[1])==len(set(b[1])), f"block has repeated vertex {Q.matrix, b}"
             assert count_zero <= 2, f"index zero was too prevalent {Q.matrix, r}"
         for M in [self.MI, self.MII, self.MIII, self.MIV]:
-            assert not surface_quiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surface_quiver(M)[1]}"
+            assert not surfaceQuiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surfaceQuiver(M)[1]}"
 
     def testSurfaceBlocksMutated(self):
         for Q in [self.BIm, self.BIIm, self.BIIIam, self.BIVm, self.BVm, self.BVm2]:
-            assert surface_quiver(Q), f"couldn't recognize {Q.matrix}"
-        assert not surface_quiver(self.MIVm), f"incorrectly marked {self.MIVm.matrix} as being a surface quiver"
+            assert surfaceQuiver(Q), f"couldn't recognize {Q.matrix}"
+        assert not surfaceQuiver(self.MIVm), f"incorrectly marked {self.MIVm.matrix} as being a surface quiver"
 
     def testSurfaceBlocksIso(self):
         p1 = [3,2,0,1,5,4]
         p2 = [5,4,3,2,1,0]
         for Q in [self.BI, self.BII, self.BIIIa, self.BV, self.BIIm, self.BIVm, self.BVm, self.BVm2]:
-            assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
-            assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
+            assert surfaceQuiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
+            assert surfaceQuiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
 
         for M in [self.MI, self.MII, self.MIII, self.MIV]:
-            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surface_quiver(isomorphicQuiver(M,p1))}"
-            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
+            assert not surfaceQuiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surfaceQuiver(isomorphicQuiver(M,p1))}"
+            assert not surfaceQuiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
 
 @unittest.skip("Larger surface quiver tests skipped.")
 class SlowSurfaceTests(unittest.TestCase):
@@ -1107,7 +1107,7 @@ class SlowSurfaceTests(unittest.TestCase):
 
     def testSurfaceBlocks(self):
         for Q in [self.BV, self.BVp, self.BVpm, self.A8, self.D9]:
-            r = surface_quiver(Q)
+            r = surfaceQuiver(Q)
             assert r, f"couldn't recognize {Q.matrix}"
             blocks = r[1]
             count_zero = 0
@@ -1118,23 +1118,23 @@ class SlowSurfaceTests(unittest.TestCase):
                 assert len(b[1])==len(set(b[1])), f"block has repeated vertex {Q.matrix, b}"
             assert count_zero <= 2, f"index zero was too prevalent {Q.matrix, r}"
         for M in [self.E6, self.X6]:
-            assert not surface_quiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surface_quiver(M)[1]}"
+            assert not surfaceQuiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surfaceQuiver(M)[1]}"
 
     def testSurfaceBlocksMutated(self):
         for Q in [self.BVm, self.A8m, self.A8p, self.D9m, self.D9p]:
-            assert surface_quiver(Q), f"couldn't recognize {Q.matrix}"
-        assert not surface_quiver(self.E6.mutate(1)), f"incorrectly marked {self.E6.matrix} as being a surface quiver"
+            assert surfaceQuiver(Q), f"couldn't recognize {Q.matrix}"
+        assert not surfaceQuiver(self.E6.mutate(1)), f"incorrectly marked {self.E6.matrix} as being a surface quiver"
 
     def testSurfaceBlocksIso(self):
         p1 = [3,2,0,1,5,4,6,7,8,9]
         p2 = [5,4,3,2,1,0,6,7,8,9]
         for Q in [self.BV, self.BVp, self.BVpm, self.A8, self.D9m]:
-            assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
-            assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
+            assert surfaceQuiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
+            assert surfaceQuiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
 
         for M in [self.E6, self.X6]:
-            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surface_quiver(isomorphicQuiver(M,p1))}"
-            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
+            assert not surfaceQuiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surfaceQuiver(isomorphicQuiver(M,p1))}"
+            assert not surfaceQuiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
 
 
 class TestLinAlg(unittest.TestCase):
@@ -1151,10 +1151,10 @@ class TestLinAlg(unittest.TestCase):
 
 
     def testRank(self):
-        assert 2 == matrix_rank(self.quiver.matrix), f"incorrect rank of disconnected markov"
-        assert 2 == matrix_rank(self.M)
-        assert 0 == matrix_rank(isolatedQuiver(4).matrix)
-        assert 4 == matrix_rank(self.vortex.matrix)
+        assert 2 == matrixRank(self.quiver.matrix), f"incorrect rank of disconnected markov"
+        assert 2 == matrixRank(self.M)
+        assert 0 == matrixRank(isolatedQuiver(4).matrix)
+        assert 4 == matrixRank(self.vortex.matrix)
 
 class IsomorphismClassTests(unittest.TestCase):
     def setUp(self):
