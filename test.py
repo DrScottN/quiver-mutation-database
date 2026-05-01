@@ -1,4 +1,4 @@
-from Quiver import *
+from quiver import *
 #from unknown import Unknown
 import unittest
 import random
@@ -119,6 +119,9 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         self.A4 = Quiver([[0,1,0,0],[-1,0,1,0],[0,-1,0,1],[0,0,-1,0]])
         self.PreFork0 = Quiver(np.array([[0, 1258, 0, -42], [-1258, 0, -1978, 30],[0, 1978, 0, -66],[42, -30, 66, 0]], dtype=object))
         self.PreFork1 = Quiver(np.array([[0, 1258, 1, -42], [-1258, 0, -1978, 30],[-1, 1978, 0, -66],[42, -30, 66, 0]], dtype=object))
+        self.acyclicMutated = Quiver([[0,2,-13,0],[-2,0,21,5],[13,-21,0,-24],[0,-5,24,0]])
+        self.box22 = Quiver([[0,2,1,0],[-2,0,0,3],[-1,0,0,2],[0,-3,-2,0]])
+        self.box31 = Quiver([[0,2,1,0],[-2,0,0,3],[-1,0,0,-2],[0,-3,2,0]])
     
     def testCommutingMutations(self):
         assert self.quiver == self.quiver.mutate(2).mutate(0).mutate(2).mutate(0), 'commuting mutation cycle did not cycle'
@@ -139,10 +142,10 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         for m in r:
             q = q.mutate(m)
         
-        assert q.cyclic_order() != False, f'{r} mutated into something without a good cyclic ordering'
+        assert q.cyclicOrder() != False, f'{r} mutated into something without a good cyclic ordering'
         assert q.determinant() == self.quiver.determinant(), f'determinant changed after mutating at {r}'
         assert not q.vortex(), f'acyclic quiver became a vortex after mutating at {r}'
-        assert q.vortex_free(), f'vortex free disagrees with .vortex()'
+        assert q.vortexFree(), f'vortex free disagrees with .vortex()'
 
         for m in r[::-1]:
             q = q.mutate(m)
@@ -156,10 +159,10 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         for m in r:
             q = q.mutate(m)
         
-        assert q.cyclic_order() != False, f'{r} mutated into something without a good cyclic ordering'
+        assert q.cyclicOrder() != False, f'{r} mutated into something without a good cyclic ordering'
         assert q.determinant() == self.incomplete_quiver.determinant(), f'determinant changed after mutating at {r}'
         assert not q.vortex(), f'acyclic quiver became a vortex after mutating at {r}'
-        assert q.vortex_free(), f'vortex free disagrees with .vortex()'
+        assert q.vortexFree(), f'vortex free disagrees with .vortex()'
 
         for m in r[::-1]:
             q = q.mutate(m)
@@ -171,6 +174,12 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
             assert self.incomplete_quiver.determinant() == self.incomplete_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
             assert self.vortex_quiver.determinant() == self.vortex_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
             assert self.A4.determinant() == self.A4.mutate(i).determinant()
+
+    def testAcyclicity(self):
+        assert not self.acyclicMutated.acyclic()
+        assert self.quiver.acyclic()
+        assert not self.vortex_quiver.acyclic()
+        assert not self.incomplete_quiver.acyclic()
 
     def testForkAgain(self):
         assert self.PreFork0.preForkWithPOR(3)
@@ -229,42 +238,57 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert self.vortex_quiver.mutate(2).forkWithPOR(2) 
 
     def testChordlessCycles(self):
-        assert set(self.A4.chordless_cycles()) == set()
-        assert set(self.vortex_quiver.chordless_cycles()) == set([(0,1,2),(0,1,3),(0,2,3),(1,2,3)]), f"missing chordless cycles {set(self.vortex_quiver.chordless_cycles())}"
+        assert set(self.A4.chordlessCycles()) == set()
+        assert set(self.vortex_quiver.chordlessCycles()) == set([(0,1,2),(0,1,3),(0,2,3),(1,2,3)]), f"missing chordless cycles {set(self.vortex_quiver.chordlessCycles())}"
 
     def testWindingDictionary(self):
-        assert self.vortex_quiver.winding_data([3,2,1,0])[(0,1,2)] == (2,0), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(0,1,2)]}"
-        assert self.vortex_quiver.winding_data([3,2,1,0])[(0,1,3)] == (1,1), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(0,1,3)]}"
-        assert self.vortex_quiver.winding_data([3,2,1,0])[(0,2,3)] == (0,2), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(0,2,3)]}"
-        assert self.vortex_quiver.winding_data([3,2,1,0])[(1,2,3)] == (1,1), f"incorrect winding, got {self.vortex_quiver.winding_data([3,2,1,0])[(1,2,3)]}"
+        assert self.vortex_quiver.windingData([3,2,1,0])[(0,1,2)] == (2,0), f"incorrect winding, got {self.vortex_quiver.windingData([3,2,1,0])[(0,1,2)]}"
+        assert self.vortex_quiver.windingData([3,2,1,0])[(0,1,3)] == (1,1), f"incorrect winding, got {self.vortex_quiver.windingData([3,2,1,0])[(0,1,3)]}"
+        assert self.vortex_quiver.windingData([3,2,1,0])[(0,2,3)] == (0,2), f"incorrect winding, got {self.vortex_quiver.windingData([3,2,1,0])[(0,2,3)]}"
+        assert self.vortex_quiver.windingData([3,2,1,0])[(1,2,3)] == (1,1), f"incorrect winding, got {self.vortex_quiver.windingData([3,2,1,0])[(1,2,3)]}"
+        assert self.box22.windingData([0,1,2,3])[(0,1,3,2)] == (0,2), f"incorrect winding, got {self.box22.windingData([0,1,2,3])[(0,1,3,2)]}"
+        assert self.box31.windingData([0,1,3,2])[(0,1,3,2)] == (0,1), f"incorrect winding, got {self.box31.windingData([0,1,3,2])[(0,1,3,2)]}"
+        assert self.box31.windingData([2,0,1,3])[(0,1,3,2)] == (1,1), f"incorrect winding, got {self.box31.windingData([2,0,1,3])[(0,1,3,2)]}"
 
     def testProper(self):
         assert self.incomplete_quiver.proper()
         assert self.quiver.proper()
         assert not self.vortex_quiver.proper(), f"incorrectly found proper ordering {self.vortex_quiver.proper()} of a vortex"
+        assert self.acyclicMutated.proper(), f"failed to find proper ordering of mutation acyclic quiver."
+        assert self.box22.proper()
+        assert self.box31.proper()
 
     def testCasals(self):
-        assert self.quiver.casals_det()==0
-        assert self.incomplete_quiver.casals_det()==0
-        assert self.vortex_quiver.casals_det()==0
-        assert self.A4.casals_det()==1
+        assert self.quiver.casalsDeterminant()==0
+        assert self.incomplete_quiver.casalsDeterminant()==0
+        assert self.vortex_quiver.casalsDeterminant()==0
+        assert self.A4.casalsDeterminant()==1
         for i in range(self.quiver.n):
-            assert self.vortex_quiver.mutate(i).casals_det()==0
-            assert self.A4.mutate(i).casals_det()==1
+            assert self.vortex_quiver.mutate(i).casalsDeterminant()==0
+            assert self.A4.mutate(i).casalsDeterminant()==1
 
     def testSeven(self):
         for i in range(self.quiver.n):
-            assert self.A4.seven_congruence()==self.A4.mutate(i).seven_congruence()
-            assert self.quiver.seven_congruence()==self.quiver.mutate(i).seven_congruence()
-            assert self.vortex_quiver.seven_congruence()==self.vortex_quiver.mutate(i).seven_congruence()
+            assert self.A4.sevenCongruence()==self.A4.mutate(i).sevenCongruence()
+            assert self.quiver.sevenCongruence()==self.quiver.mutate(i).sevenCongruence()
+            assert self.vortex_quiver.sevenCongruence()==self.vortex_quiver.mutate(i).sevenCongruence()
 
     def testVortex(self):
-        assert self.A4.vortex_free()
+        assert self.A4.vortexFree()
         assert not self.A4.vortex()
-        assert not self.vortex_quiver.vortex_free()
-        assert self.vortex_quiver.mutate(2).vortex_free()
-        assert self.incomplete_quiver.vortex_free()
+        assert not self.vortex_quiver.vortexFree()
+        assert self.vortex_quiver.mutate(2).vortexFree()
+        assert self.incomplete_quiver.vortexFree()
         assert not self.incomplete_quiver.vortex()
+        assert not self.acyclicMutated.vortex()
+        assert self.acyclicMutated.vortexFree()
+    
+    def testMarkovValues(self):
+        assert self.vortex_quiver.markov() is False
+        assert self.box22.markov() == 4+4+9+1, f"incorrect markov invariant, {self.box22.markov()}"
+        assert self.box31.markov() == 4+4+9+1+2*2*3*1, f"incorrect markov invariant, {self.box31.markov()}"
+        assert self.acyclicMutated.markov() == 39+30, f"incorrect markov invariant, {self.acyclicMutated.markov()}"
+        assert self.acyclicMutated.determinant() == (5*13 - 2*24)**2
 
 class ForkEdgeTestCase(unittest.TestCase):
     def setUp(self):
@@ -321,11 +345,11 @@ class QuiverInvariants3dcTestCase(unittest.TestCase):
         
     def testCycles(self):
         for q in self.quivers:
-            assert (0,1,2) in list(q.chordless_cycles()) or (0,2,1) in list(q.chordless_cycles()), 'missing chordless cycle'
-            assert len(list(q.chordless_cycles()))==1, 'incorrectly found more cycles'
+            assert (0,1,2) in list(q.chordlessCycles()) or (0,2,1) in list(q.chordlessCycles()), 'missing chordless cycle'
+            assert len(list(q.chordlessCycles()))==1, 'incorrectly found more cycles'
 
     def testCyclicOrdering(self):
-        sigmas = [q.cyclic_order() for q in self.quivers]
+        sigmas = [q.cyclicOrder() for q in self.quivers]
         assert False not in sigmas, "incorrectly failed to find a cyclic ordering"
         for i in range(len(self.quivers)):
             sigma = sigmas[i]
@@ -339,7 +363,7 @@ class QuiverInvariants3dcTestCase(unittest.TestCase):
 
     def testGCDvecs(self):
         for i in range(len(self.quivers)):
-            assert self.quivers[i].gcd_vector() == self.gcd_vecs[i], f"incorrect gcd vector, {i, self.gcd_vecs[i], self.quivers[i].gcd_vector()}"
+            assert self.quivers[i].gcdVector() == self.gcd_vecs[i], f"incorrect gcd vector, {i, self.gcd_vecs[i], self.quivers[i].gcdVector()}"
 
 
 class QuiverInvariants4AlexTestCase(unittest.TestCase):
@@ -373,22 +397,22 @@ class QuiverInvariants4AlexTestCase(unittest.TestCase):
             assert m(w) == self.clawQuiver(w).markov(), f"incorrect claw quiver markov with weights {w}"
 
     def testAlexPath(self):
-        assert self.pathQuiver([2,2,2]).alexander_poly() == polynomial.polynomial([1,8,-2,8,1])
+        assert self.pathQuiver([2,2,2]).alexanderPolynomial() == polynomial.polynomial([1,8,-2,8,1])
         a = lambda w : polynomial.polynomial([1,-4,6,-4,1]) + (w[0]**2 + w[1]**2 + w[2]**2) * polynomial.polynomial([0,1,-2,1]) + (w[0]*w[2])**2 * polynomial.polynomial([0,0,1,0,0])
         for w in [[3,2,1], [100,1,99], [-19,-32,-100], [25,0,25]]:
-            assert a(w) == self.pathQuiver(w).alexander_poly(), f"incorrect path quiver alexander poly with weights {w}"
+            assert a(w) == self.pathQuiver(w).alexanderPolynomial(), f"incorrect path quiver alexander poly with weights {w}"
 
     def testAlexClaw(self):
-        assert self.clawQuiver([2,2,2]).alexander_poly() == polynomial.polynomial([1,8,-18,8,1])
+        assert self.clawQuiver([2,2,2]).alexanderPolynomial() == polynomial.polynomial([1,8,-18,8,1])
         a = lambda w : polynomial.polynomial([1,-4,6,-4,1]) + (w[0]**2 + w[1]**2 + w[2]**2) * polynomial.polynomial([0,1,-2,1])
         for w in [[3,2,1], [100,1,99], [-19,-32,-100], [25,0,25]]:
-            assert a(w) == self.clawQuiver(w).alexander_poly(), f"incorrect path quiver alexander poly with weights {w}"
+            assert a(w) == self.clawQuiver(w).alexanderPolynomial(), f"incorrect path quiver alexander poly with weights {w}"
 
     def testAlexCycle(self):
-        assert self.cycleQuiver([3,3,3,3]).alexander_poly() == polynomial.polynomial([1,-4+36-81, 6+2*45, -4+36-81,1])
+        assert self.cycleQuiver([3,3,3,3]).alexanderPolynomial() == polynomial.polynomial([1,-4+36-81, 6+2*45, -4+36-81,1])
         a = lambda w: polynomial.polynomial([1,-4,6,-4,1]) + polynomial.polynomial([0,1,-2,1])*(sum([x**2 for x in w]) - w[0]*w[1]*w[2]*w[3]) + polynomial.polynomial([0,0,1])*(w[0]**2 *w[2]**2 + w[1]**2 * w[3]**2 - 2*w[0]*w[1]*w[2]*w[3])
         for w in [[1,1,1,1], [4,3,2,1], [9,1,1,9], [10000,3,10000,2], [2,2,2,4],[0,0,0,0], [19,23,41,-11]]:
-            assert a(w) == self.cycleQuiver(w).alexander_poly(), f"incorrect cycle quiver alexander poly with weights {w}"
+            assert a(w) == self.cycleQuiver(w).alexanderPolynomial(), f"incorrect cycle quiver alexander poly with weights {w}"
 
 
 class SubquiverTestCase(unittest.TestCase):
@@ -442,8 +466,8 @@ class QuiverInvariants3TestCase(unittest.TestCase):
         self.orientedCycles = [(0,2,1), (0,2,1), (0,1,2), (0,2,1)]
         self.markovs = [3**2+5**2+6**2 - 3*5*6, 5**2+5**2+6**2 - 5*5*6, 2**2+5**2+6**2 - 2*5*6, 3**2 + 6**2]
         self.gcd_vecs = [(3,1,1), (1,5,1), (2,1,1), (3,3,6)]
-        self.casals_dets = [0, 0, 2, 2]
-        self.sevens_kers = [1, 1, 0, 0]
+        self.casalsDeterminants = [0, 0, 2, 2]
+        self.sevensCongruences = [1, 1, 0, 0]
 
     def testAcyclic(self):
         for q in self.quivers:
@@ -455,14 +479,14 @@ class QuiverInvariants3TestCase(unittest.TestCase):
 
     def testCycles(self):
         for q in self.quivers:
-            assert (0,1,2) in list(q.chordless_cycles()) or (0,2,1) in list(q.chordless_cycles()), 'missing chordless cycle'
-            assert len(list(q.chordless_cycles()))==1, 'incorrectly found more cycles'
-        for _,d in self.quiver_a1.winding_data([2,1,0]).items():
+            assert (0,1,2) in list(q.chordlessCycles()) or (0,2,1) in list(q.chordlessCycles()), 'missing chordless cycle'
+            assert len(list(q.chordlessCycles()))==1, 'incorrectly found more cycles'
+        for _,d in self.quiver_a1.windingData([2,1,0]).items():
             assert d in [(-2,3), (2,0)]
 
 
     def testCyclicOrdering(self):
-        sigmas = [q.cyclic_order() for q in self.quivers]
+        sigmas = [q.cyclicOrder() for q in self.quivers]
         assert False not in sigmas, "incorrectly failed to find a cyclic ordering"
         for i in range(len(self.quivers)):
             sigma = sigmas[i]
@@ -476,51 +500,53 @@ class QuiverInvariants3TestCase(unittest.TestCase):
 
     def testAlexander(self):
         for i in range(len(self.quivers)):
-            assert self.quivers[i].alexander_poly() == polynomial.polynomial([-1, 3-self.markovs[i], -(3-self.markovs[i]),1]), f"incorrect alexander poly {str(self.quivers[i].alexander_poly()), self.markovs[i]}"
+            assert self.quivers[i].alexanderPolynomial() == polynomial.polynomial([-1, 3-self.markovs[i], -(3-self.markovs[i]),1]), f"incorrect alexander poly {str(self.quivers[i].alexanderPolynomial()), self.markovs[i]}"
 
     def testGCDvecs(self):
         for i in range(len(self.quivers)):
-            assert self.quivers[i].gcd_vector() == self.gcd_vecs[i], f"incorrect gcd vector, {i, self.gcd_vecs[i], self.quivers[i].gcd_vector()}"
+            assert self.quivers[i].gcdVector() == self.gcd_vecs[i], f"incorrect gcd vector, {i, self.gcd_vecs[i], self.quivers[i].gcdVector()}"
 
     def testCasals(self):
         for i in range(len(self.quivers)):
-            assert self.quivers[i].casals_det() == self.casals_dets[i]
+            assert self.quivers[i].casalsDeterminant() == self.casalsDeterminants[i]
 
     def testSeven(self):
         for i in range(len(self.quivers)):
-            assert self.quivers[i].seven_congruence() == self.sevens_kers[i], f"incorrect seven invariant {i}, expected {self.sevens_kers[i]} but got {self.quivers[i].seven_congruence()}"
+            assert self.quivers[i].sevenCongruence() == self.sevensCongruences[i], f"incorrect seven invariant {i}, expected {self.sevensCongruences[i]} but got {self.quivers[i].sevenCongruence()}"
 
 class RealizableAlexandersTestCase(unittest.TestCase):
     def testSearchA1(self):
-        list_of_A1 = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,1])))
+        list_of_A1 = list(generateAcyclicsFromAlexander(polynomial.polynomial([-1,1])))
         assert len(list_of_A1)==1, "acyclics from alexander poly is wrong size"
         assert list_of_A1[0].matrix == np.array([0], dtype='object')
 
     def testSearchDisjoint4(self):
-        list_of_A1_A1_A1_A1 = list(generate_acyclics_from_Alexander(polynomial.polynomial([1,-4,6,-4,1,0,0])))
+        list_of_A1_A1_A1_A1 = list(generateAcyclicsFromAlexander(polynomial.polynomial([1,-4,6,-4,1,0,0])))
         assert len(list_of_A1_A1_A1_A1)==1, "acyclics from alexander poly is wrong size"
         assert not list_of_A1_A1_A1_A1[0].connected(), "incorrectly found connected quiver"
         assert (list_of_A1_A1_A1_A1[0].matrix == 0 * list_of_A1_A1_A1_A1[0].matrix).all(), "incorrect acyclic found"
 
     def testSearchSmall3(self):
-        disconn = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,2,-2,1])))
-        assert all([x.alexander_poly() == polynomial.polynomial([-1,2,-2,1]) for x in disconn])
+        disconn = list(generateAcyclicsFromAlexander(polynomial.polynomial([-1,2,-2,1])))
+        assert all([x.alexanderPolynomial() == polynomial.polynomial([-1,2,-2,1]) for x in disconn])
         assert all([not x.connected() for x in disconn])
         assert len(disconn) == 1, f"incorrect solution set {[Q.matrix for Q in disconn]}" #wts: 100
 
 
     def testSearchMid3(self):
-        conn = list(generate_acyclics_from_Alexander(polynomial.polynomial([-1,-17,17,1])))
+        conn = list(generateAcyclicsFromAlexander(polynomial.polynomial([-1,-17,17,1])))
         assert all([x.connected() for x in conn])
-        assert all([x.alexander_poly() == polynomial.polynomial([-1,-17,17,1]) for x in conn])
+        assert all([x.alexanderPolynomial() == polynomial.polynomial([-1,-17,17,1]) for x in conn])
         assert len(conn) == 4, f"incorrect solution set {[Q.matrix for Q in conn]}" #wts: 321, 312, 420, 222
 
 class QuiverIsoClass(unittest.TestCase):
     def setUp(self):
         self.quiver1 = Quiver([[0,3,2],[-3,0,1],[-2,-1,0]])
         self.quiver2 = Quiver([[0,3,1],[-3,0,2],[-1,-2,0]])
+        self.quiver3 = Quiver([[0,8,11,-19],[-8,0,19,7],[-11,-19,0,4],[19,-7,-4,0]])
         self.Iso1 = isomorphismClass(self.quiver1, permutations(3))
         self.Iso2 = isomorphismClass(self.quiver2, permutations(3))
+        self.Iso3 = isomorphismClass(self.quiver3, permutations(4))
 
     def testDistinct(self):
         assert self.quiver1 in self.Iso1, "incorrectly misses quiver from its own iso class"
@@ -532,22 +558,27 @@ class QuiverIsoClass(unittest.TestCase):
         assert self.quiver1.markov() == self.quiver2.markov()
 
     def testSinks(self):
-        assert self.quiver1 in sink_set(self.quiver1)
-        assert self.quiver2 in sink_set(self.quiver2)
-        assert all([self.quiver2 not in isomorphismClass(R, permutations(3)) for R in sink_set(self.quiver1)])
-        assert all([self.quiver1 not in isomorphismClass(R, permutations(3)) for R in sink_set(self.quiver2)])
+        assert self.quiver1 in sinkSet(self.quiver1)
+        assert self.quiver2 in sinkSet(self.quiver2)
+        assert all([self.quiver2 not in isomorphismClass(R, permutations(3)) for R in sinkSet(self.quiver1)])
+        assert all([self.quiver1 not in isomorphismClass(R, permutations(3)) for R in sinkSet(self.quiver2)])
 
     def testMinRep(self):
         B = -self.quiver1.matrix
         Qp = Quiver(B)
-        for R in sink_set(self.quiver2):
+        for R in sinkSet(self.quiver2):
             assert not any([Rp < Qp for Rp in isomorphismClass(R, permutations(3)) if (np.tril(Rp.matrix) >= 0).all()])
 
     def testMinRep2(self):
         B = -self.quiver2.matrix
         Qp = Quiver(B)
-        for R in sink_set(self.quiver1):
+        for R in sinkSet(self.quiver1):
             assert not any([Rp < Qp for Rp in isomorphismClass(R, permutations(3)) if (np.tril(Rp.matrix) >= 0).all()])
+    
+    def testIsoRep(self):
+        assert isomorphismRep(self.quiver1) == self.Iso1[0]
+        assert isomorphismRep(self.quiver2) == self.Iso2[0]
+        assert isomorphismRep(self.quiver3) == self.Iso3[0]
 
 class QuiverHashing(unittest.TestCase):
     def setUp(self):
@@ -583,10 +614,10 @@ class PermutationTests(unittest.TestCase):
         assert (0,2,1) in self.s3
 
     def testParity(self):
-        assert sign_perm([0,1]) == 1
-        assert sign_perm([1,0]) == -1
-        assert sign_perm([1,2,0]) == 1
-        assert sign_perm([0,2,1]) == -1
+        assert signOfPerm([0,1]) == 1
+        assert signOfPerm([1,0]) == -1
+        assert signOfPerm([1,2,0]) == 1
+        assert signOfPerm([0,2,1]) == -1
 
 class MutationClassInitTests(unittest.TestCase):
     def setUp(self):
@@ -596,7 +627,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.gcd_vecs = []
         self.members = []
         self.mat_ranks = []
-        self.alexander_polys = []
+        self.alexanderPolynomials = []
         self.has_vortex = []
         Q = isolatedQuiver(4)
         self.classes.append(mutationClass(Q, perms=permutations(4)))
@@ -604,7 +635,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.gcd_vecs.append((0,0,0,0))
         self.members.append(Q)
         self.mat_ranks.append(0)
-        self.alexander_polys.append(polynomial.polynomial([1,-4,6,-4,1]))
+        self.alexanderPolynomials.append(polynomial.polynomial([1,-4,6,-4,1]))
         self.has_vortex.append(False)
         Q = Quiver(np.array([[0,-3,0,0],[3,0,0,0], [0,0,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
@@ -612,7 +643,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.gcd_vecs.append((3,3,0,0))
         self.members.append(Q)
         self.mat_ranks.append(2)
-        self.alexander_polys.append(polynomial.polynomial([1,-4,6,-4,1]) + 9*polynomial.polynomial([0,1,-2,1]))
+        self.alexanderPolynomials.append(polynomial.polynomial([1,-4,6,-4,1]) + 9*polynomial.polynomial([0,1,-2,1]))
         self.has_vortex.append(False)
         Q = Quiver(np.array([[0,3,2,0],[-3,0,3,0],[-2,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
@@ -620,7 +651,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.gcd_vecs.append((1,3,1,0))
         self.members.append(Q)
         self.mat_ranks.append(2)
-        self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-37,37,1]))
+        self.alexanderPolynomials.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-37,37,1]))
         self.has_vortex.append(False)
         Q = Quiver(np.array([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
@@ -628,7 +659,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.gcd_vecs.append((2,2,2,0))
         self.members.append(Q)
         self.mat_ranks.append(2)
-        self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-1,1,1]))
+        self.alexanderPolynomials.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-1,1,1]))
         self.has_vortex.append(Unknown) #in fact, True, if we use connectivity.
         R = Quiver(-np.array([[0,2,-2,0],[-2,0,2,0],[2,-2,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(vertices=[R,Q], edges={R: {Q:1}, Q:{R:2}}, perms=permutations(4)))
@@ -636,7 +667,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.gcd_vecs.append((2,2,2,0))
         self.members.append(Q)
         self.mat_ranks.append(2)
-        self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-1,1,1]))
+        self.alexanderPolynomials.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,-1,1,1]))
         self.has_vortex.append(Unknown) #in fact, True, if we use connectivity.
         Q = Quiver(np.array([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
@@ -644,7 +675,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.gcd_vecs.append((3,3,3,0))
         self.members.append(Q)
         self.mat_ranks.append(2)
-        self.alexander_polys.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,3,-3,1]))
+        self.alexanderPolynomials.append(polynomial.polynomial([-1,1])*polynomial.polynomial([-1,3,-3,1]))
         self.has_vortex.append(Unknown) #in fact, True, if we use connectivity.
         Q = Quiver(np.array([[0,2,-4,7],[-2,0,7,16],[4,-7,0,6], [-7,-16,-6,0]]))
         self.classes.append(mutationClass(Q, perms=permutations(4)))
@@ -652,7 +683,7 @@ class MutationClassInitTests(unittest.TestCase):
         self.gcd_vecs.append((1,1,1,1))
         self.members.append(Q)
         self.mat_ranks.append(4)
-        self.alexander_polys.append(False)
+        self.alexanderPolynomials.append(False)
         self.has_vortex.append(True)
 
         
@@ -666,11 +697,11 @@ class MutationClassInitTests(unittest.TestCase):
 
     def testGCDInit(self):
         for i in range(len(self.classes)):
-            assert self.classes[i].gcdVector == self.gcd_vecs[i], f"Incorrect gcd_vector {i}"
+            assert self.classes[i].gcdVector == self.gcd_vecs[i], f"Incorrect gcdVector {i}"
 
     def testBRankInit(self):
         for i in range(len(self.classes)):
-            assert self.classes[i].B_rank == self.mat_ranks[i], f"Incorrect matrix rank {i}"
+            assert self.classes[i].BRank == self.mat_ranks[i], f"Incorrect matrix rank {i}"
 
     def testEq(self):
         assert self.classes[0] != self.classes[1]
@@ -684,7 +715,7 @@ class MutationClassInitTests(unittest.TestCase):
     
     def testAlexander(self):
         for i in range(len(self.classes)):
-            assert self.classes[i].alexander_poly == self.alexander_polys[i], f"Incorrect alexander poly {i, str(self.classes[i].alexander_poly)}"
+            assert self.classes[i].alexanderPolynomial == self.alexanderPolynomials[i], f"Incorrect alexander poly {i, str(self.classes[i].alexanderPolynomial)}"
             if self.acyclicL[i] is True:
                 assert self.classes[i].totallyProper == True 
             elif self.has_vortex[i] is True:
@@ -861,9 +892,9 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.bigClass.finitePFP is Unknown
 
     def testBigWeightPruning(self):
-        assert self.bigClass.hit_max_weight
-        assert not self.A2Class.hit_max_weight
-        assert not self.AcyclicEventuallyClass.hit_max_weight
+        assert self.bigClass.hitMaxWeight
+        assert not self.A2Class.hitMaxWeight
+        assert not self.AcyclicEventuallyClass.hitMaxWeight
 
     def testHasVortex(self):
         assert self.bigClass.hasVortex is Unknown, f"disconnected large fork incorrectly knows about vortices: {self.bigClass.hasVortex}"
@@ -878,39 +909,39 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.vortexConnClass.mutationAbundant
 
     def testClassSurfaceQuiver(self):
-        assert self.isolatedClass.is_surface_quiver
-        assert self.A2Class.is_surface_quiver
-        assert self.A3Class.is_surface_quiver
-        assert not self.bigClass.is_surface_quiver
-        assert not self.AcyclicEventuallyClass.is_surface_quiver
+        assert self.isolatedClass.isSurfaceQuiver
+        assert self.A2Class.isSurfaceQuiver
+        assert self.A3Class.isSurfaceQuiver
+        assert not self.bigClass.isSurfaceQuiver
+        assert not self.AcyclicEventuallyClass.isSurfaceQuiver
 
     def testAlexanderPreserved(self):
         for Q in self.A3Class.vertices:
-            assert Q.alexander_poly() == self.A3Class.alexander_poly, f"alexander poly varies across class, {str(self.A3Class.alexander_poly)} vs {str(Q.alexander_poly())}"
+            assert Q.alexanderPolynomial() == self.A3Class.alexanderPolynomial, f"alexander poly varies across class, {str(self.A3Class.alexanderPolynomial)} vs {str(Q.alexanderPolynomial())}"
         assert self.A3Class.totallyProper
         for Q in self.AcyclicEventuallyClass.vertices:
-            assert Q.alexander_poly() == self.AcyclicEventuallyClass.alexander_poly, f"alexander poly varies across class, {str(self.AcyclicEventuallyClass.alexander_poly)} vs {str(Q.alexander_poly())}"
+            assert Q.alexanderPolynomial() == self.AcyclicEventuallyClass.alexanderPolynomial, f"alexander poly varies across class, {str(self.AcyclicEventuallyClass.alexanderPolynomial)} vs {str(Q.alexanderPolynomial())}"
         assert self.AcyclicEventuallyClass.totallyProper 
-        assert not self.vortexClass.alexander_poly
-        assert not self.vortexConnClass.alexander_poly
+        assert not self.vortexClass.alexanderPolynomial
+        assert not self.vortexConnClass.alexanderPolynomial
         assert not self.vortexClass.totallyProper
         assert not self.vortexConnClass.totallyProper
 
     def testCasals(self):
-        c = self.A3Class.casals_det
+        c = self.A3Class.casalsDeterminant
         for Q in self.A3Class.vertices:
-            assert c == Q.casals_det()
-        c = self.vortexClass.casals_det
+            assert c == Q.casalsDeterminant()
+        c = self.vortexClass.casalsDeterminant
         for Q in self.vortexClass.vertices:
-            assert c == Q.casals_det()
+            assert c == Q.casalsDeterminant()
 
     def testSevenUnal(self):
-        s = self.A2Class.sevens_ker
+        s = self.A2Class.sevensCongruence
         for Q in self.A2Class.vertices:
-            assert s == Q.seven_congruence()
-        s = self.bigClass.sevens_ker
+            assert s == Q.sevenCongruence()
+        s = self.bigClass.sevensCongruence
         for Q in self.bigClass.vertices:
-            assert s == Q.seven_congruence()
+            assert s == Q.sevenCongruence()
 
     def testAgreement(self):
         assert not self.markovClass.agrees(self.isolatedClass)
@@ -1003,7 +1034,7 @@ class SurfaceQuiverTests(unittest.TestCase):
 
     def testSurfaceBlocks(self):
         for Q in [self.A2, self.A3, self.A4, self.D4, self.BI, self.BII, self.BIIIa, self.BIIIb, self.BIV, self.BV, self.dreadedTorus]:
-            r = surface_quiver(Q)
+            r = surfaceQuiver(Q)
             assert r, f"couldn't recognize {Q.matrix}"
             blocks = r[1]
             count_zero = 0
@@ -1014,23 +1045,23 @@ class SurfaceQuiverTests(unittest.TestCase):
                 assert len(b[1])==len(set(b[1])), f"block has repeated vertex {Q.matrix, b}"
             assert count_zero <= 2, f"index zero was too prevalent {Q.matrix, r}"
         for M in [self.MI, self.MII, self.MIII, self.MIV]:
-            assert not surface_quiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surface_quiver(M)[1]}"
+            assert not surfaceQuiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surfaceQuiver(M)[1]}"
 
     def testSurfaceBlocksMutated(self):
         for Q in [self.BIm, self.BIIm, self.BIIIam, self.BIVm, self.BVm, self.BVm2]:
-            assert surface_quiver(Q), f"couldn't recognize {Q.matrix}"
-        assert not surface_quiver(self.MIVm), f"incorrectly marked {self.MIVm.matrix} as being a surface quiver"
+            assert surfaceQuiver(Q), f"couldn't recognize {Q.matrix}"
+        assert not surfaceQuiver(self.MIVm), f"incorrectly marked {self.MIVm.matrix} as being a surface quiver"
 
     def testSurfaceBlocksIso(self):
         p1 = [3,2,0,1,5,4]
         p2 = [5,4,3,2,1,0]
         for Q in [self.BI, self.BII, self.BIIIa, self.BV, self.BIIm, self.BIVm, self.BVm, self.BVm2]:
-            assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
-            assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
+            assert surfaceQuiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
+            assert surfaceQuiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
 
         for M in [self.MI, self.MII, self.MIII, self.MIV]:
-            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surface_quiver(isomorphicQuiver(M,p1))}"
-            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
+            assert not surfaceQuiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surfaceQuiver(isomorphicQuiver(M,p1))}"
+            assert not surfaceQuiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
 
 @unittest.skip("Larger surface quiver tests skipped.")
 class SlowSurfaceTests(unittest.TestCase):
@@ -1083,7 +1114,7 @@ class SlowSurfaceTests(unittest.TestCase):
 
     def testSurfaceBlocks(self):
         for Q in [self.BV, self.BVp, self.BVpm, self.A8, self.D9]:
-            r = surface_quiver(Q)
+            r = surfaceQuiver(Q)
             assert r, f"couldn't recognize {Q.matrix}"
             blocks = r[1]
             count_zero = 0
@@ -1094,23 +1125,23 @@ class SlowSurfaceTests(unittest.TestCase):
                 assert len(b[1])==len(set(b[1])), f"block has repeated vertex {Q.matrix, b}"
             assert count_zero <= 2, f"index zero was too prevalent {Q.matrix, r}"
         for M in [self.E6, self.X6]:
-            assert not surface_quiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surface_quiver(M)[1]}"
+            assert not surfaceQuiver(M), f"incorrectly found decomposition for {M.matrix} with decomposition {surfaceQuiver(M)[1]}"
 
     def testSurfaceBlocksMutated(self):
         for Q in [self.BVm, self.A8m, self.A8p, self.D9m, self.D9p]:
-            assert surface_quiver(Q), f"couldn't recognize {Q.matrix}"
-        assert not surface_quiver(self.E6.mutate(1)), f"incorrectly marked {self.E6.matrix} as being a surface quiver"
+            assert surfaceQuiver(Q), f"couldn't recognize {Q.matrix}"
+        assert not surfaceQuiver(self.E6.mutate(1)), f"incorrectly marked {self.E6.matrix} as being a surface quiver"
 
     def testSurfaceBlocksIso(self):
         p1 = [3,2,0,1,5,4,6,7,8,9]
         p2 = [5,4,3,2,1,0,6,7,8,9]
         for Q in [self.BV, self.BVp, self.BVpm, self.A8, self.D9m]:
-            assert surface_quiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
-            assert surface_quiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
+            assert surfaceQuiver(isomorphicQuiver(Q,p1)), f"couldn't recognize permuted block {p1, Q.matrix}"
+            assert surfaceQuiver(isomorphicQuiver(Q,p2)), f"couldn't recognize permuted block {p2, Q.matrix}"
 
         for M in [self.E6, self.X6]:
-            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surface_quiver(isomorphicQuiver(M,p1))}"
-            assert not surface_quiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
+            assert not surfaceQuiver(isomorphicQuiver(M,[1,0,2,3,4,5])), f"incorrectly recognizes permuted block {[1,0,2,3,4,5], M.matrix} as {surfaceQuiver(isomorphicQuiver(M,p1))}"
+            assert not surfaceQuiver(isomorphicQuiver(M,[1,0,2,4,3,5])), f"incorrectly recognizes permuted block {[1,0,2,4,3,5], M.matrix}"
 
 
 class TestLinAlg(unittest.TestCase):
@@ -1127,10 +1158,10 @@ class TestLinAlg(unittest.TestCase):
 
 
     def testRank(self):
-        assert 2 == matrix_rank(self.quiver.matrix), f"incorrect rank of disconnected markov"
-        assert 2 == matrix_rank(self.M)
-        assert 0 == matrix_rank(isolatedQuiver(4).matrix)
-        assert 4 == matrix_rank(self.vortex.matrix)
+        assert 2 == matrixRank(self.quiver.matrix), f"incorrect rank of disconnected markov"
+        assert 2 == matrixRank(self.M)
+        assert 0 == matrixRank(isolatedQuiver(4).matrix)
+        assert 4 == matrixRank(self.vortex.matrix)
 
 class IsomorphismClassTests(unittest.TestCase):
     def setUp(self):

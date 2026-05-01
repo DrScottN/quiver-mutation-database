@@ -1,4 +1,4 @@
-from Quiver import *
+from quiver import *
 import sys
 import time
 
@@ -12,9 +12,9 @@ def reduceByIsomorphism(quivers):
     # isomorphism classes with the least lexi element as the representative
     # The value of the dict item is the number of times it appears in the list
     n = quivers[0].n
-    perms = permutations(n)
+    #perms = permutations(n)
     
-    classes = set(isomorphismClass(q, perms)[0] for q in quivers)
+    classes = [isomorphismRep(q) for q in quivers]#[isomorphismClass(q, perms)[0] for q in quivers]
 
     return list(classes) # Counter(classes)
 
@@ -52,7 +52,7 @@ def removeAcyclic(quivers):
 
 def removeVortices(quivers):
     # Removes all quivers that have vortices
-    return [q for q in quivers if q.vortex_free()]
+    return [q for q in quivers if q.vortexFree()]
 
 def removeQuiversWithMutCyclicThreeCycle(quivers):
     # Removes all quivers that have a mutation-cyclic 3-cycle as a subquiver
@@ -80,12 +80,12 @@ def reduceQuivers(quivers, method):
 
     return reduced, len(reduced)
 
-def generateQuivers(n, weight_max):
+def generateQuivers(n, maxWeight):
     """
     Generates the whole class of quivers that we will be dealing with,
     Returned as a list as well as number of quivers generated
     """
-    quivers = generateLowWeightQuivers(n, weight_max=weight_max)
+    quivers = generateLowWeightQuivers(n, maxWeight=maxWeight)
 
     return quivers, len(quivers)
 
@@ -257,15 +257,15 @@ def findDistinctMutClasses(testing):
 
     print("Number of distinct determinants: ", len(determinantCount))
 
-def alternateMain(n = 4, weight_max=2, mutations=5):
+def alternateMain(n = 4, maxWeight=2, mutations=5):
     perms = permutations(n)
     m = mutations
     
     print(LINEBREAK)
-    print(f"Generating low weight quivers with {n} vertices and weights at most {weight_max}:")
+    print(f"Generating low weight quivers with {n} vertices and weights at most {maxWeight}:")
     print(LINEBREAK)
 
-    reduced, numQuivers = generateQuivers(n, weight_max)
+    reduced, numQuivers = generateQuivers(n, maxWeight)
 
     results = {"Total Quivers" : numQuivers}
 
@@ -281,14 +281,41 @@ def alternateMain(n = 4, weight_max=2, mutations=5):
 
     findDistinctMutClasses(mutClasses)
 
-def main(n=4, weight_max=2, mutations=5):
+
+def generate2ClassDataset(acyclicQ, cyclicR, forklessDepth=3, depth=3, labels=False):
+    """
+    Iterator for a dataset of quivers mutation equivalent to acyclicQ and cyclicR out to depth.
+    """
+    classQ = mutationClass(acyclicQ, perms=permutations(acyclicQ.n))
+    classR = mutationClass(cyclicR, perms=permutations(cyclicR.n))
+    for d in range(forklessDepth): #compute invariants/data
+        classQ.update()
+        classR.update()
+    if labels: labelsQ = classQ.labels()
+    if labels: labelsR = classR.labels()
+    #compute all quivers in range depth
+    todo = [(acyclicQ,True,None,0), (cyclicR,False,None,0)] #quiver, label, last mu, depth
+    while len(todo)>0:
+        Q,l,p,d = todo.pop()
+        for i in range(Q.n):
+            if i==p:
+                continue
+            Qp = Q.mutate(i)
+            if l: 
+                yield (Qp, labelsQ) if labels else (Qp, l)
+            else: 
+                yield (Qp, labelsR) if labels else (Qp, l)
+            if d < depth:
+                todo.append((Qp,l,i,d+1))
+
+def main(n=4, maxWeight=2, mutations=5):
     perms = permutations(n)
     m = mutations
     
     print(LINEBREAK)
-    print(f"Generating low weight quivers with {n} vertices and weights at most {weight_max}:")
+    print(f"Generating low weight quivers with {n} vertices and weights at most {maxWeight}:")
     print(LINEBREAK)
-    reduced, numQuivers = generateQuivers(n, weight_max)
+    reduced, numQuivers = generateQuivers(n, maxWeight)
     
     #print(f"{numQuivers} low weight quivers generated. Reducing by isomorphism")
     #reduced, numIsoClasses = reduceQuivers(reduced, reduceByIsomorphism)

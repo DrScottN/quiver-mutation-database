@@ -22,7 +22,7 @@ class Quiver():
                         if a != -matrix[j][i]:
                             raise Exception("Not a skew-symmetric matrix")
 
-        self.matrix = np.array(matrix, dtype=object) #matrix # type object lets us put arbitrary python in there.
+        self.matrix = np.array(matrix, dtype=object) # type=object lets us put arbitrary python in there.
         self.n = len(matrix)
         self.vertices = [v for v in range(self.n)]
         self.numEdges = sum(self.matrix[i,j] for i in self.vertices for j in self.vertices if self.matrix[i,j] > 0)
@@ -35,13 +35,13 @@ class Quiver():
         return '\n'.join(str(r) for r in self.matrix)
 
     def __eq__(self, other):
-        return (self.matrix == other.matrix).all()
+        return np.array_equal(self.matrix, other.matrix) #.all()
 
     def __lt__(self, other):
-        # Lexicographical order on matrix elements
-        #   assumes skew-symmetric matrix
-        #if self.__eq__(other): #implied by a lack of strict ineqs; equality check is quite slow.
-        #    return False
+        """ 
+        Lexicographical order on matrix elements
+        assumes skew-symmetric matrix
+        """
         if self.n != other.n:
             raise Exception("Attempted to compare two quivers of different size")
 
@@ -67,25 +67,26 @@ class Quiver():
             if n == 0:
                 return 1
             
-            #print(n)
             return sum([pow(-1,j+1) * matrixAsList[0][j] * pfaffian([[matrixAsList[i][k] for i in range(1,n) if i != j] for k in range(1,n) if k != j]) for j in range(1,n)])
 
         return pfaffian(self.matrix.tolist())**2
     
     def subquiver(self, Vs):
-        # Gives the subquiver of self with vertex set Vs
-        #  Vs is an enumeration of elements from 1 to n, vertex labels are not preserved.
-        #  currently no rule against Vs=[0,0,0], which would give an isolated quiver;
-        #  result is only a subquiver if Vs is a set of distinct elements.
+        """ 
+        Gives the subquiver of self with vertex set Vs
+        Vs is an enumeration of elements from 1 to n, vertex labels are not preserved.
+        currently no rule against Vs=[0,0,0], which would give an isolated quiver;
+        result is only a subquiver if Vs is a set of distinct elements. 
+        """
         return Quiver([[self.matrix[i,j] for i in Vs] for j in Vs]) 
 
     def subquiverRemoveOneVertex(self, v):
-        # Takes the subquiver by removing the vertex v
+        """ Takes the subquiver by removing the vertex v """
         return self.subquiver([i for i in range(self.n) if i != v]) # Quiver([[self.matrix[i,j] for i in range(self.n) if i != v] for j in range(self.n) if j != v])
 
 
     def connected(self):
-        # Finds if the quiver is connected as a simple graph
+        """ Finds if the quiver is connected as a simple graph """
         seen = [0]
         #unseen = set([])
         for j in range(1, self.n):
@@ -109,17 +110,16 @@ class Quiver():
         return False #len(seen) == self.n
     
     def sources(self):
-        # Get the sources in a quiver
-
+        """ Get the sources in a quiver """
         return [i for i in range(self.n) if all([self.matrix[i,j]>=0 for j in range(self.n)])]
     
     def sinks(self):
-        # Get the sources in a quiver
+        """ Get the sinks in a quiver """
 
         return [i for i in range(self.n) if all([self.matrix[i,j]<=0 for j in range(self.n)])]
 
     def acyclic(self):
-        # Finds if the quiver is acyclic or not
+        """ Finds if the quiver is acyclic or not """
         if self.n < 3:
             return True
 
@@ -138,7 +138,7 @@ class Quiver():
         return Quiver(newMatrix).acyclic()
 
     def complete(self):
-        # Finds if the quiver is complete or not
+        """ Finds if the quiver is complete or not """
         terms = [self.matrix[i,j] for i in range(self.n) for j in range(i+1,self.n)]
 
         s = 1
@@ -149,7 +149,7 @@ class Quiver():
         return s != 0
 
     def abundant(self):
-        # Finds if the quiver is abundant
+        """ Finds if the quiver is abundant """
         for i in range(self.n):
             for j in range(i+1, self.n):
                 if abs(self.matrix[i,j]) < 2:
@@ -158,8 +158,7 @@ class Quiver():
         return True 
     
     def forkWithPOR(self, r):
-        # returns true if a fork with point of return r
-        # else false
+        """ returns true if a fork with point of return r """
         if self.acyclic():
             return False
         elif not self.abundant(): 
@@ -200,8 +199,7 @@ class Quiver():
         return True
    
     def preForkWithVertices(self, r, i, j):
-        # returns true if pre-fork with given vertices
-        # else false
+        """ returns true if pre-fork with given vertices """
         if self.acyclic():
             return False
         
@@ -218,30 +216,26 @@ class Quiver():
         return True
 
     def preForkWithPOR(self, r):
-        # Returns true if pre-fork with point of return r
-        # else false (even if it is a fork with por r)
-        
+        """
+        Returns true if pre-fork with point of return r
+        else false (even if it is a fork with por r)
+        """
         for i,j in itertools.combinations([x for x in self.vertices if x != r], 2):
             if self.matrix[i,j] > 1:
                 continue
-
             if self.preForkWithVertices(r, i, j):
                 return True
-
         return False
 
     def threeCycle(self):
-        # Returnes whether the quiver is a 3-cycle or not
+        """ Returns whether the quiver is a 3-cycle or not """
         if self.n != 3:
             return False
         
         return not self.acyclic()
 
     def hasMutCyclicThreeCycle(self):
-        # Returns whether the quiver has a 3-cycle as a subquiver
-        #if self.n != 4:
-        #    raise Exception("Not implemented for more than four vertices")
-        
+        """ Returns whether the quiver has a 3-cycle as a subquiver """
         def markovInvariant(matrix):
             if len(matrix) != 3:
                 raise Exception("Not implemented yet")
@@ -251,38 +245,36 @@ class Quiver():
         return any(Q.threeCycle() and markovInvariant(Q.matrix) <= 4 and Q.abundant() for Q in [self.subquiver(s) for s in itertools.combinations(self.vertices, 3)])
 
     def vortex(self):
-        # Returns whether the quiver is a vortex or not.
-        #  Vortices are defined in "Long Mutation Cycles" by FN
+        """ 
+        Returns whether the quiver is a vortex or not.
+         Vortices are defined in "Long Mutation Cycles" by FN
+        """
         if self.n != 4:
             return False
         
-        vertices = self.sources() + self.sinks()
+        apexes = self.sources() + self.sinks()
 
-        if len(vertices) != 1:
+        if len(apexes) != 1:
             return False
-        
-        apex = vertices[0]
+        apex = apexes[0]
         
         if 0 in self.matrix[apex,:apex] or 0 in self.matrix[apex,apex+1:]:
             return False
-        
         Q = self.subquiverRemoveOneVertex(apex)
-
         return Q.threeCycle()
 
-    def vortex_free(self):
-        # determines if the quiver has no vortex subquiver
+    def vortexFree(self):
+        """ determines if the quiver has no vortex subquiver """
         for V in itertools.combinations(self.vertices, 4):
             if self.subquiver(V).vortex():
                 return False
         return True
 
     def oppositeQuiver(self):
-        #return Quiver([[-self.matrix[j,i] for i in range(self.n)] for j in range(self.n)])
         return Quiver(-1*self.matrix)
     
     def mutate(self, k):
-        # Gives the quiver formed by mutating at vertex k
+        """ Gives the quiver formed by mutating at vertex k """
 
         newMatrix = copy.deepcopy(self.matrix)
 
@@ -293,32 +285,29 @@ class Quiver():
                 elif self.matrix[i,k]*self.matrix[k,j] > 0:
                     add = self.matrix[i,k]*self.matrix[k,j] if self.matrix[i,k] > 0 else -self.matrix[i,k]*self.matrix[k,j]
                     newMatrix[i,j] += add
-
         return Quiver(newMatrix)
 
-    def matrix_mutate(self, k):
-        # Gives the quiver formed by mutating at vertex k
-        #  slower than the mutation method above.
+    def matrixMutate(self, k):
+        """ Gives the quiver formed by mutating at vertex k via matrix mutation """
+        # empirically slower than the mutation method above.
         C = np.identity(self.n, dtype='object')
         C[k,:]= np.vectorize(lambda x : max(x,0))(self.matrix[k,:])
         C[k,k]=-1
-
         return Quiver(np.transpose(C) @ self.matrix @ C)
 
 
     def hasSourceSink(self):
-        # Checks whether a source or sink exists
-
+        """ Checks whether a source or sink exists """
         return len(self.sources()) + len(self.sinks()) > 0     
 
-    def chordless_cycles(self):
-        # Iterator for all chordless cycles in the quiver. Formatted as list of vertex indices.
+    def chordlessCycles(self):
+        """ Iterator for all chordless cycles in the quiver. Formatted as list of vertex indices. """
         
         def neighbors(v):
             return [j for j in range(self.n) if self.matrix[v,j] != 0]
         
-        def chordless_cycles_at(v):
-            # Iterator for chordless cycles with minimal element v
+        def chordlessCyclesAt(v):
+            """ Iterator for chordless cycles with minimal element v """
             paths = []
             ends = [u for u in neighbors(v) if u > v]
             for u in ends[:-1]:
@@ -335,13 +324,13 @@ class Quiver():
                     paths.append([P+[u], chord + N])   
 
         for i in range(self.n):
-            for C in chordless_cycles_at(i):
+            for C in chordlessCyclesAt(i):
                 yield tuple(C)
 
-    def winding_data(self, sigma):
-        # Using linear order sigma (a permutation of the indices), return winding numbers and edges against direction of traversal of the chordless cycles.
+    def windingData(self, sigma):
+        """ Using linear order sigma (a permutation of the indices), return winding numbers and edges against direction of traversal of the chordless cycles. """
         winding_dict = dict()
-        for C in self.chordless_cycles():
+        for C in self.chordlessCycles():
             wind = 0 #times orbited
             lefts = 0 #arrows against flow
             for i in range(len(C)):
@@ -351,16 +340,18 @@ class Quiver():
         return winding_dict
 
 
-    def cyclic_order(self):
-        # Return the cyclic ordering of the quiver with all chordless cycles having winding number 1 (if oriented) or 0 (if acyclic). 
-        #  Returns False if no such order exists.
+    def cyclicOrder(self):
+        """ 
+        Return the cyclic ordering of the quiver with all chordless cycles having winding number 1 (if oriented) or 0 (if acyclic). 
+         Returns False if no such order exists. 
+        """
         if self.n==1:
             return [0]
         if self.n==2:
             return [0,1]
         for sigma_p in permutations(self.n-1): #[[0,1,2,3], [0,2,1,3], [0,1,3,2], [0,2,3,1], [0,3,1,2], [0,3,2,1]]:
-            sigma = sigma_p + [self.n-1]
-            W = self.winding_data(sigma)
+            sigma = sigma_p + (self.n-1,)
+            W = self.windingData(sigma)
             good = True
             for C in W.keys():
                 wind, left = W[C]
@@ -382,14 +373,14 @@ class Quiver():
         return False
 
     def proper(self):
-        # returns a proper cyclic ordering (but not necessarily totally proper) if it exists.
+        """ returns a proper cyclic ordering (but not necessarily totally proper) if it exists. """
         for p in permutations(self.n):
-            winding = self.winding_data(p)
+            winding = self.windingData(p)
             next_p = False
             for C, x in winding.items():
                 ell = x[1]
                 r = len(C)-ell
-                if (ell > 0 and x[0] == 1-ell) or (r > 0 and x[0] == r-1):
+                if (ell > 1 and x[0] == 1-ell) or (r > 1 and x[0] == r-1):
                     next_p = True
                     break
             if next_p:
@@ -399,20 +390,24 @@ class Quiver():
 
 
     def Umatrix(self):
-        # Compute a unipotent companion. 
-        #  Return False if this quiver has no potentailly totally proper order.
+        """ 
+        Compute a unipotent companion. 
+         Return False if this quiver has no potentailly totally proper order.
+        """
         
-        sigma = self.cyclic_order()
+        sigma = self.cyclicOrder()
         if sigma==False:
             return False
-        U = np.array([[-(i<j)*self.matrix[sigma[i],sigma[j]] for j in range(self.n)] for i in range(self.n)], dtype=object)
+        U = np.array([[-(i<j)*self.matrix[sigma.index(i),sigma.index(j)] for j in range(self.n)] for i in range(self.n)], dtype=object)
         for i in range(self.n):
             U[i,i]=1
         return U
 
 
     def markov(self):
-        #computes the markov invariant. Return False if this quiver has no potentially totally proper order.
+        """computes the markov invariant. 
+         Return False if this quiver has no potentially totally proper order.
+        """
         U = self.Umatrix()
         if U is False:
             return False
@@ -426,8 +421,11 @@ class Quiver():
             trace += Cosquare[i,i]
         return self.n - trace
         
-    def alexander_poly(self):
-        # Computes the alexander polynomial (expressed as a polynomial object). Returns False if the quiver is not potentially totally proper.
+    def alexanderPolynomial(self):
+        """ 
+        Computes the alexander polynomial (expressed as a polynomial object). 
+        Returns False if the quiver is not potentially totally proper.
+        """
         U = self.Umatrix()
         if U is False:
             return False
@@ -437,16 +435,15 @@ class Quiver():
             a = polynomial.polynomial([1])
             for i in range(self.n):
                 a *= Ux[i, p[i]]
-            det += a * sign_perm(p)
+            det += a * signOfPerm(p)
         return det
 
-    def gcd_vector(self):
-        # Computes the gcd vector of self, as a tuple with ith entry the gcd of row i.
+    def gcdVector(self):
+        """ Computes the gcd vector of self, as a tuple with ith entry the gcd of row i. """
         return tuple(math.gcd(*[self.matrix[i,j] for j in range(self.n)]) for i in range(self.n))
 
     def gcdTwoPath(self):
-        """Computes the gcd vector of all pairs of (not-necessarily-oriented) paths.
-        """
+        """Computes the gcd vector of all pairs of (not-necessarily-oriented) paths."""
         d = 0
         for i in range(self.n):
             for j in range(i+1, self.n):
@@ -455,8 +452,8 @@ class Quiver():
                     d = math.gcd(d, t)
         return d
         
-    def casals_det(self):
-        # return the mod-4 determinant of a quasi-cartan companion. This is a mutation invariant.
+    def casalsDeterminant(self):
+        """ return the mod-4 determinant of a quasi-cartan companion. This is a mutation invariant. """
         #  see arxiv: 2311.03601
         #  uses slow det formula.
         A = np.vectorize(abs)(self.matrix)
@@ -467,11 +464,11 @@ class Quiver():
             a = 1
             for i in range(self.n):
                 a *= (A[i, p[i]])%4
-            det = (det + a * sign_perm(p))%4
+            det = (det + a * signOfPerm(p))%4
         return det
 
-    def seven_congruence(self):
-        # return the 'corank' of A mod 4 up to congruence, via the dimension of a particular space
+    def sevenCongruence(self):
+        """ return the 'corank' of A mod 4 up to congruence, via the dimension of a particular space """
         #  see https://www.sciencedirect.com/science/article/abs/pii/S0022404925000593 thm 1.7 (note it is written differently on arxiv)
         #  very slow, we enumerate vectors.
         V0 = []
@@ -498,15 +495,17 @@ class Quiver():
 
 
 def eigenvalues(M):
-    # Computes the eigenvalues of the given matrix, cast to int64.
-    #   Note that the rank is a mutation invariant but not these values.
+    """ 
+    Computes the eigenvalues of the given matrix, cast to int64.
+      Note that the rank is a mutation invariant but not these values. 
+    """
     return np.linalg.eig(np.int64(M)).eigenvalues
 
-def matrix_rank(M):
-    # Computes the rank of a given matrix, cast to int64
+def matrixRank(M):
+    """ Computes the rank of a given matrix, cast to int64 """
     return np.linalg.matrix_rank(np.int64(M))
 
-def descend_fork(Q, maxSteps=-1):
+def descendFork(Q, maxSteps=-1):
     """If Q is a fork, mutate at the point of return until either we reach a non-fork or determine there is no forkless part.
     Returns the resulting quiver.
     If maxSteps is set, will apply at most maxSteps mutations."""
@@ -527,8 +526,8 @@ def descend_fork(Q, maxSteps=-1):
     return Q
     
 
-def sink_set(quiver):
-    # Calculates all sink/source mutation equivalent quivers
+def sinkSet(quiver):
+    """ Calculates all sink/source mutation equivalent quivers """
     todo = [quiver]
     visited = []
     while todo:
@@ -541,9 +540,9 @@ def sink_set(quiver):
             todo.append(p)
     return visited
 
-def generate_acyclics_from_Alexander(alex):
-    # Takes an Alexander polynomial alex and generates all acyclic quivers with that polynomial.
-    #  Iterator. Assumes alex is uni-variate. Not efficient.
+def generateAcyclicsFromAlexander(alex):
+    """ Takes an Alexander polynomial alex and generates all acyclic quivers with that polynomial.
+     Iterator. Assumes alex is uni-variate. Not Fast. """
     if alex is False: return
     degree = max([j[0] for j in alex.coeffDict.keys() if alex.coeffDict[j]!=0])
     markov = degree + alex.coeffDict[(degree-1,)]
@@ -558,16 +557,32 @@ def generate_acyclics_from_Alexander(alex):
         #print(degree, np.tril_indices(X.shape[0], k = -1), w)
         X[np.tril_indices(X.shape[0], k = -1)] = w
         Q = Quiver(X - np.transpose(X))
-        if Q.alexander_poly() != alex:
+        if Q.alexanderPolynomial() != alex:
             continue
         #to avoid repeats; this is very slow.
-        if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sink_set(Q)]):
+        if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sinkSet(Q)]):
             continue
 
         yield Q
 
-def surface_quiver(quiver):
-    # Return if the quiver is a surface quiver by identifying a block decomposition.
+def generateAcyclicsBelowMarkov(markov, n, connected=True):
+    """Iterator for all acyclic quivers on n vertices with markov invariant <= markov.
+    checks connected if connected=True."""
+    for w in itertools.product(list(range(math.isqrt(markov)+1)), repeat=(n*(n-1))//2):
+        X = np.zeros((n,n), dtype='object')
+        X[np.tril_indices(n, k = -1)] = w
+        Q = Quiver(X - np.transpose(X))
+        if connected and not Q.connected():
+            continue
+        if Q.markov() <= markov:
+            #to avoid repeats; this is very slow.
+            if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sinkSet(Q)]):
+                continue
+            yield Q
+
+
+def surfaceQuiver(quiver):
+    """ Return if the quiver is a surface quiver by identifying a block decomposition. """
     #  Block decomposition described in section 4 of "Skew-symmetric cluster algebras of finite mutation type" arxiv:0811.1703
     #  and in FST 13.1
 
@@ -786,19 +801,24 @@ def surface_quiver(quiver):
         return False
 
 class mutationClass():
-    # Object to hold mutation-equivalent quivers
-    # Each quiver is represented as a vertex of the mutation class
-    # Each mutation is represented as an edge of the mutation class
-    # Edges are given as a dict of dicts. 
-    # For example, for a quiver Q one mutation away from P at vertex k:
-    #   {Q : {P : k}, P : {Q : k}}
+    """ 
+    Object to hold mutation-equivalent quivers
+    Each quiver is represented as a vertex of the mutation class
+    Each mutation is represented as an edge of the mutation class
+    Edges are given as a dict of dicts. 
+    For example, for a quiver Q one mutation away from P at vertex k:
+      {Q : {P : k}, P : {Q : k}} 
+    """
     # Could easily use this to build a graph visualization of mutation classes
 
     # The class will be split up into two main ideas: essentially a set for mutations and a tool for exploring mutation-classes
 
-    def __init__(self, Q = None, perms = None, vertices = None, edges = None, max_weight=2**16):
-        # Takes in a quiver Q as the first member of our mutation class. perms is required.
-        #  set max_weight=False to ignore weight checks.
+    def __init__(self, Q = None, perms = None, vertices = None, edges = None, maxWeight=2**16):
+        """ 
+        Takes in a quiver Q as the first member of our mutation class. perms is required.
+         set maxWeight=False to ignore weight checks 
+         (which stop mutations in a direction if a quiver with more than maxWeight arrows between any pair of vertices is encountered).
+        """
         if Q is None:
             if vertices is None or edges is None:
                 raise Exception("No vertices or edges given. Try again")
@@ -815,13 +835,13 @@ class mutationClass():
         
         self.perms = perms
         self.possibleReps = [self.initialQ]
-        self.possibleIsoReps = [isomorphismClass(self.initialQ, perms)[0]]
+        self.possibleIsoReps = [isomorphismRep(self.initialQ)] #[isomorphismClass(self.initialQ, perms)[0]]
 
-        self.max_weight = max_weight
-        self.hit_max_weight = False
+        self.maxWeight = maxWeight
+        self.hitMaxWeight = False
         for Q in self.vertices:
-            if self.max_weight and np.max(np.vectorize(abs)(Q.matrix)) > self.max_weight:
-                self.hit_max_weight = True
+            if self.maxWeight and np.max(np.vectorize(abs)(Q.matrix)) > self.maxWeight:
+                self.hitMaxWeight = True
                 #do we wish to do anything here?
 
 
@@ -830,11 +850,11 @@ class mutationClass():
         self.determinant = self.initialQ.determinant()
         self.leastEdges = self.initialQ.numEdges
         self.size = 1
-        self.gcdVector = self.initialQ.gcd_vector()
-        self.B_rank = matrix_rank(self.initialQ.matrix)
-        self.alexander_poly = self.initialQ.alexander_poly()
-        self.casals_det = self.initialQ.casals_det()
-        self.sevens_ker = self.initialQ.seven_congruence()
+        self.gcdVector = self.initialQ.gcdVector()
+        self.BRank = matrixRank(self.initialQ.matrix)
+        self.alexanderPolynomial = self.initialQ.alexanderPolynomial()
+        self.casalsDeterminant = self.initialQ.casalsDeterminant()
+        self.sevensCongruence = self.initialQ.sevenCongruence()
 
         if self.initialQ.acyclic():
             self.mutationAcyclic = True
@@ -848,10 +868,10 @@ class mutationClass():
                 self.mutationCyclicSubquiver = Unknown
                 self.mutationCyclicSubquiverWitness = None
                 self.mutationAcyclic = Unknown
-            self.totallyProper = Unknown if self.alexander_poly is not False else False
+            self.totallyProper = Unknown if self.alexanderPolynomial is not False else False
 
         self.mutationComplete = False if self.initialQ.complete() is not True else Unknown
-        self.is_surface_quiver = Unknown
+        self.isSurfaceQuiver = Unknown
 
         self.hasVortex = False if self.mutationAcyclic is True else Unknown
         self.finite = Unknown
@@ -859,18 +879,18 @@ class mutationClass():
         self.finitePFP = Unknown
         # Setup possible mutation-invariants
         for Q in self.vertices:
-            if self.max_weight and np.max(np.vectorize(abs)(Q.matrix)) > 2:
-                self.is_surface_quiver = False
+            if self.maxWeight and np.max(np.vectorize(abs)(Q.matrix)) > 2:
+                self.isSurfaceQuiver = False
                 self.finite = False
             
-            if self.hasVortex is Unknown and not Q.vortex_free():
+            if self.hasVortex is Unknown and not Q.vortexFree():
                 self.hasVortex = True
                 self.mutationAcyclic = False
-        if self.is_surface_quiver is Unknown:
-            self.is_surface_quiver = bool(surface_quiver(self.initialQ))
-            self.finite = True if self.is_surface_quiver else self.finite
-            self.finiteFP = True if self.is_surface_quiver else self.finiteFP
-            self.finitePFP = True if self.is_surface_quiver else self.finitePFP
+        if self.isSurfaceQuiver is Unknown:
+            self.isSurfaceQuiver = bool(surfaceQuiver(self.initialQ))
+            self.finite = True if self.isSurfaceQuiver else self.finite
+            self.finiteFP = True if self.isSurfaceQuiver else self.finiteFP
+            self.finitePFP = True if self.isSurfaceQuiver else self.finitePFP
 
         self.hasMutationCycle = Unknown
         self.mutationAbundant = False if not self.initialQ.abundant() else Unknown
@@ -896,10 +916,12 @@ class mutationClass():
         return iter(self.vertices)
 
     def initializationFromVerticesAndEdges(self, vertices, edges):
-        # Allows us to initialize a mutationClass without starting with a single quiver
-        # We assume that vertices lists all vertices
-        # Edges may not have the edges for both sides
-        # Edges does not include vertices not present in vertices
+        """ 
+        Allows us to initialize a mutationClass without starting with a single quiver
+        We assume that vertices lists all vertices
+        Edges may not have the edges for both sides
+        Edges does not include vertices not present in vertices
+        """
 
         self.vertices = copy.deepcopy(vertices) # Why the deepcopy? Want to be absolutely sure I'm not messing with unexpected things
         self.edges = copy.deepcopy(edges)
@@ -965,9 +987,11 @@ class mutationClass():
         return newMutClass
 
     def intersection(self, *others):
-        # Gets the intersection of two mutation classes
-        # Returns a mutation class containing the common quivers
-        # Else returns none if no quivers are common
+        """ 
+        Gets the intersection of two mutation classes
+        Returns a mutation class containing the common quivers
+        Else returns none if no quivers are common 
+        """
         other = others[0]
         if len(others) > 1:
             other = other.intersection(*others[1:])
@@ -1005,8 +1029,10 @@ class mutationClass():
         return newMutClass
 
     def _setProperties(self, other):
-        # Helper function that updates properties of this mutation class to match those in the other class.
-        #  Assumes that the two classes intersect. Otherwise this can cause unreachable state.
+        """ 
+        Helper function that updates properties of this mutation class to match those in the other class.
+         Assumes that the two classes intersect. Otherwise this can cause unreachable state. 
+        """
         self.finite = self.finite if self.finite is not Unknown else other.finite
         self.finitePFP = self.finitePFP if self.finitePFP is not Unknown else other.finitePFP
         self.finiteFP = self.finiteFP if self.finiteFP is not Unknown else other.finiteFP
@@ -1017,15 +1043,16 @@ class mutationClass():
         self.totallyProper = self.totallyProper if self.totallyProper is not Unknown else other.totallyProper
         self.mutationComplete = self.mutationComplete if self.mutationComplete is not Unknown else other.mutationComplete
         self.mutationCyclicSubquiver = self.mutationCyclicSubquiver if self.mutationCyclicSubquiver is not Unknown else other.mutationCyclicSubquiver
-        # handled by init: self.mutationConnected, determinant, gcdVector, B_rank, alexander_poly, casals_det, sevens_ker, 
+        # handled by init: self.mutationConnected, determinant, gcdVector, BRank, alexanderPolynomial, casalsDeterminant, sevensCongruence, 
 
     def _consistentProperties(self, other):
+        """check if self and other might intersect/union. helper function to skip pointless intersections/unions."""
         if self.mutationConnected != other.mutationConnected: return False
         if self.determinant != other.determinant: return False
         if self.gcdVector != other.gcdVector: return False
-        if self.B_rank != other.B_rank: return False
-        if self.casals_det != other.casals_det: return False
-        if self.sevens_ker != other.sevens_ker: return False
+        if self.BRank != other.BRank: return False
+        if self.casalsDeterminant != other.casalsDeterminant: return False
+        if self.sevensCongruence != other.sevensCongruence: return False
         #doesn't help: if not consistent_ternary(self.finite, other.finite): return False
         return True
 
@@ -1046,7 +1073,7 @@ class mutationClass():
         if not consistentTernary(self.totallyProper, other.totallyProper):
             False
         if (self.totallyProper | other.totallyProper) is True:
-            if self.alexander_poly != other.alexander_poly:
+            if self.alexanderPolynomial != other.alexanderPolynomial:
                 return False
 
         if not consistentTernary(self.mutationAcyclic, other.mutationAcyclic):
@@ -1055,7 +1082,7 @@ class mutationClass():
             False
         if not consistentTernary(self.mutationComplete, other.mutationComplete):
             False
-        if not consistentTernary(self.is_surface_quiver, other.is_surface_quiver):
+        if not consistentTernary(self.isSurfaceQuiver, other.isSurfaceQuiver):
             False
         if not consistentTernary(self.hasVortex, other.hasVortex):
             False
@@ -1068,6 +1095,44 @@ class mutationClass():
         return True
         
         
+    def labels(self):
+        """
+        generate tab seperated string of invariant data associated to this class
+        """
+        def encoding(T):
+            if T is Unknown:
+                return 'U'
+            if T is True:
+                return 'T'
+            if T is False:
+                return 'F'
+            else:
+                return str(T)
+        data = []
+        data.append(encoding(self.mutationAcyclic))
+        data.append(encoding(self.mutationAbundant))
+        data.append(encoding(self.mutationComplete))
+        data.append(encoding(self.mutationConnected))
+        data.append(encoding(self.mutationCyclicSubquiver))
+        data.append(encoding(self.mutationFiniteClasses))
+        data.append(encoding(self.mutationFiniteFPClasses))
+        data.append(encoding(self.mutationFinitePFPClasses))
+        data.append(encoding(self.isSurfaceQuiver))
+        data.append(encoding(self.hasVortex))
+
+        data.append(encoding(self.totallyProper))
+        data.append(encoding(self.alexanderPolynomial))
+
+        data.append(encoding(self.initialQ.n))
+        data.append(encoding(self.determinant))
+        data.append(encoding(self.gcdVector))
+        data.append(encoding(self.BRank))
+        data.append(encoding(self.casalsDeterminant))
+        data.append(encoding(self.sevensCongruence))
+
+        data.append(encoding(self.hasMutationCycle))
+        data.append(encoding(self.leastEdges))
+        return "\t".join(data)
         
 
     def emptyIntersection(self,other):
@@ -1081,17 +1146,19 @@ class mutationClass():
         return self.possibleReps[0]
 
     def isomorphicRepresentative(self):
-        # Gets an isomorphic quiver with lowest edge weights to represent the class
+        """ Gets an isomorphic quiver with lowest edge weights to represent the class """
         if len(self.possibleIsoReps) > 1:
             self.possibleIsoReps.sort()
 
         return self.possibleIsoReps[0]
 
     def update(self):
-        # updates the mutation class by mutating every quiver on the edge in every possible direction
-        # Naturally throws away forks and pre-forks if they have the same point of return as where we mutated
-        # This function has a lot of room to benefit from parallelization
-        # As the quivers in the forefront are practically independent from each other
+        """ 
+        updates the mutation class by mutating every quiver on the edge in every possible direction
+        Automatically throws away forks and pre-forks if they have the same point of return as where we mutated
+        """        
+        #This function has a lot of room to benefit from parallelization
+        #As the quivers in the forefront are effectively independent from each other
         newForefront = []
 
         for Q in self.forefront:
@@ -1107,15 +1174,15 @@ class mutationClass():
                     continue
                     
                 
-                if self.max_weight and np.max(np.vectorize(abs)(P.matrix)) > self.max_weight:
-                    self.hit_max_weight = True
+                if self.maxWeight and np.max(np.vectorize(abs)(P.matrix)) > self.maxWeight:
+                    self.hitMaxWeight = True
                     continue
 
                 self.edges[Q][P] = k # If neither a fork or pre-fork with por k, then we can add it to our edges
 
                 if P not in self.edges:
                     # Update potentional mutation invariants
-                    self.hasVortex = True if not P.vortex_free() else self.hasVortex
+                    self.hasVortex = True if not P.vortexFree() else self.hasVortex
                     self.mutationComplete = False if not P.complete() else self.mutationComplete
                     self.mutationAbundant = False if not P.abundant() else self.mutationAbundant
                     if self.mutationAcyclic is Unknown:
@@ -1136,7 +1203,7 @@ class mutationClass():
                     
                     # Update the representative lists
                     if P.numEdges <= self.leastEdges:
-                        I = isomorphismClass(P, self.perms)[0]
+                        I = isomorphismRep(P) #isomorphismClass(P, self.perms)[0]
                         if P.numEdges < self.leastEdges:
                             self.possibleReps = []
                             self.possibleIsoReps = []
@@ -1153,7 +1220,7 @@ class mutationClass():
 
         self.forefront = newForefront # Update the forefront to be the new quivers we saw this round
 
-        if len(self.forefront) == 0 and not self.hit_max_weight: #if we pruned, don't be overconfident.
+        if len(self.forefront) == 0 and not self.hitMaxWeight: #if we pruned, don't be overconfident.
             self.finitePFP = True
             self.finite = True if self.finite is Unknown else self.finite
             self.finiteFP = True if self.finiteFP is Unknown else self.finiteFP
@@ -1169,10 +1236,6 @@ class mutationClass():
 
         return newForefront
 
-    def updateInvariants(self):
-        # Systematically updates all the invariants
-        pass
-
     def foundCyclicSubquiver(self, Q):
         """Sets MutationCyclicSubquiver, not(MutationAcyclic), and sets the witness to Q."""
         self.mutationCyclicSubquiver = True
@@ -1181,20 +1244,18 @@ class mutationClass():
 
 
 def isolatedQuiver(n):
-    # returns the quiver with 0 arrows between n vertices
-    
+    """ returns the quiver with 0 arrows between n vertices """
     m = [[0 for i in range(n)] for j in range(n)]
 
     return Quiver(m,False)
 
-def generateLowWeightQuivers(n, weight_max=2):
-    # Generates the set of all possible quivers with low weights (|w| <= weight_max) of a given rank n
-
+def generateLowWeightQuivers(n, maxWeight=2):
+    """ Generates the set of all possible quivers with low weights (|w| <= maxWeight) of a given rank n """
     seed = isolatedQuiver(n)
     
     result = [seed]
 
-    lowWeights = list(range(-weight_max, weight_max+1)) #[-2,-1,0,1,2]
+    lowWeights = list(range(-maxWeight, maxWeight+1)) #[-2,-1,0,1,2]
 
     def oneStep(l, i, j):
         # takes in a list of quivers and produces a new list of quivers
@@ -1218,28 +1279,11 @@ def generateLowWeightQuivers(n, weight_max=2):
     return result
 
 def permutations(n):
-    # Gives a list of permutations on n
-    #  proposal: itertools.permutations(range(n))
-    if n == 0:
-        return []
-    if n == 1:
-        return [[0]]
+    """ Gives a list of permutations on n """
+    return list(itertools.permutations(range(n)))
 
-    perm = permutations(n-1)
-    newPerm = []
-    for p in perm:
-        first = [n-1] + p[:]
-        last = p[:] + [n-1]
-        middle = [p[:i] + [n-1] + p[i:] for i in range(1,n-1)]
-        newP = [first]
-        newP.extend(middle)
-        newP.append(last)
-        newPerm.extend(newP)
-
-    return newPerm
-
-def sign_perm(permutation):
-    # Returns the sign of the given permutation.
+def signOfPerm(permutation):
+    """ Returns the sign of the given permutation. """
     not_visited = set(permutation)
     cycle_sum = 0
     i = not_visited.pop()
@@ -1257,7 +1301,7 @@ def sign_perm(permutation):
 
 
 def isomorphicQuiver(quiver, p):
-    # Returns the quiver given by the graph isomorphism perm
+    """ Returns the quiver given by the graph isomorphism perm """
     
     n = quiver.n
 
@@ -1271,16 +1315,66 @@ def isomorphicQuiver(quiver, p):
     return Quiver(newMatrix, False)
 
 def isomorphismClass(quiver, perms):
-    # Gets the isomorphism class of a quiver
-    # Returns a list of isomorphic quivers
-    # Sorts list so that the greatest lexicographical quiver is at the end
+    """ 
+    Gets the isomorphism class of a quiver
+    Returns a list of isomorphic quivers
+    Sorts list so that the greatest lexicographical quiver is at the end
+    """
     isoClass = [isomorphicQuiver(quiver, p) for p in perms]
     isoClass.sort()
 
     return isoClass
 
+def isomorphismRep(Q):
+    """Returns the lex min rep of Q in its isomorphism class"""
+    #assumes perms is all the permutations.
+    maxWeight = 0
+    opts1=[]
+    opts2=[]
+    for i,j in itertools.combinations(range(Q.n), 2):
+        v = abs(Q.matrix[i,j])
+        if maxWeight < v:
+            maxWeight = v
+            opts1=[]
+            opts2=[]
+        if maxWeight == v:
+            if Q.matrix[i,j] > 0: 
+                opts1.append(j)
+                opts2.append(i)
+            else: 
+                opts1.append(i)
+                opts2.append(j)
+    #isoCandidates = []
+    B = Q.matrix
+    def lt(perm1, perm2):
+        for i in range(Q.n):
+            for j in range(i+1,Q.n):
+                if B[perm1[i],perm1[j]] < B[perm2[i],perm2[j]]:
+                    return True
+                elif B[perm1[i],perm1[j]] > B[perm2[i],perm2[j]]:
+                    return False
+
+        return False
+
+    bestp = tuple(range(Q.n))
+    for t in range(len(opts1)):
+        p1,p2 = opts1[t], opts2[t]
+        L = [j for j in range(Q.n) if j not in [p1,p2]]
+        for pTail in itertools.permutations(L):
+            p = (p1, p2) + pTail
+            if lt(p, bestp):
+                bestp = p
+            #isoCandidates.append(isomorphicQuiver(Q, p))
+    return isomorphicQuiver(Q, bestp)
+    
+
+        
+    
+
+
+
 def boxQuiver(a,b):
-    # Returns the box quiver with sides a and b
+    """ Returns the box quiver with sides a and b """
     M = [[0 for i in range(4)] for j in range(4)]
 
     for i in range(4):
@@ -1291,7 +1385,7 @@ def boxQuiver(a,b):
     return Quiver(M)
 
 def dreadedTorus():
-    # Returns the box quiver with sides a and b
+    """ Returns the box quiver with sides a and b """
     M = [[] for j in range(4)]
 
     M[0] = [0,1,1,-1]
@@ -1301,22 +1395,8 @@ def dreadedTorus():
 
     return Quiver(M)
 
-def test():
-    M = [[0,-2,-1,2],[2,0,0,-2],[1,0,0,0],[-2,2,0,0]]
-    Q = Quiver(M)
-    print(Q.determinant())
-    classes = [mutationClass(P, permutations(4)) for P in isomorphismClass(Q, permutations(4))]
 
-    for C in classes:
-        for i in range(8):
-            if not C.mutationCyclic:
-                raise Exception(f"Happened here for {C} at mutation {i+1}")
-            C.update()
-
-    raise Exception("Testing finished")
-
-
-def main(n=4, weight_max=2, mutations=5):
+def main():
     print("You should be using generation.py")
 
 if __name__ == "__main__":
