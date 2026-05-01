@@ -23,7 +23,7 @@ def mutation_equivalent_local(Q,R, up_to_ismorphism=False):
     #  if up_to_ismorphism is True, compares Q against all quivers isomorphic to R
     if up_to_ismorphism:
         all_known = True
-        for p in permutations(R.n()):
+        for p in permutations(R.n):
             result = mutation_equivalent_local(Q, isomorphicQuiver(R, p))
             if result is True:
                 return result
@@ -292,8 +292,8 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
         m = Q.markov()
         if m and m > max_markov:
             max_markov = m
-        if Q.n() not in ns:
-            ns.append(Q.n())
+        if Q.n not in ns:
+            ns.append(Q.n)
     print(f"Max Markov Invariant: {max_markov}.")
     acyclic_invs = []
     for n in ns:
@@ -321,13 +321,6 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     print(f"*Unknown->True: {c+unknown_acyclic} ({100*(c+unknown_acyclic)/D}%)")
     print(f" Unknown->False: {c+unknown_cyclic} ({100*(c+unknown_cyclic)/D}%)")
     
-
-
-
-
-def TestDataset2Class(acyclicQ, cyclicR, depth=3):
-    """Generates a dataset of quivers mutation equivalent to acyclicQ and cyclicR out to depth.
-    """
 
 
 

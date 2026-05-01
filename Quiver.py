@@ -1084,6 +1084,44 @@ class mutationClass():
         return True
         
         
+    def labels(self):
+        """
+        generate list of invariant data associated to this class
+        """
+        def encoding(T):
+            if T is Unknown:
+                return 'U'
+            if T is True:
+                return 'T'
+            if T is False:
+                return 'F'
+            else:
+                return str(T)
+        data = []
+        data.append(encoding(self.mutationAcyclic))
+        data.append(encoding(self.mutationAbundant))
+        data.append(encoding(self.mutationComplete))
+        data.append(encoding(self.mutationConnected))
+        data.append(encoding(self.mutationCyclicSubquiver))
+        data.append(encoding(self.mutationFiniteClasses))
+        data.append(encoding(self.mutationFiniteFPClasses))
+        data.append(encoding(self.mutationFinitePFPClasses))
+        data.append(encoding(self.is_surface_quiver))
+        data.append(encoding(self.hasVortex))
+
+        data.append(encoding(self.totallyProper))
+        data.append(encoding(self.alexander_poly))
+
+        data.append(encoding(self.initialQ.n))
+        data.append(encoding(self.determinant))
+        data.append(encoding(self.gcd_vector))
+        data.append(encoding(self.B_rank))
+        data.append(encoding(self.casals_det))
+        data.append(encoding(self.sevens_ker))
+
+        data.append(encoding(self.hasMutationCycle))
+        data.append(encoding(self.leastEdges))
+        
         
 
     def emptyIntersection(self,other):
