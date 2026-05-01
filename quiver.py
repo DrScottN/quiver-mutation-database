@@ -1344,14 +1344,28 @@ def isomorphismRep(Q):
             else: 
                 opts1.append(i)
                 opts2.append(j)
-    isoCandidates = []
-    for i in range(len(opts1)):
-        p1,p2 = opts1[i], opts2[i]
+    #isoCandidates = []
+    B = Q.matrix
+    def lt(perm1, perm2):
+        for i in range(Q.n):
+            for j in range(i+1,Q.n):
+                if B[perm1[i],perm1[j]] < B[perm2[i],perm2[j]]:
+                    return True
+                elif B[perm1[i],perm1[j]] > B[perm2[i],perm2[j]]:
+                    return False
+
+        return False
+
+    bestp = tuple(range(Q.n))
+    for t in range(len(opts1)):
+        p1,p2 = opts1[t], opts2[t]
         L = [j for j in range(Q.n) if j not in [p1,p2]]
         for pTail in itertools.permutations(L):
             p = (p1, p2) + pTail
-            isoCandidates.append(isomorphicQuiver(Q, p))
-    return min(isoCandidates)
+            if lt(p, bestp):
+                bestp = p
+            #isoCandidates.append(isomorphicQuiver(Q, p))
+    return isomorphicQuiver(Q, bestp)
     
 
         
