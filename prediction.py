@@ -1,4 +1,5 @@
 from Quiver import *
+import random
 
 # Contains algorithms and helper functions mirroring how we would solve 
 # mutation equivalence or mutation acyclicity
@@ -9,19 +10,19 @@ def invariants_dict(Q, include_surface=True):
     invs = dict()
     invs["rank"] = Q.n
     invs["connected"] = Q.connected()
-    invs["B rank"] = Q.B_rank()
+    invs["B rank"] = matrix_rank(Q.matrix)
     invs["Casal's Det"] = Q.casals_det()
     invs["Seven's Congruence"] = Q.seven_congruence()
     invs["gcd"] = Q.gcd_vector() 
-    if include_surface: invs["surf quiver"] = surface_quiver(Q)[0] 
+    if include_surface: invs["surf quiver"] = bool(surface_quiver(Q))
     #note, block decomp is not an invariant but being surface type is
     return invs
 
-def mutation_equivalent_local(Q,R, up_to_ismorphism=False):
+def mutation_equivalent_local(Q,R, up_to_isomorphism=False):
     # return what we can determine about the mutation-equivalence of Q and R
     # Does not mutate either quiver. 
-    #  if up_to_ismorphism is True, compares Q against all quivers isomorphic to R
-    if up_to_ismorphism:
+    #  if up_to_isomorphism is True, compares Q against all quivers isomorphic to R
+    if up_to_isomorphism:
         all_known = True
         for p in permutations(R.n):
             result = mutation_equivalent_local(Q, isomorphicQuiver(R, p))
@@ -50,7 +51,7 @@ def mutation_acyclic_local(Q, match_alexander=False):
     # suggested convention: round Unknown to match_alexander
     if Q.acyclic():
         return True
-    if Q.hasMutCyclicSubquiver():
+    if Q.hasMutCyclicThreeCycle():
         return False
     if Q.markov() is False: #includes Q contains a vortex
         return False
@@ -66,7 +67,7 @@ def mutation_acyclic_local(Q, match_alexander=False):
     else:
         return Unknown
 
-def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=False, Q_class=None, R_class=None):
+def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=False, Qclass=None, Rclass=None):
     """Determines if Q is isomorphic to R using ~distance mutations, along with the invariants.
     returns True if they are equivalent, False if they are not, and Unknown if we cannot determine either way.
     
@@ -109,7 +110,7 @@ def mutation_equivalent(Q, R, distance, up_to_isomorphism=False, return_classes=
         return (True, union, union) if return_classes else True
 
     #check if invariants are consistent
-    if R_class.agrees(Q_class) is False: #not implemented
+    if Rclass.agrees(Qclass) is False: #not implemented
         return (False, Qclass, Rclass) if return_classes else False
 
     return (Unknown, Qclass, Rclass) if return_classes else Unknown
@@ -128,7 +129,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
 
     dataset_copy = list(dataset) #could use itertool.tee(dataset, k) and run in parallel for memory savings
     D = len(dataset_copy)
-    dataset_unknowns = []
+    dataset_not_local = []
     acyclic_count = 0
     cyclic_count = 0
     random.seed(seed)
@@ -140,7 +141,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     print("Local tests")
     #  3 ways to round: unknown is incorrect; unknown as True, unknown takes False.
     for Q,l in dataset_copy:
-        result = mutation_acyclic_local(Q, match_alexander==use_exhaustive)
+        result = mutation_acyclic_local(Q, match_alexander=use_exhaustive)
         if result is not Unknown:
             assert result == l, f"Dataset and benchmark disagree; {Q.matrix} has label {l} but we find {result}."
             correct += 1
@@ -158,8 +159,9 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     print(f" Unknown->incorrect: {correct} ({100*correct/D}%)")
     print(f"*Unknown->True: {correct+U_T_correct} ({100*(correct+U_T_correct)/D}%)")
     print(f" Unknown->False: {correct+U_F_correct} ({100*(correct+U_F_correct)/D}%)")
-    print()
+    
     # benchmark 2: with training data.
+    print()
     print("Comparing against a train set.")
     if train is None:
         # select a random selection of quivers of each label
@@ -186,11 +188,12 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
             cyclic_invariants.append(d)
 
     print(f"Found {len(cyclic_invariants)} distinct cyclic invariants and {len(acyclic_invariants)} distinct acyclic invariants.")
-    overlap = len([d in cyclic_invariants for d in acyclic_invariants])
+    overlap = len([d for d in acyclic_invariants if d in cyclic_invariants])
     if overlap > 0:
-        print("They intersect for {overlap} values.")
+        print(f"They intersect for {overlap} values.")
     else:
         print("The sets of invariants are distinct.")
+    print()
 
     #attempt to label the unlabeled with the invariants
     correct_inv_with_cyclic_Alexander = 0
@@ -241,10 +244,10 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     print(f" Unknown->False: {c+undetermined_with_cyclic_Alexander[False]} ({100*(c+undetermined_with_cyclic_Alexander[False])/D}%)")
 
     # benchmark 3: Apply mutations
-
+    print()
     print("Applying mutations to our examples and checking for equivalence.")
-    acyclic_eg_classes = [mutationClass(Q) for Q in acyclic_egs]
-    cyclic_eg_classes = [mutationClass(Q) for Q in cyclic_egs]
+    acyclic_eg_classes = [mutationClass(Q, perms=permutations(Q.n)) for Q in acyclic_egs]
+    cyclic_eg_classes = [mutationClass(Q, perms=permutations(Q.n)) for Q in cyclic_egs]
     for QC in acyclic_eg_classes + cyclic_eg_classes:
         for d in range(depthSearch):
             QC.update()
@@ -254,10 +257,10 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
     for Q,l in dataset_not_local:
         acyclic_match = False
         Qp = descend_fork(Q, maxSteps=depthSearch)
-        Qclass = mutationClass(Qp, perms=permsQ)
+        Qclass = mutationClass(Qp, perms=permutations(Q.n))
         for Ra in acyclic_eg_classes:
             res, Qclass, _ = mutation_equivalent(Qp, Ra.initialQ, depthSearch, Qclass = Qclass, Rclass = Ra, up_to_isomorphism=True, return_classes=True)
-            if res: 
+            if res is True: 
                 acyclic_match = True
                 if not l:
                     assert False, f"Quiver {Q.matrix} mutation equivalent to acyclic {Ra.initialQ.matrix} yet is labeled cyclic"
@@ -266,8 +269,8 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
         if acyclic_match:
             continue
         for Ra in cyclic_eg_classes:
-            res, Qclass, _ = mutation_equivalent(Qp, Ra.initialQ,Septh_search, Qclass = Qclass, Rclass = Ra, up_to_isomorphism=True, return_classes=True)
-            if res:
+            res, Qclass, _ = mutation_equivalent(Qp, Ra.initialQ, depthSearch, Qclass = Qclass, Rclass = Ra, up_to_isomorphism=True, return_classes=True)
+            if res is True:
                 if l:
                     assert False, f"Quiver {Q.matrix} mutation equivalent to cyclic {Ra.initialQ.matrix} yet is labeled acyclic"
                 correct_with_mutations += 1
@@ -276,7 +279,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
             unknown_acyclic +=1
         else:
             unknown_cyclic +=1
-    c = correct+corrected_with_mutations
+    c = correct+correct_with_mutations
     print(f" Unknown->incorrect: {c} ({100*(c)/D}%)")
     print(f"*Unknown->True: {c+unknown_acyclic} ({100*(c+unknown_acyclic)/D}%)")
     print(f" Unknown->False: {c+unknown_cyclic} ({100*(c+unknown_cyclic)/D}%)")
@@ -285,6 +288,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, use_surface=True, us
         return 
 
     # benchmark 4: Exhaustively search acyclics.
+    print()
     print("Comparing to the invariants of all connected acyclics with sufficiently small weights.")
     max_markov = 0
     ns = []

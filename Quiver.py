@@ -1086,7 +1086,7 @@ class mutationClass():
         
     def labels(self):
         """
-        generate list of invariant data associated to this class
+        generate tab seperated string of invariant data associated to this class
         """
         def encoding(T):
             if T is Unknown:
@@ -1121,7 +1121,7 @@ class mutationClass():
 
         data.append(encoding(self.hasMutationCycle))
         data.append(encoding(self.leastEdges))
-        
+        return "\t".join(data)
         
 
     def emptyIntersection(self,other):

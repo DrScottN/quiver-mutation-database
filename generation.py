@@ -64,22 +64,31 @@ def generateQuivers(n, weight_max):
 
 
 
-def generate2ClassDataset(acyclicQ, cyclicR, depth=3, labels=False):
+def generate2ClassDataset(acyclicQ, cyclicR, forklessDepth=3, depth=3, labels=False):
     """
     Iterator for a dataset of quivers mutation equivalent to acyclicQ and cyclicR out to depth.
     """
-    classQ = mutationClass(acyclicQ)
-    classR = mutationClass(cyclicR)
-    for d in range(depth):
+    classQ = mutationClass(acyclicQ, perms=permutations(acyclicQ.n))
+    classR = mutationClass(cyclicR, perms=permutations(cyclicR.n))
+    for d in range(forklessDepth): #compute invariants/data
         classQ.update()
         classR.update()
     if labels: labelsQ = classQ.labels()
-    for v in classQ.vertices:
-        yield (v, labelsQ) if labels else (v, True)
     if labels: labelsR = classR.labels()
-    for v in classR.vertices:
-        yield (v, labelsR) if labels else (v, False)
-
+    #compute all quivers in range depth
+    todo = [(acyclicQ,True,None,0), (cyclicR,False,None,0)] #quiver, label, last mu, depth
+    while len(todo)>0:
+        Q,l,p,d = todo.pop()
+        for i in range(Q.n):
+            if i==p:
+                continue
+            Qp = Q.mutate(i)
+            if l: 
+                yield (Qp, labelsQ) if labels else (Qp, l)
+            else: 
+                yield (Qp, labelsR) if labels else (Qp, l)
+            if d < depth:
+                todo.append((Qp,l,i,d+1))
 
 def main(n=4, weight_max=2, mutations=5):
     perms = permutations(n)
