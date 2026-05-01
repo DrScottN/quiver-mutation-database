@@ -435,7 +435,7 @@ class Quiver():
             a = polynomial.polynomial([1])
             for i in range(self.n):
                 a *= Ux[i, p[i]]
-            det += a * sign_perm(p)
+            det += a * signOfPerm(p)
         return det
 
     def gcdVector(self):
@@ -464,7 +464,7 @@ class Quiver():
             a = 1
             for i in range(self.n):
                 a *= (A[i, p[i]])%4
-            det = (det + a * sign_perm(p))%4
+            det = (det + a * signOfPerm(p))%4
         return det
 
     def sevenCongruence(self):
@@ -838,10 +838,10 @@ class mutationClass():
         self.possibleIsoReps = [isomorphismClass(self.initialQ, perms)[0]]
 
         self.maxWeight = maxWeight
-        self.hit_maxWeight = False
+        self.hitMaxWeight = False
         for Q in self.vertices:
             if self.maxWeight and np.max(np.vectorize(abs)(Q.matrix)) > self.maxWeight:
-                self.hit_maxWeight = True
+                self.hitMaxWeight = True
                 #do we wish to do anything here?
 
 
@@ -854,7 +854,7 @@ class mutationClass():
         self.BRank = matrixRank(self.initialQ.matrix)
         self.alexanderPolynomial = self.initialQ.alexanderPolynomial()
         self.casalsDeterminant = self.initialQ.casalsDeterminant()
-        self.sevens_ker = self.initialQ.sevenCongruence()
+        self.sevensCongruence = self.initialQ.sevenCongruence()
 
         if self.initialQ.acyclic():
             self.mutationAcyclic = True
@@ -1043,7 +1043,7 @@ class mutationClass():
         self.totallyProper = self.totallyProper if self.totallyProper is not Unknown else other.totallyProper
         self.mutationComplete = self.mutationComplete if self.mutationComplete is not Unknown else other.mutationComplete
         self.mutationCyclicSubquiver = self.mutationCyclicSubquiver if self.mutationCyclicSubquiver is not Unknown else other.mutationCyclicSubquiver
-        # handled by init: self.mutationConnected, determinant, gcdVector, BRank, alexanderPolynomial, casalsDeterminant, sevens_ker, 
+        # handled by init: self.mutationConnected, determinant, gcdVector, BRank, alexanderPolynomial, casalsDeterminant, sevensCongruence, 
 
     def _consistentProperties(self, other):
         """check if self and other might intersect/union. helper function to skip pointless intersections/unions."""
@@ -1052,7 +1052,7 @@ class mutationClass():
         if self.gcdVector != other.gcdVector: return False
         if self.BRank != other.BRank: return False
         if self.casalsDeterminant != other.casalsDeterminant: return False
-        if self.sevens_ker != other.sevens_ker: return False
+        if self.sevensCongruence != other.sevensCongruence: return False
         #doesn't help: if not consistent_ternary(self.finite, other.finite): return False
         return True
 
@@ -1128,7 +1128,7 @@ class mutationClass():
         data.append(encoding(self.gcdVector))
         data.append(encoding(self.BRank))
         data.append(encoding(self.casalsDeterminant))
-        data.append(encoding(self.sevens_ker))
+        data.append(encoding(self.sevensCongruence))
 
         data.append(encoding(self.hasMutationCycle))
         data.append(encoding(self.leastEdges))
@@ -1175,7 +1175,7 @@ class mutationClass():
                     
                 
                 if self.maxWeight and np.max(np.vectorize(abs)(P.matrix)) > self.maxWeight:
-                    self.hit_maxWeight = True
+                    self.hitMaxWeight = True
                     continue
 
                 self.edges[Q][P] = k # If neither a fork or pre-fork with por k, then we can add it to our edges
@@ -1220,7 +1220,7 @@ class mutationClass():
 
         self.forefront = newForefront # Update the forefront to be the new quivers we saw this round
 
-        if len(self.forefront) == 0 and not self.hit_maxWeight: #if we pruned, don't be overconfident.
+        if len(self.forefront) == 0 and not self.hitMaxWeight: #if we pruned, don't be overconfident.
             self.finitePFP = True
             self.finite = True if self.finite is Unknown else self.finite
             self.finiteFP = True if self.finiteFP is Unknown else self.finiteFP
@@ -1249,13 +1249,13 @@ def isolatedQuiver(n):
 
     return Quiver(m,False)
 
-def generateLowWeightQuivers(n, weight_max=2):
-    """ Generates the set of all possible quivers with low weights (|w| <= weight_max) of a given rank n """
+def generateLowWeightQuivers(n, maxWeight=2):
+    """ Generates the set of all possible quivers with low weights (|w| <= maxWeight) of a given rank n """
     seed = isolatedQuiver(n)
     
     result = [seed]
 
-    lowWeights = list(range(-weight_max, weight_max+1)) #[-2,-1,0,1,2]
+    lowWeights = list(range(-maxWeight, maxWeight+1)) #[-2,-1,0,1,2]
 
     def oneStep(l, i, j):
         # takes in a list of quivers and produces a new list of quivers
@@ -1282,7 +1282,7 @@ def permutations(n):
     """ Gives a list of permutations on n """
     return list(itertools.permutations(range(n)))
 
-def sign_perm(permutation):
+def signOfPerm(permutation):
     """ Returns the sign of the given permutation. """
     not_visited = set(permutation)
     cycle_sum = 0
@@ -1362,7 +1362,7 @@ def test():
     raise Exception("Testing finished")
 
 
-def main(n=4, weight_max=2, mutations=5):
+def main(n=4, maxWeight=2, mutations=5):
     print("You should be using generation.py")
 
 if __name__ == "__main__":

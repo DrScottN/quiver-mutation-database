@@ -467,7 +467,7 @@ class QuiverInvariants3TestCase(unittest.TestCase):
         self.markovs = [3**2+5**2+6**2 - 3*5*6, 5**2+5**2+6**2 - 5*5*6, 2**2+5**2+6**2 - 2*5*6, 3**2 + 6**2]
         self.gcd_vecs = [(3,1,1), (1,5,1), (2,1,1), (3,3,6)]
         self.casalsDeterminants = [0, 0, 2, 2]
-        self.sevens_kers = [1, 1, 0, 0]
+        self.sevensCongruences = [1, 1, 0, 0]
 
     def testAcyclic(self):
         for q in self.quivers:
@@ -512,7 +512,7 @@ class QuiverInvariants3TestCase(unittest.TestCase):
 
     def testSeven(self):
         for i in range(len(self.quivers)):
-            assert self.quivers[i].sevenCongruence() == self.sevens_kers[i], f"incorrect seven invariant {i}, expected {self.sevens_kers[i]} but got {self.quivers[i].sevenCongruence()}"
+            assert self.quivers[i].sevenCongruence() == self.sevensCongruences[i], f"incorrect seven invariant {i}, expected {self.sevensCongruences[i]} but got {self.quivers[i].sevenCongruence()}"
 
 class RealizableAlexandersTestCase(unittest.TestCase):
     def testSearchA1(self):
@@ -607,10 +607,10 @@ class PermutationTests(unittest.TestCase):
         assert (0,2,1) in self.s3
 
     def testParity(self):
-        assert sign_perm([0,1]) == 1
-        assert sign_perm([1,0]) == -1
-        assert sign_perm([1,2,0]) == 1
-        assert sign_perm([0,2,1]) == -1
+        assert signOfPerm([0,1]) == 1
+        assert signOfPerm([1,0]) == -1
+        assert signOfPerm([1,2,0]) == 1
+        assert signOfPerm([0,2,1]) == -1
 
 class MutationClassInitTests(unittest.TestCase):
     def setUp(self):
@@ -885,9 +885,9 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.bigClass.finitePFP is Unknown
 
     def testBigWeightPruning(self):
-        assert self.bigClass.hit_maxWeight
-        assert not self.A2Class.hit_maxWeight
-        assert not self.AcyclicEventuallyClass.hit_maxWeight
+        assert self.bigClass.hitMaxWeight
+        assert not self.A2Class.hitMaxWeight
+        assert not self.AcyclicEventuallyClass.hitMaxWeight
 
     def testHasVortex(self):
         assert self.bigClass.hasVortex is Unknown, f"disconnected large fork incorrectly knows about vortices: {self.bigClass.hasVortex}"
@@ -929,10 +929,10 @@ class updateMutationClassTests(unittest.TestCase):
             assert c == Q.casalsDeterminant()
 
     def testSevenUnal(self):
-        s = self.A2Class.sevens_ker
+        s = self.A2Class.sevensCongruence
         for Q in self.A2Class.vertices:
             assert s == Q.sevenCongruence()
-        s = self.bigClass.sevens_ker
+        s = self.bigClass.sevensCongruence
         for Q in self.bigClass.vertices:
             assert s == Q.sevenCongruence()
 
