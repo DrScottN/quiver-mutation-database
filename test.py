@@ -984,6 +984,8 @@ class SurfaceQuiverTests(unittest.TestCase):
 
         self.D4 = Quiver(np.array((0, 1, 0, 0, -1, 0, -1, -1, 0, 1, 0, 0, 0, 1, 0, 0)).reshape((4,4)))
 
+        self.dreadedTorus = dreadedTorus()
+
         #non egs
         self.MI = Quiver([[0,3],[-3,0]])
 
@@ -1000,7 +1002,7 @@ class SurfaceQuiverTests(unittest.TestCase):
 
 
     def testSurfaceBlocks(self):
-        for Q in [self.A2, self.A3, self.A4, self.D4, self.BI, self.BII, self.BIIIa, self.BIIIb, self.BIV, self.BV]:
+        for Q in [self.A2, self.A3, self.A4, self.D4, self.BI, self.BII, self.BIIIa, self.BIIIb, self.BIV, self.BV, self.dreadedTorus]:
             r = surface_quiver(Q)
             assert r, f"couldn't recognize {Q.matrix}"
             blocks = r[1]
