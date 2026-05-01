@@ -503,7 +503,7 @@ def eigenvalues(M):
 
 def matrixRank(M):
     """ Computes the rank of a given matrix, cast to int64 """
-    return np.linalg.matrixRank(np.int64(M))
+    return np.linalg.matrix_rank(np.int64(M))
 
 def descendFork(Q, maxSteps=-1):
     """If Q is a fork, mutate at the point of return until either we reach a non-fork or determine there is no forkless part.
