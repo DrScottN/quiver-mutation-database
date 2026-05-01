@@ -592,6 +592,12 @@ def surface_quiver(quiver):
     #  v_ gives the covering count of each vertex in Q by that matrix 
     #   (v[i]==0 means i is not in any block, v[i]==2 means i is dead).
 
+    #white vert
+    def v0(i):
+        return np.array([x==i for x in range(n)], dtype=np.int8)
+    def B0(i):
+        B = np.zeros((n,n), dtype='object')
+        return B
     #single arrow, out out i->j
     def vI(i,l):
         return np.array([x in [i,l] for x in range(n)], dtype=np.int8)
@@ -770,6 +776,8 @@ def surface_quiver(quiver):
                         if try_block(vV, BV, ('V',(u,i,g,j,h))): return True
         for i,j in itertools.combinations([x for x in neighbors_in[u] if v[x]==0], 2):
             if try_block(vIII, BIIIa, ('IIIa',(u,i,j))): return True
+        if v[u]==1: #try the skip block
+            if try_block(v0, B0, ('0', (u,))): return True
         return
 
     if block_decomp():
