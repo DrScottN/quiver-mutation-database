@@ -1,0 +1,36 @@
+################################################################################
+Generating low weight quivers with 5 vertices and weights at most 1:
+################################################################################
+59049 low weight quivers generated. Reducing by isomorphism
+582 mutation classes up to isomorphism remaining. Removing disconnected quivers:
+535 connected quivers remaining. Removing Acyclic quivers:
+268 quivers containing a cycle remaining. Removing quivers that contain a mutation-cyclic 3-cycle:
+268 quivers that do not have a mutation-cyclic 3-cycle remaining. Removing quivers that have a vortex:
+214 non-vortices remaining. Removing the exceptional quivers:
+214 quivers to test for mutation-acyclicity remaining.
+################################################################################
+Testing remaining by mutating up to 5 times.
+################################################################################
+Total: 582
+Connected: 535 Disconnected: 47
+Acyclic: 267 Cyclic: 268
+Mutation Cyclic 3-cycle: 0 Without Mutation Cyclic 3-cycle: 268
+Vortices: 54 Non-vortices: 214
+Special: 0 Non-special: 214
+################################################################################
+Now Listing Information Found by The 5 Mutations:
+################################################################################
+Mutation-acyclic: 155 Mutation-cyclic: 59
+Mutation Cyclic Subquiver: 1
+Known Vortex Cyclic: 33 Known Finite Cyclic: 22
+Known FFP Cyclic: 0 Known FPFP Cyclic: 0
+Empirically Cyclic: 3
+################################################################################
+Testing the Empirically Cyclic:
+################################################################################
+There are 3 many mutation classes without isomorphism
+There are 2 many mutation classes with isomorphism
+Number of distinct determinants:  1
+################################################################################
+Program took 131.56059336662292 seconds to run
+################################################################################
