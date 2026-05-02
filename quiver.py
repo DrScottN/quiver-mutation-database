@@ -430,13 +430,7 @@ class Quiver():
         if U is False:
             return False
         Ux = np.array([[U[i,j]*polynomial.polynomial([0,1]) for i in range(self.n)] for j in range(self.n)], dtype=object) - np.array([[U[j,i]*polynomial.polynomial([1]) for i in range(self.n)] for j in range(self.n)], dtype=object)
-        det = polynomial.polynomial([0])
-        for p in permutations(self.n):
-            a = polynomial.polynomial([1])
-            for i in range(self.n):
-                a *= Ux[i, p[i]]
-            det += a * signOfPerm(p)
-        return det
+        return bariessDet(Ux)
 
     def gcdVector(self):
         """ Computes the gcd vector of self, as a tuple with ith entry the gcd of row i. """
@@ -459,13 +453,7 @@ class Quiver():
         A = np.vectorize(abs)(self.matrix)
         for i in range(self.n):
             A[i,i] = 2
-        det = 0
-        for p in permutations(self.n):
-            a = 1
-            for i in range(self.n):
-                a *= (A[i, p[i]])%4
-            det = (det + a * signOfPerm(p))%4
-        return det
+        return bariessDet(A)%4
 
     def sevenCongruence(self):
         """ return the 'corank' of A mod 4 up to congruence, via the dimension of a particular space """
