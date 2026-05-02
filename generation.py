@@ -282,17 +282,18 @@ def alternateMain(n = 4, maxWeight=2, mutations=5):
     findDistinctMutClasses(mutClasses)
 
 
-def generate2ClassDataset(acyclicQ, cyclicR, forklessDepth=3, depth=3, labels=False):
+def generate2ClassDataset(acyclicQ, cyclicR, depth=3, labels=False, forklessDepth=3):
     """
     Iterator for a dataset of quivers mutation equivalent to acyclicQ and cyclicR out to depth.
     """
     classQ = mutationClass(acyclicQ, perms=permutations(acyclicQ.n))
     classR = mutationClass(cyclicR, perms=permutations(cyclicR.n))
-    for d in range(forklessDepth): #compute invariants/data
-        classQ.update()
-        classR.update()
-    if labels: labelsQ = classQ.labels()
-    if labels: labelsR = classR.labels()
+    if labels:
+        for d in range(forklessDepth): #compute invariants/data
+            classQ.update()
+            classR.update()
+        labelsQ = classQ.labels()
+        labelsR = classR.labels()
     #compute all quivers in range depth
     todo = [(acyclicQ,True,None,0), (cyclicR,False,None,0)] #quiver, label, last mu, depth
     while len(todo)>0:
@@ -307,6 +308,31 @@ def generate2ClassDataset(acyclicQ, cyclicR, forklessDepth=3, depth=3, labels=Fa
                 yield (Qp, labelsR) if labels else (Qp, l)
             if d < depth:
                 todo.append((Qp,l,i,d+1))
+
+def generateMulticlassDataset(classReps, depth, labels=False, forklessDepth=3):
+    """ Iterator for mutation equivalence datasets with classes given by classReps. Assumes reps are mutation-distinct.
+    If labels, then also computes the forkless part out to depth forklessDepth and uses the mutationclass labels. """
+    if labels:
+        classes = [mutationClass(Q, perms=permutations(Q.n)) for Q in classReps]
+        for d in range(forklessDepth): #compute invariants/data
+            for cl in classes:
+                cl.update()
+        labels = [cl.labels() for cl in classes]
+    #compute all quivers in range depth
+    todo = [(Q,i,None,0) for i,Q in enumerate(classReps)] #quiver, label, last mu, depth
+    while len(todo)>0:
+        Q,l,p,d = todo.pop()
+        for i in range(Q.n):
+            if i==p:
+                continue
+            Qp = Q.mutate(i)
+            if l: 
+                yield (Qp, labelsQ) if labels else (Qp, l)
+            else: 
+                yield (Qp, labelsR) if labels else (Qp, l)
+            if d < depth:
+                todo.append((Qp,l,i,d+1))
+    return
 
 def main(n=4, maxWeight=2, mutations=5):
     perms = permutations(n)

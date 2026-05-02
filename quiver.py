@@ -471,6 +471,7 @@ class Quiver():
         """ return the 'corank' of A mod 4 up to congruence, via the dimension of a particular space """
         #  see https://www.sciencedirect.com/science/article/abs/pii/S0022404925000593 thm 1.7 (note it is written differently on arxiv)
         #  very slow, we enumerate vectors.
+        #  not a mutation invariant! This is a classification parameter for companions.
         V0 = []
         V000 = []
         A = np.vectorize(abs)(self.matrix)

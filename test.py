@@ -122,6 +122,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         self.acyclicMutated = Quiver([[0,2,-13,0],[-2,0,21,5],[13,-21,0,-24],[0,-5,24,0]])
         self.box22 = Quiver([[0,2,1,0],[-2,0,0,3],[-1,0,0,2],[0,-3,-2,0]])
         self.box31 = Quiver([[0,2,1,0],[-2,0,0,3],[-1,0,0,-2],[0,-3,2,0]])
+        self.finiteQuiver = Quiver([[0,-2,1,0],[2,0,-1,0],[-1,1,0,-1],[0,0,1,0]])
     
     def testCommutingMutations(self):
         assert self.quiver == self.quiver.mutate(2).mutate(0).mutate(2).mutate(0), 'commuting mutation cycle did not cycle'
@@ -174,6 +175,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
             assert self.incomplete_quiver.determinant() == self.incomplete_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
             assert self.vortex_quiver.determinant() == self.vortex_quiver.mutate(i).determinant(), f'applying a mutation changed the determinant'
             assert self.A4.determinant() == self.A4.mutate(i).determinant()
+            assert self.finiteQuiver.determinant() == self.finiteQuiver.mutate(i).determinant()
 
     def testAcyclicity(self):
         assert not self.acyclicMutated.acyclic()
@@ -263,6 +265,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
         assert self.incomplete_quiver.casalsDeterminant()==0
         assert self.vortex_quiver.casalsDeterminant()==0
         assert self.A4.casalsDeterminant()==1
+        assert self.finiteQuiver.casalsDeterminant()==0
         for i in range(self.quiver.n):
             assert self.vortex_quiver.mutate(i).casalsDeterminant()==0
             assert self.A4.mutate(i).casalsDeterminant()==1
@@ -272,6 +275,7 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
             assert self.A4.sevenCongruence()==self.A4.mutate(i).sevenCongruence()
             assert self.quiver.sevenCongruence()==self.quiver.mutate(i).sevenCongruence()
             assert self.vortex_quiver.sevenCongruence()==self.vortex_quiver.mutate(i).sevenCongruence()
+            assert self.finiteQuiver.sevenCongruence()==self.finiteQuiver.mutate(i).sevenCongruence()
 
     def testVortex(self):
         assert self.A4.vortexFree()

@@ -481,7 +481,7 @@ def runBenchmarkMatchSets(dataset, classReps, useSurface=True):
         d = invariantsDictionary(Q, includeSurface=useSurface)
         da = copy.deepcopy(d)
         da["Alexander polynomial"] = Q.alexanderPolynomial()
-        if Q.isAcyclic() is True or Q.n <= 3:
+        if Q.acyclic() is True or Q.n <= 3:
             totallyProperRep.append(True) 
         else:
             totallyProperRep.append(False)
@@ -502,13 +502,13 @@ def runBenchmarkMatchSets(dataset, classReps, useSurface=True):
             if invariantsWithoutAlex[i]!=d:
                 continue
             if totallyProperRep[i]:
-                if invariantsWithAlex[i]!=d:
+                if invariantsWithAlex[i]!=da:
                     continue
             optionsWithout.append(i)
-            if not totallyProperRep[i] and invariantsWithAlex[i]!=d:
+            if invariantsWithAlex[i]!=da:
                 continue
             optionsWith.append(i)
-        assert l in optionsWith, f"Dataset and benchmark disagree on {Q.matrix}"
+        assert l in optionsWith, f"Dataset and benchmark disagree on {Q.matrix}, expected {l} in {optionsWith}"
         if len(optionsWithout)==1:
             correctWith+=1
             correctWithout+=1
