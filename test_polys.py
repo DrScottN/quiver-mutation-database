@@ -83,6 +83,14 @@ class PolynomialTestCase(unittest.TestCase):
         assert self.poly1.coeffDict == {(0,):1, (2,):1, (4,):1}, f"incorrect coefficient dict {self.poly1.coeffDict} vs {str(self.poly1)}"
         assert self.poly2.coeffDict == {(5,):1}, f"incorrect coeff dictionary {self.poly2.coeffDict} vs {str(self.poly2)}"
 
+    def testTrueDiv(self):
+        assert self.poly1/self.poly1 == 1
+        assert self.poly1**3 / self.poly1 == self.poly1**2
+        assert self.poly1*self.poly2*self.poly3 / (self.poly1*self.poly3) == self.poly2
+        assert (self.poly2*3)/3 == self.poly2
+        assert self.poly2*(self.poly1 + self.poly3) / self.poly2 == (self.poly1 + self.poly3)
+        assert polynomial([0])/self.poly1 == 0
+
 class PolynomialVarnamesTestCase(unittest.TestCase):
     def setUp(self):
         self.oney = polynomial([1], ('y',))

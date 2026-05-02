@@ -186,8 +186,29 @@ class polynomial():
 
         a = other // 2
         b = other - a # will be >= a
-
+        #print(self, a, b)
         return pow(self, a)*pow(self, b) # This should be a faster exponentiation
+
+    def __truediv__(self, other):
+        """ Exact division of self by other """
+        if other == 0:
+            Exception("Division by 0")
+        if self.numVars > 1 or (isinstance(other, polynomial) and other.numVars > 1):
+            Exception("Unsupported: divide with multivariate polynomial.")
+        if self==0:
+            return 0
+        if isinstance(other ,int):
+            otherLead = (other, 0)
+        else:
+            otherLead = [x for x in other.coefficients if x[1]==other.totalDegree][0]
+        selfLead = [x for x in self.coefficients if x[1]==self.totalDegree][0]
+        if otherLead[1] > selfLead[1]:
+            Exception("not exact division")
+        if selfLead[0] % otherLead[0] != 0:
+            Exception("Not exact division")
+        div = (selfLead[0]//otherLead[0])*(polynomial([0,1], variables=self.variables)**(self.totalDegree - otherLead[1]))
+        #print(self, " ", other, "div:", div)
+        return div + (self - div*other)/other
            
     def eval(self, values):
         # Evalutes the polynomial at variables = values
