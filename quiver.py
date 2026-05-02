@@ -493,6 +493,30 @@ class Quiver():
         return len(V000).bit_length() - 1
 
 
+def bariessDet(M):
+    """ Takes a matrix (2d np array) with integer or polynomial entries and computes the determinant via the Bariess algorithm."""
+    # Based on https://github.com/abareiss/bareiss-algorithm/blob/main/bareissalgorithm.py and https://en.wikipedia.org/wiki/Bareiss_algorithm
+    n = M.shape[0]
+    assert M.shape == (n,n), "must be square matrix"
+    M00 = 1
+    M = copy.deepcopy(M)
+    sign = 1
+    for k in range(n-1):
+        if M[k,k] == 0:
+            for r in range(k+1, n):
+                if M[r,k] !=0:
+                    M[[r,k]] = M[[k,r]]
+                    sign = -1*sign
+                elif r ==n-1:
+                    return 0 #0 row
+        for i in range(k+1,n):
+            for j in range(k+1, n):
+                if k==0: 
+                    M[i,j] = (M[i,j]*M[k,k] - M[i,k]*M[k,j])
+                else: 
+                    M[i,j] = (M[i,j]*M[k,k] - M[i,k]*M[k,j])/(M[k-1,k-1])
+            M[i,k] = 0
+    return sign*M[n-1,n-1]
 
 
 def eigenvalues(M):

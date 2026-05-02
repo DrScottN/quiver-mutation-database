@@ -1138,7 +1138,7 @@ class TestLinAlg(unittest.TestCase):
         self.quiver = Quiver(np.array([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
         self.M = np.array([[2,0],[0,3]])
         self.N = np.array([[2,-1],[-2,2]])
-        self.vortex = Quiver(np.array([[0,1,2,3],[-1,0,2,-2],[-2,-2,0,3],[-3,2,3,0]]))
+        self.vortex = Quiver([[0,1,2,3],[-1,0,2,-2],[-2,-2,0,3],[-3,2,-3,0]])
 
     def testEign(self):
         np.testing.assert_almost_equal(eigenvalues(self.quiver.matrix), np.array([0+3*np.emath.sqrt(-3.), 0-3*np.emath.sqrt(-3.), 0, 0]))
@@ -1151,6 +1151,19 @@ class TestLinAlg(unittest.TestCase):
         assert 2 == matrixRank(self.M)
         assert 0 == matrixRank(isolatedQuiver(4).matrix)
         assert 4 == matrixRank(self.vortex.matrix)
+
+    def testDet(self):
+        assert bariessDet(self.M) == 6
+        assert bariessDet(self.N) == 2
+        assert bariessDet(self.vortex.matrix) == (3+4+6)**2, f"incorrect det {bariessDet(self.vortex.matrix)}"
+        assert bariessDet(self.quiver.matrix) == 0
+    
+    def testPolyDet(self):
+        assert bariessDet(np.vectorize(lambda x : polynomial.polynomial([0,1])*x)(self.M) + self.M) == (polynomial.polynomial([1,1])**2)*6
+        assert bariessDet(np.vectorize(lambda x : polynomial.polynomial([0,1])*x)(self.N) + self.M) == polynomial.polynomial([6, 10, 2])
+        U = self.quiver.Umatrix()
+        assert bariessDet(np.vectorize(lambda x : polynomial.polynomial([0,1])*x)(U) - np.transpose(U)) == self.quiver.alexanderPolynomial()
+
 
 class IsomorphismClassTests(unittest.TestCase):
     def setUp(self):
