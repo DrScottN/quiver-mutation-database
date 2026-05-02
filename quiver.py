@@ -855,7 +855,6 @@ class mutationClass():
         self.BRank = matrixRank(self.initialQ.matrix)
         self.alexanderPolynomial = self.initialQ.alexanderPolynomial()
         self.casalsDeterminant = self.initialQ.casalsDeterminant()
-        self.sevensCongruence = self.initialQ.sevenCongruence()
 
         if self.initialQ.acyclic():
             self.mutationAcyclic = True
@@ -1044,7 +1043,7 @@ class mutationClass():
         self.totallyProper = self.totallyProper if self.totallyProper is not Unknown else other.totallyProper
         self.mutationComplete = self.mutationComplete if self.mutationComplete is not Unknown else other.mutationComplete
         self.mutationCyclicSubquiver = self.mutationCyclicSubquiver if self.mutationCyclicSubquiver is not Unknown else other.mutationCyclicSubquiver
-        # handled by init: self.mutationConnected, determinant, gcdVector, BRank, alexanderPolynomial, casalsDeterminant, sevensCongruence, 
+        # handled by init: self.mutationConnected, determinant, gcdVector, BRank, alexanderPolynomial, casalsDeterminant,
 
     def _consistentProperties(self, other):
         """check if self and other might intersect/union. helper function to skip pointless intersections/unions."""
@@ -1053,7 +1052,6 @@ class mutationClass():
         if self.gcdVector != other.gcdVector: return False
         if self.BRank != other.BRank: return False
         if self.casalsDeterminant != other.casalsDeterminant: return False
-        if self.sevensCongruence != other.sevensCongruence: return False
         #doesn't help: if not consistent_ternary(self.finite, other.finite): return False
         return True
 
@@ -1129,7 +1127,6 @@ class mutationClass():
         data.append(encoding(self.gcdVector))
         data.append(encoding(self.BRank))
         data.append(encoding(self.casalsDeterminant))
-        data.append(encoding(self.sevensCongruence))
 
         data.append(encoding(self.hasMutationCycle))
         data.append(encoding(self.leastEdges))

@@ -270,13 +270,6 @@ class QuiverMutation4vertTestCase(unittest.TestCase):
             assert self.vortex_quiver.mutate(i).casalsDeterminant()==0
             assert self.A4.mutate(i).casalsDeterminant()==1
 
-    def testSeven(self):
-        for i in range(self.quiver.n):
-            assert self.A4.sevenCongruence()==self.A4.mutate(i).sevenCongruence()
-            assert self.quiver.sevenCongruence()==self.quiver.mutate(i).sevenCongruence()
-            assert self.vortex_quiver.sevenCongruence()==self.vortex_quiver.mutate(i).sevenCongruence()
-            assert self.finiteQuiver.sevenCongruence()==self.finiteQuiver.mutate(i).sevenCongruence()
-
     def testVortex(self):
         assert self.A4.vortexFree()
         assert not self.A4.vortex()
@@ -938,14 +931,6 @@ class updateMutationClassTests(unittest.TestCase):
         c = self.vortexClass.casalsDeterminant
         for Q in self.vortexClass.vertices:
             assert c == Q.casalsDeterminant()
-
-    def testSevenUnal(self):
-        s = self.A2Class.sevensCongruence
-        for Q in self.A2Class.vertices:
-            assert s == Q.sevenCongruence()
-        s = self.bigClass.sevensCongruence
-        for Q in self.bigClass.vertices:
-            assert s == Q.sevenCongruence()
 
     def testAgreement(self):
         assert not self.markovClass.agrees(self.isolatedClass)

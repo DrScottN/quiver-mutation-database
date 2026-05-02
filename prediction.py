@@ -11,7 +11,6 @@ def invariantsDictionary(Q, includeSurface=True):
     invs["connected"] = Q.connected()
     invs["B rank"] = matrixRank(Q.matrix)
     invs["Casal's Det"] = Q.casalsDeterminant()
-    invs["Seven's Congruence"] = Q.sevenCongruence()
     invs["gcd"] = Q.gcdVector() 
     if includeSurface: invs["surf quiver"] = bool(surfaceQuiver(Q))
     #note, block decomp is not an invariant but being surface type is
