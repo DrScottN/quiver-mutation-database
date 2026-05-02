@@ -1106,13 +1106,44 @@ class mutationClass():
         return True
         
         
+    def headerForLabels(self):
+        """
+        Static method which generates the titles for the fields output by 'labels()'
+        """
+        headers = []
+        headers.append("mutation acyclic")
+        headers.append("mutation abundant")
+        headers.append("mutation complete")
+        headers.append("mutation connected")
+        headers.append("mutation equivalent to a quiver with a mutation-cyclic 3-vertex subquiver")
+        headers.append("mutation finite")
+        headers.append("finite forkless part")
+        headers.append("finite preforkless part")
+        headers.append("surface quiver")
+        headers.append("mutation equivalent to a quiver with a vortex subquiver")
+
+        headers.append("totally proper")
+        headers.append("Alexander polynomial")
+
+        headers.append("number of vertices")
+        headers.append("determinant of exchange matrix")
+        headers.append("gcd vector")
+        headers.append("rank of exchange matrix")
+        headers.append("determinant of companion modulo 4")
+
+        headers.append("mutation cycle in class")
+        headers.append("minimum number of arrows in class")
+        
+        return headers
+        
+
     def labels(self):
         """
-        generate tab seperated string of invariant data associated to this class
+        generate list of invariant data (converted to string) associated to this class
         """
         def encoding(T):
             if T is Unknown:
-                return 'U'
+                return 'NULL'
             if T is True:
                 return 'T'
             if T is False:
@@ -1125,9 +1156,9 @@ class mutationClass():
         data.append(encoding(self.mutationComplete))
         data.append(encoding(self.mutationConnected))
         data.append(encoding(self.mutationCyclicSubquiver))
-        data.append(encoding(self.mutationFiniteClasses))
-        data.append(encoding(self.mutationFiniteFPClasses))
-        data.append(encoding(self.mutationFinitePFPClasses))
+        data.append(encoding(self.finite))
+        data.append(encoding(self.finiteFP))
+        data.append(encoding(self.finitePFP))
         data.append(encoding(self.isSurfaceQuiver))
         data.append(encoding(self.hasVortex))
 
@@ -1142,7 +1173,7 @@ class mutationClass():
 
         data.append(encoding(self.hasMutationCycle))
         data.append(encoding(self.leastEdges))
-        return "\t".join(data)
+        return data
         
 
     def emptyIntersection(self,other):

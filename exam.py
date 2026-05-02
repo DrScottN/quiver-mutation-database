@@ -59,7 +59,10 @@ def main():
     # ... and uniform guessing: 484.0 (100.0%)  #(All acyclic, so all use Alexander)
     # Using Alexander Polynomials for the cyclic examples: 484 (100.0%)
     # ... and uniform guessing: 484.0 (100.0%)
-    # Reported: 
+    # Reported: 93%
+
+    # MLMA: classifying Mutation acyclic or not for 4-vertex quivers with small weights
+    #todo
 
 if __name__ == "__main__":
     main()
