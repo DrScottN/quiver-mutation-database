@@ -1,0 +1,42 @@
+################################################################################
+Generating low weight quivers with 5 vertices and weights at most 2:
+################################################################################
+9765625 low weight quivers generated. Removing disconnected quivers:
+9684224 connected quivers remaining. Removing Acyclic quivers:
+6665984 quivers containing a cycle remaining. Removing quivers that contain a mutation-cyclic 3-cycle:
+5314110 quivers that do not have a mutation-cyclic 3-cycle remaining. Removing quivers that have a vortex:
+3415910 non-vortices remaining. Removing the exceptional quivers:
+3415910 quivers remaining. Reducing by isomorphism:
+28863 quivers to test for mutation-acyclicity remaining.
+################################################################################
+Testing remaining by mutating up to 5 times.
+################################################################################
+Total Quivers : 9765625
+Connected : 9684224
+Disconnected : 81401
+Cyclic : 6665984
+Acyclic : 3018240
+Does Not Contain Mutation-cyclic Three Cycle : 5314110
+Contains Mutation-cyclic Three Cycle : 1351874
+Vortex-free : 3415910
+Contains a Vortex : 1898200
+Non-special Quivers : 3415910
+Special Quivers : 0
+Isomorphism Classes : 28863
+Mutation-Acyclic : 10855
+Mutation-equivalent to a Quiver Containing a Mutation-cyclic Three Cycle : 2039
+Mutation-Finite : 48
+Mutation-equivalent to a Quiver Containing a Vortex : 15363
+Mutation-Finite Forkless Part : 0
+Mutation-Finite Pre-forkless Part : 0
+Emperically Mutation-Cyclic : 558
+################################################################################
+Testing the Empirically Cyclic:
+################################################################################
+There are 296 many mutation classes without isomorphism
+There are 103 many mutation classes with isomorphism
+Number of distinct determinants:  1
+################################################################################
+Program took 20986.502613067627 seconds to run
+################################################################################
+
