@@ -365,7 +365,7 @@ def runBenchmarkAcyclicLocal(dataset, useExhaustive=False):
     print(f"*Unknown->True: {correct+U_T_correct} ({100*(correct+U_T_correct)/D}%)")
     print(f" Unknown->False: {correct+U_F_correct} ({100*(correct+U_F_correct)/D}%)")
     
-def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, train=None, seed=1052026)
+def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, train=None, seed=1052026):
     """
     run Benchmark against dataset using optional training data.
     If no training data is specified, randomly selects ~5% from the dataset using seed.
@@ -376,9 +376,6 @@ def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, train=None, seed=105
     dataset_copy = list(dataset) #could use itertool.tee(dataset, k) and run in parallel for memory savings
     D = len(dataset_copy)
 
-    correct=0
-    U_T_correct=0
-    U_F_correct=0
     # benchmark 2: with training data.
     print("Comparing against a train set.")
     if train is None:
@@ -413,6 +410,8 @@ def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, train=None, seed=105
         print("The sets of invariants are mutually distinct.")
     print()
 
+    #correct from local tests (stays 0 if not useLocal)
+    correct=0
     #attempt to label the unlabeled with the invariants
     correct_inv_with_cyclic_Alexander = 0
     correct_inv_without_cyclic_Alexander = 0
@@ -420,7 +419,11 @@ def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, train=None, seed=105
     undetermined_without_cyclic_Alexander = [0,0]
     for Q,l in dataset_copy:
         if useLocal:
-            
+            r = mutationAcyclicLocal(Q)
+            if r is not Unknown:
+                assert r == l, f"Dataset and benchmark disagree on {Q.matrix}."
+                correct += 1
+                continue
         d = invariantsDictionary(Q, includeSurface=useSurface)
         d["Alexander polynomial"] = Q.alexanderPolynomial()
         #match if invariants are in acyclic, in cyclic (without alexander considered), and in cyclic with alexander considered
@@ -452,13 +455,13 @@ def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, train=None, seed=105
                 assert False, "Implementation error in heuristic."
 
     print("Ignoring Alexander Polynomial for cyclic examples:")
-    c = correct_inv_without_cyclic_Alexander
+    c = correct + correct_inv_without_cyclic_Alexander
     print(f" Unknown->incorrect: {c} ({100*(c)/D}%)")
     print(f"*Unknown->True: {c+undetermined_without_cyclic_Alexander[True]} ({100*(c+undetermined_without_cyclic_Alexander[True])/D}%)")
     print(f" Unknown->False: {c+undetermined_without_cyclic_Alexander[False]} ({100*(c+undetermined_without_cyclic_Alexander[False])/D}%)")
     
     print("Using Alexander Polynomials for the cyclic examples:")
-    c = correct_inv_with_cyclic_Alexander
+    c = correct + correct_inv_with_cyclic_Alexander
     print(f" Unknown->incorrect: {c} ({100*(c)/D}%)")
     print(f" Unknown->True: {c+undetermined_with_cyclic_Alexander[True]} ({100*(c+undetermined_with_cyclic_Alexander[True])/D}%)")
     print(f" Unknown->False: {c+undetermined_with_cyclic_Alexander[False]} ({100*(c+undetermined_with_cyclic_Alexander[False])/D}%)")
