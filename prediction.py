@@ -365,7 +365,7 @@ def runBenchmarkAcyclicLocal(dataset, useExhaustive=False):
     print(f"*Unknown->True: {correct+U_T_correct} ({100*(correct+U_T_correct)/D}%)")
     print(f" Unknown->False: {correct+U_F_correct} ({100*(correct+U_F_correct)/D}%)")
     
-def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, train=None, seed=1052026):
+def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, useSurface=True, train=None, seed=1052026):
     """
     run Benchmark against dataset using optional training data.
     If no training data is specified, randomly selects ~5% from the dataset using seed.
@@ -466,4 +466,66 @@ def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, train=None, seed=105
     print(f" Unknown->True: {c+undetermined_with_cyclic_Alexander[True]} ({100*(c+undetermined_with_cyclic_Alexander[True])/D}%)")
     print(f" Unknown->False: {c+undetermined_with_cyclic_Alexander[False]} ({100*(c+undetermined_with_cyclic_Alexander[False])/D}%)")
 
+def runBenchmarkMatchSets(dataset, classReps, useSurface=True):
+    """ 
+    For each quiver in classReps, create a set of invariants and match the quivers in dataset accordingly.
+    dataset has tuples of quivers and labels, indicating the index of the class the quiver is from.
+    runs both with and without the alexander polynomial for (possibly mutation cyclic) quivers.
+    The alexander polynomial of an acyclic or 3-vert classRep is used for both cases.
+    """
+    D=len(dataset)
+    invariantsWithAlex = []
+    invariantsWithoutAlex = []
+    totallyProperRep = []
+    for Q in classReps:
+        d = invariantsDictionary(Q, includeSurface=useSurface)
+        da = copy.deepcopy(d)
+        da["Alexander polynomial"] = Q.alexanderPolynomial()
+        if Q.isAcyclic() is True or Q.n <= 3:
+            totallyProperRep.append(True) 
+        else:
+            totallyProperRep.append(False)
+        invariantsWithoutAlex.append(d)
+        invariantsWithAlex.append(da)
+
+    correctWithout = 0
+    correctWith = 0
+    guessWithout = 0.0
+    guessWith = 0.0
+    for Q,l in dataset:
+        d = invariantsDictionary(Q, includeSurface=useSurface)
+        da = copy.deepcopy(d)
+        da["Alexander polynomial"] = Q.alexanderPolynomial()
+        optionsWithout = []
+        optionsWith = []
+        for i in range(len(classReps)):
+            if invariantsWithoutAlex[i]!=d:
+                continue
+            if totallyProperRep[i]:
+                if invariantsWithAlex[i]!=d:
+                    continue
+            optionsWithout.append(i)
+            if not totallyProperRep[i] and invariantsWithAlex[i]!=d:
+                continue
+            optionsWith.append(i)
+        assert l in optionsWith, f"Dataset and benchmark disagree on {Q.matrix}"
+        if len(optionsWithout)==1:
+            correctWith+=1
+            correctWithout+=1
+            continue
+        else:
+            guessWithout += 1/len(optionsWithout)
+        if len(optionsWith)==1:
+            correctWith+=1
+            continue
+        else:
+            guessWith += 1/len(optionsWith)
+
+    print(f"Ignoring Alexander Polynomial for non-totally-proper reps: {correctWithout} ({100*(correctWithout)/D}%)")
+    print(f"... and uniform guessing: {correctWithout + guessWithout} ({100*(correctWithout + guessWithout)/D}%)")
     
+    print(f"Using Alexander Polynomials for the cyclic examples: {correctWith} ({100*(correctWith)/D}%)")
+    print(f"... and uniform guessing: {correctWith + guessWith} ({100*(correctWith + guessWith)/D}%)")
+    
+
+
