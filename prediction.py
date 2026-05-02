@@ -507,7 +507,7 @@ def runBenchmarkMatchSets(dataset, classReps, useSurface=True):
             if invariantsWithAlex[i]!=da:
                 continue
             optionsWith.append(i)
-        assert l in optionsWith, f"Dataset and benchmark disagree on {Q.matrix}, expected {l} in {optionsWith}"
+        assert l in optionsWithout, f"Dataset and benchmark disagree on {Q.matrix}, expected {l} in {optionsWithout}"
         if len(optionsWithout)==1:
             correctWith+=1
             correctWithout+=1
@@ -517,6 +517,9 @@ def runBenchmarkMatchSets(dataset, classReps, useSurface=True):
         if len(optionsWith)==1:
             correctWith+=1
             continue
+        if len(optionsWith)==0:
+            # reaching this branch implies we had multiple to guess with optionsWith; use the same guess.
+            guessWith += 1/len(optionsWithout)
         else:
             guessWith += 1/len(optionsWith)
 
