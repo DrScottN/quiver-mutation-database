@@ -699,6 +699,30 @@ class MutationClassInitTests(unittest.TestCase):
     def testBRankInit(self):
         for i in range(len(self.classes)):
             assert self.classes[i].BRank == self.mat_ranks[i], f"Incorrect matrix rank {i}"
+    
+    def testHeaderLabels(self):
+        assert len(headerForLabels()) == 1+len(self.classes[0].labels())
+
+    def testDatalabelsRecovery(self):
+        h = headerForLabels()
+        for i in range(len(self.classes)):
+            L = [str(self.classes[i].initialQ.matrix.flatten())] + self.classes[i].labels()
+            d = dict()
+            for j in range(len(L)):
+                d[h[j]] = L[j]
+            newD = parseMuClassHeaders(d)
+            assert newD["quiver exchange matrix"] == self.classes[i].initialQ, f"encoding disagrees {i}"
+            assert newD["mutation acyclic"] == self.classes[i].mutationAcyclic, f"encoding disagrees {i}"
+            assert newD["mutation abundant"] == self.classes[i].mutationAbundant, f"encoding disagrees {i}"
+            assert newD["mutation connected"] == self.classes[i].mutationConnected, f"encoding disagrees {i}, got {newD["mutation connected"]} expected {self.classes[i].mutationConnected}"
+            assert newD["surface quiver"] == self.classes[i].isSurfaceQuiver, f"encoding disagrees {i}"
+            assert newD["totally proper"] == self.classes[i].totallyProper, f"encoding disagrees {i}"
+            assert newD["Alexander polynomial"] == self.classes[i].alexanderPolynomial, f"encoding disagrees {i}"
+            assert newD["number of vertices"] == self.classes[i].initialQ.n, f"encoding disagrees {i}"
+            assert newD["gcd vector"] == self.classes[i].gcdVector, f"encoding disagrees {i}"
+            
+
+
 
     def testEq(self):
         assert self.classes[0] != self.classes[1]

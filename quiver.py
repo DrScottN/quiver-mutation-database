@@ -834,7 +834,7 @@ class mutationClass():
         """
         if Q is None:
             if vertices is None or edges is None:
-                raise Exception("No vertices or edges given. Try again")
+                raise Exception("No vertices or edges given.")
 
             self.initializationFromVerticesAndEdges(vertices, edges)
             self.vertices.sort()
@@ -1104,38 +1104,6 @@ class mutationClass():
         if not consistentTernary(self.finitePFP, other.finitePFP):
             False
         return True
-        
-        
-    def headerForLabels(self):
-        """
-        Static method which generates the titles for the fields output by 'labels()'
-        """
-        headers = []
-        headers.append("mutation acyclic")
-        headers.append("mutation abundant")
-        headers.append("mutation complete")
-        headers.append("mutation connected")
-        headers.append("mutation equivalent to a quiver with a mutation-cyclic 3-vertex subquiver")
-        headers.append("mutation finite")
-        headers.append("finite forkless part")
-        headers.append("finite preforkless part")
-        headers.append("surface quiver")
-        headers.append("mutation equivalent to a quiver with a vortex subquiver")
-
-        headers.append("totally proper")
-        headers.append("Alexander polynomial")
-
-        headers.append("number of vertices")
-        headers.append("determinant of exchange matrix")
-        headers.append("gcd vector")
-        headers.append("rank of exchange matrix")
-        headers.append("determinant of companion modulo 4")
-
-        headers.append("mutation cycle in class")
-        headers.append("minimum number of arrows in class")
-        
-        return headers
-        
 
     def labels(self):
         """
@@ -1144,10 +1112,15 @@ class mutationClass():
         def encoding(T):
             if T is Unknown:
                 return 'NULL'
-            if T is True:
+            if isinstance(T, bool) and T is True:
                 return 'T'
-            if T is False:
+            if isinstance(T, bool) and T is False:
                 return 'F'
+            if isinstance(T, polynomial.polynomial):
+                coefficients = T.coefficientList()
+                return "[" + " ".join([str(x) for x in coefficients]) + "]"
+            if isinstance(T, tuple):
+                return "[" + " ".join([str(x) for x in T]) + "]"
             else:
                 return str(T)
         data = []
@@ -1174,6 +1147,10 @@ class mutationClass():
         data.append(encoding(self.hasMutationCycle))
         data.append(encoding(self.leastEdges))
         return data
+
+    def dataIterator(self):
+        for Q in self.vertices:
+            yield [str(Q.matrix.flatten())] + self.labels()
         
 
     def emptyIntersection(self,other):
@@ -1409,8 +1386,118 @@ def isomorphismRep(Q):
     return isomorphicQuiver(Q, bestp)
     
 
-        
+def headerForLabels():
+    """
+    Method which generates the titles for the fields output by 'labels()'
+    """
+    headers = ["quiver exchange matrix"]
+    headers.append("mutation acyclic")
+    headers.append("mutation abundant")
+    headers.append("mutation complete")
+    headers.append("mutation connected")
+    headers.append("mutation equivalent to a quiver with a mutation-cyclic 3-vertex subquiver")
+    headers.append("mutation finite")
+    headers.append("finite forkless part")
+    headers.append("finite preforkless part")
+    headers.append("surface quiver")
+    headers.append("mutation equivalent to a quiver with a vortex subquiver")
+
+    headers.append("totally proper")
+    headers.append("Alexander polynomial")
+
+    headers.append("number of vertices")
+    headers.append("determinant of exchange matrix")
+    headers.append("gcd vector")
+    headers.append("rank of exchange matrix")
+    headers.append("determinant of companion modulo 4")
+
+    headers.append("mutation cycle in class")
+    headers.append("minimum number of arrows in class")
     
+    return headers
+    
+def parseSquareMatrixToQuiver(arrayStr):
+    v = [int(x) for x in arrayStr[1:-1].split(' ')] #remove []'s, split by spaces, convert to python ints
+    n = int(math.sqrt(len(v)))
+    return Quiver(np.array(v).reshape((n,n)))
+
+def parseTernary(ternaryString):
+    if ternaryString == "T":
+        return True
+    elif ternaryString == "F":
+        return False
+    elif ternaryString == "NULL":
+        return Unknown
+    raise Exception(f"{ternaryString} is not ternary string")
+
+def parsePolynomial(polynomialString):
+    # We encode one var polys as np arrays of their coefficients
+    coeffs = [int(x) for x in polynomialString[1:-1].split(' ')]
+    return polynomial.polynomial(coeffs)
+
+def parseMuClassHeaders(dictionary):
+    """ 
+    Take a dictionary of strings and parse those from headerForLabels() into our classes.
+    """
+    newDict = copy.deepcopy(dictionary)
+    for key, value in dictionary.items():
+        match key:
+            case "quiver exchange matrix":
+                newDict[key] = parseSquareMatrixToQuiver(value)
+            case "representative exchange matrix": #from generation
+                newDict[key] = parseSquareMatrixToQuiver(value)
+            case "class index": #from generation
+                newDict[key] = int(value)
+            case "mutation acyclic":
+                newDict[key] = parseTernary(value)
+            case "mutation abundant":
+                newDict[key] = parseTernary(value)
+            case "mutation complete":
+                newDict[key] = parseTernary(value)
+            case "mutation connected":
+                newDict[key] = parseTernary(value)
+            case "mutation equivalent to a quiver with a mutation-cyclic 3-vertex subquiver":
+                newDict[key] = parseTernary(value)
+            case "mutation finite":
+                newDict[key] = parseTernary(value)
+            case "finite forkless part":
+                newDict[key] = parseTernary(value)
+            case "finite preforkless part":
+                newDict[key] = parseTernary(value)
+            case "surface quiver":
+                newDict[key] = parseTernary(value)
+            case "mutation equivalent to a quiver with a vortex subquiver":
+                newDict[key] = parseTernary(value)
+            case "totally proper":
+                newDict[key] = parseTernary(value)
+            case "Alexander polynomial":
+                if value == "F":
+                    newDict[key] = False
+                else:
+                    newDict[key] = parsePolynomial(value)
+            case "number of vertices":
+                newDict[key] = int(value)
+            case "determinant of exchange matrix":
+                newDict[key] = int(value)
+            case "gcd vector":
+                newDict[key] = tuple([int(x) for x in value[1:-1].split(' ')])
+            case "rank of exchange matrix":
+                newDict[key] = int(value)
+            case "determinant of companion modulo 4":
+                newDict[key] = int(value)
+            case "mutation cycle in class":
+                newDict[key] = parseTernary(value)
+            case "minimum number of arrows in class":
+                newDict[key] = int(value)
+    return newDict
+
+
+
+            
+
+            
+
+
 
 
 

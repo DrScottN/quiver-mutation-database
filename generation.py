@@ -1,8 +1,31 @@
 from quiver import *
 import sys
 import time
+import csv
 
 LINEBREAK = 80*"#"
+
+def writeMutationClasses(muClassList, filename, indexLabel=False, initialQLabel=False):
+    """ Write the quivers from the given mutation class with their properties. 
+    If indexLabel is True, include an entry for the mutation class itself (its index in the list muClassList)
+    If initialQLabel is True, include the matrix of the first quiver is possibleReps with each entry. """
+    with open(filename, 'w', newline='') as f:
+        writer = csv.writer(f)
+        header = headerForLabels()
+        if indexLabel:
+            header.append("Class index")
+        if initialQLabel:
+            header.append("Representative exchange matrix")
+        writer.writerow()
+        for i,C in enumerate(muClassList):
+            for Qr in C.dataIterator():
+                if indexLabel:
+                    Qr.append(str(i))
+                if initialQLabel:
+                    Qr.append(str(C.possibleReps[0].matrix.flatten()))
+                writer.writerow(Qr)
+
+
 
 def reduceByIsomorphism(quivers):
     """
