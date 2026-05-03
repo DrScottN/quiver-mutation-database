@@ -47,8 +47,6 @@ def readCSVDatabase(filename, header=True):
         return results
         
 
-            
-
 
 def reduceByIsomorphism(quivers):
     """
@@ -378,7 +376,6 @@ def generateMulticlassDataset(classReps, depth, labels=False, forklessDepth=3):
                 yield (Qp, labelsR) if labels else (Qp, l)
             if d < depth:
                 todo.append((Qp,l,i,d+1))
-    return
 
 def main(n=4, maxWeight=2, mutations=5):
     perms = permutations(n)
