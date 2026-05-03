@@ -45,8 +45,6 @@ def readCSVDatabase(filename, header=True):
         for row in reader:
             results.append(parseMuClassHeaders(row))
         return results
-        
-
 
 def reduceByIsomorphism(quivers):
     """
