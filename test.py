@@ -799,6 +799,8 @@ class updateMutationClassTests(unittest.TestCase):
         self.allForkClass = mutationClass(Quiver([[0,100,90,-12],[-100,0,10,13],[-90,-10,0,12],[12,-13,-12,0]]), perms=permutations(4))
         self.allForkClass.update()
         self.allForkClassResult=self.allForkClass.update()
+
+        self.classes = [self.A2Class, self.markovClass, self.A3Class, self.A3ClassDifferent, self.bigClass, self.vortexClass, self.allForkClass]
         
     
     def testResults(self):
@@ -971,6 +973,25 @@ class updateMutationClassTests(unittest.TestCase):
         assert self.A2Class.hasMutationCycle
         assert self.vortexClass.hasMutationCycle
         assert self.allForkClass.hasMutationCycle is False
+
+    
+    def testDatalabelsRecovery(self):
+        h = headerForLabels()
+        for i in range(len(self.classes)):
+            L = [str(self.classes[i].initialQ.matrix.flatten())] + self.classes[i].labels()
+            d = dict()
+            for j in range(len(L)):
+                d[h[j]] = L[j]
+            newD = parseMuClassHeaders(d)
+            assert newD["quiver exchange matrix"] == self.classes[i].initialQ, f"encoding disagrees {i}"
+            assert newD["mutation acyclic"] == self.classes[i].mutationAcyclic, f"encoding disagrees {i}"
+            assert newD["mutation abundant"] == self.classes[i].mutationAbundant, f"encoding disagrees {i}"
+            assert newD["mutation connected"] == self.classes[i].mutationConnected, f"encoding disagrees {i}, got {newD["mutation connected"]} expected {self.classes[i].mutationConnected}"
+            assert newD["surface quiver"] == self.classes[i].isSurfaceQuiver, f"encoding disagrees {i}"
+            assert newD["totally proper"] == self.classes[i].totallyProper, f"encoding disagrees {i}"
+            assert newD["Alexander polynomial"] == self.classes[i].alexanderPolynomial, f"encoding disagrees {i}"
+            assert newD["number of vertices"] == self.classes[i].initialQ.n, f"encoding disagrees {i}"
+            assert newD["gcd vector"] == self.classes[i].gcdVector, f"encoding disagrees {i}"
 
         
 class SurfaceQuiverTests(unittest.TestCase):
