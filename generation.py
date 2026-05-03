@@ -6,16 +6,18 @@ import csv
 LINEBREAK = 80*"#"
 
 def writeMutationClasses(muClassList, filename, indexLabel=False, initialQLabel=False):
-    """ Write the quivers from the given mutation class with their properties. 
+    """ 
+    Write the quivers from the given mutation class with their properties. 
     If indexLabel is True, include an entry for the mutation class itself (its index in the list muClassList)
-    If initialQLabel is True, include the matrix of the first quiver is possibleReps with each entry. """
+    If initialQLabel is True, include the matrix of the first quiver is possibleReps with each entry. 
+    """
     with open(filename, 'w', newline='') as f:
         writer = csv.writer(f)
         header = headerForLabels()
         if indexLabel:
-            header.append("Class index")
+            header.append("class index")
         if initialQLabel:
-            header.append("Representative exchange matrix")
+            header.append("representative exchange matrix")
         writer.writerow()
         for i,C in enumerate(muClassList):
             for Qr in C.dataIterator():
@@ -25,6 +27,27 @@ def writeMutationClasses(muClassList, filename, indexLabel=False, initialQLabel=
                     Qr.append(str(C.possibleReps[0].matrix.flatten()))
                 writer.writerow(Qr)
 
+def readCSVDatabase(filename, header=True):
+    """ 
+    Iterator over given csv file.
+    If header, treats the first row as dict labels. Automatically parsing any fields which agree with our labels
+     and yield a dicitonary of the results.
+    Otherwise, yield a list from each row, parsing only the first column as a quiver.
+    """
+    results = []
+    with open(filename, 'r', newline='') as f:
+        if header:
+            reader = csv.DictReader(f)
+            parseRow = parseMuClassHeaders
+        else:
+            reader = csv.reader(f)
+            parseRow = lambda r : [parseSquareMatrixToQuiver(r[0])] + r[1:]
+        for row in reader:
+            results.append(parseMuClassHeaders(row))
+        return results
+        
+
+            
 
 
 def reduceByIsomorphism(quivers):
