@@ -203,12 +203,21 @@ class polynomial():
             otherLead = [x for x in other.coefficients if x[1]==other.totalDegree][0]
         selfLead = [x for x in self.coefficients if x[1]==self.totalDegree][0]
         if otherLead[1] > selfLead[1]:
-            Exception("not exact division")
+            raise Exception("not exact division")
         if selfLead[0] % otherLead[0] != 0:
-            Exception("Not exact division")
+            raise Exception("Not exact division")
         div = (selfLead[0]//otherLead[0])*(polynomial([0,1], variables=self.variables)**(self.totalDegree - otherLead[1]))
         #print(self, " ", other, "div:", div)
         return div + (self - div*other)/other
+
+    def coefficientList(self):
+        """ return list of coefficients for 1 variable poly.
+        self is polynomial(self.coefficientList()) """
+        if self.numVars!=1: raise Exception("coefficient List supported only for one variable polys")
+        res = [0]*self.totalDegree
+        for c in self.coefficients:
+            res[c[1]] = c[0]
+        return res
            
     def eval(self, values):
         # Evalutes the polynomial at variables = values

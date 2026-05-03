@@ -91,6 +91,10 @@ class PolynomialTestCase(unittest.TestCase):
         assert self.poly2*(self.poly1 + self.poly3) / self.poly2 == (self.poly1 + self.poly3)
         assert polynomial([0])/self.poly1 == 0
 
+    def testCoeffList(self):
+        for p in [self.poly1, self.poly2, self.poly3, self.poly1+3*self.poly3]:
+            assert polynomial(p.coefficientList()) == p, f"incorrect coefficient list {str(p)} {p.coefficientList}"
+
 class PolynomialVarnamesTestCase(unittest.TestCase):
     def setUp(self):
         self.oney = polynomial([1], ('y',))
