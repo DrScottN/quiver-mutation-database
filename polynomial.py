@@ -214,7 +214,7 @@ class polynomial():
         """ return list of coefficients for 1 variable poly.
         self is polynomial(self.coefficientList()) """
         if self.numVars!=1: raise Exception("coefficient List supported only for one variable polys")
-        res = [0]*self.totalDegree
+        res = [0]*(self.totalDegree+1)
         for c in self.coefficients:
             res[c[1]] = c[0]
         return res
