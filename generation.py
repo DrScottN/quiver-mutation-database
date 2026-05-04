@@ -18,7 +18,7 @@ def writeMutationClasses(muClassList, filename, indexLabel=False, initialQLabel=
             header.append("class index")
         if initialQLabel:
             header.append("representative exchange matrix")
-        writer.writerow()
+        writer.writerow(header)
         for i,C in enumerate(muClassList):
             for Qr in C.dataIterator():
                 if indexLabel:
@@ -46,6 +46,32 @@ def readCSVDatabase(filename, header=True):
             results.append(parseMuClassHeaders(row))
         return results
 
+def lowWeightQuiverIterator(n, maxWeight):
+    """ Iterator for quivers on n vertices with small weights. """
+    for w in itertools.product(range(-maxWeight, maxWeight+1), repeat=int(n*(n-1)/2)):
+        yield Quiver([[(i<j)*w[n*i+j-((i+2)*(i+1)//2)] - (j<i)*w[n*j+i-((j+2)*(j+1)//2)] for j in range(n)] for i in range(n)])
+
+def generateClasses(n, maxWeight, depth):
+    """ 
+    Generates all connected mutation classes with weights at most maxWeight, mutates them to depth, and gets the distinct unions. """
+    classes = []
+    for Q in lowWeightQuiverIterator(n, maxWeight):
+        if not Q.connected:
+            continue
+        CQ = mutationClass(Q, perms=permutations(n))
+        for _d in range(depth):
+            CQ.update()
+        matched=False
+        for i in range(len(classes)): #could keep these sorted and match faster. 
+            if CQ == classes[i]:
+                classes[i] = classes[i].union(CQ)
+                matched=True
+                break
+        if not matched:
+            classes.append(CQ)
+    return classes
+
+        
 def reduceByIsomorphism(quivers):
     """
     Takes in a list of quivers and returns a list of all the distinct quivers up to isomorphism
