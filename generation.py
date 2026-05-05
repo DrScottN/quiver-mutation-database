@@ -43,8 +43,7 @@ def readCSVDatabase(filename, header=True):
             reader = csv.reader(f)
             parseRow = lambda r : [parseSquareMatrixToQuiver(r[0])] + r[1:]
         for row in reader:
-            results.append(parseMuClassHeaders(row))
-        return results
+            yield parseMuClassHeaders(row)
 
 def lowWeightQuiverIterator(n, maxWeight):
     """ Iterator for quivers on n vertices with small weights. """
@@ -53,10 +52,11 @@ def lowWeightQuiverIterator(n, maxWeight):
 
 def generateClasses(n, maxWeight, depth):
     """ 
-    Generates all connected mutation classes with weights at most maxWeight, mutates them to depth, and gets the distinct unions. """
+    Generates all connected mutation classes with weights at most maxWeight, mutates them to depth, and gets the distinct unions. 
+    """
     classes = []
     for Q in lowWeightQuiverIterator(n, maxWeight):
-        if not Q.connected:
+        if not Q.connected():
             continue
         CQ = mutationClass(Q, perms=permutations(n))
         for _d in range(depth):
@@ -64,14 +64,34 @@ def generateClasses(n, maxWeight, depth):
         matched=False
         for i in range(len(classes)): #could keep these sorted and match faster. 
             if CQ == classes[i]:
+                if matched:
+                    classes[matched_index] = classes[matched_index].union(classes[i])
+                    remove.append(i)
+                    continue
                 classes[i] = classes[i].union(CQ)
                 matched=True
+                matched_index=i
+                remove = []
                 break
         if not matched:
             classes.append(CQ)
+        else:
+            for i in remove:
+                del classes[i]
     return classes
 
-        
+def generateClassesWithKnownAcyclicity(n, maxWeight, depth):
+    """ Generates all connected mutation classes labeled with mutation-acyclicity (or not), with weights at most maxWeight, mutates them to depth. """
+    for Q in lowWeightQuiverIterator(n, maxWeight):
+        if not Q.connected():
+            continue
+        CQ = mutationClass(Q, perms=permutations(n))
+        for _d in range(depth):
+            CQ.update()
+        if not (CQ.mutationAcyclic is Unknown):
+            yield CQ
+
+
 def reduceByIsomorphism(quivers):
     """
     Takes in a list of quivers and returns a list of all the distinct quivers up to isomorphism
