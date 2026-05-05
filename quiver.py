@@ -450,7 +450,7 @@ class Quiver():
         """ return the mod-4 determinant of a quasi-cartan companion. This is a mutation invariant. """
         #  see arxiv: 2311.03601
         #  uses slow det formula.
-        A = np.vectorize(abs)(self.matrix)
+        A = np.array(np.vectorize(abs)(self.matrix), dtype=object)
         for i in range(self.n):
             A[i,i] = 2
         return bariessDet(A)%4
@@ -462,7 +462,7 @@ class Quiver():
         #  not a mutation invariant! This is a classification parameter for companions.
         V0 = []
         V000 = []
-        A = np.vectorize(abs)(self.matrix)
+        A = np.array(np.vectorize(abs)(self.matrix), dtype=object)
         for i in range(self.n):
             A[i,i] = 2
         for v in itertools.product([0,1], repeat=self.n):
@@ -486,6 +486,7 @@ def bariessDet(M):
     # Based on https://github.com/abareiss/bareiss-algorithm/blob/main/bareissalgorithm.py and https://en.wikipedia.org/wiki/Bareiss_algorithm
     n = M.shape[0]
     assert M.shape == (n,n), "must be square matrix"
+    assert M.dtype==object, "matrix type must be python 'object'"
     M00 = 1
     M = copy.deepcopy(M)
     sign = 1
