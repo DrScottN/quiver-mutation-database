@@ -453,7 +453,7 @@ class Quiver():
         A = np.array(np.vectorize(abs)(self.matrix), dtype=object)
         for i in range(self.n):
             A[i,i] = 2
-        return bariessDet(A)%4
+        return int(bariessDet(A)%4)
 
     def sevenCongruence(self):
         """ return the 'corank' of A mod 4 up to congruence, via the dimension of a particular space """
