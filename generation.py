@@ -414,10 +414,7 @@ def generateMulticlassDataset(classReps, depth, labels=False, forklessDepth=3):
             if i==p:
                 continue
             Qp = Q.mutate(i)
-            if l: 
-                yield (Qp, labelsQ) if labels else (Qp, l)
-            else: 
-                yield (Qp, labelsR) if labels else (Qp, l)
+            yield (Qp, labels[l]) if labels else (Qp, l)
             if d < depth:
                 todo.append((Qp,l,i,d+1))
 

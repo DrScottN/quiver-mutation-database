@@ -587,7 +587,7 @@ def generateAcyclicsBelowMarkov(markov, n, connected=True):
             continue
         if Q.markov() <= markov:
             #to avoid repeats; this is very slow.
-            if any([any([R < Q for R in isomorphismClass(Rp, permutations(degree)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sinkSet(Q)]):
+            if any([any([R < Q for R in isomorphismClass(Rp, permutations(n)) if (np.tril(R.matrix) >= 0).all()]) for Rp in sinkSet(Q)]):
                 continue
             yield Q
 
@@ -1080,27 +1080,27 @@ class mutationClass():
            return False
 
         if not consistentTernary(self.totallyProper, other.totallyProper):
-            False
+            return False
         if (self.totallyProper | other.totallyProper) is True:
             if self.alexanderPolynomial != other.alexanderPolynomial:
                 return False
 
         if not consistentTernary(self.mutationAcyclic, other.mutationAcyclic):
-            False
+            return False
         if not consistentTernary(self.mutationCyclicSubquiver, other.mutationCyclicSubquiver):
-            False
+            return False
         if not consistentTernary(self.mutationComplete, other.mutationComplete):
-            False
+            return False
         if not consistentTernary(self.isSurfaceQuiver, other.isSurfaceQuiver):
-            False
+            return False
         if not consistentTernary(self.hasVortex, other.hasVortex):
-            False
+            return False
         if not consistentTernary(self.finite, other.finite):
-            False
+            return False
         if not consistentTernary(self.finiteFP, other.finiteFP):
-            False
+            return False
         if not consistentTernary(self.finitePFP, other.finitePFP):
-            False
+            return False
         return True
 
     def labels(self):
