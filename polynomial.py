@@ -176,9 +176,9 @@ class polynomial():
 
     def __pow__(self, other):
         if not isinstance(other, int):
-            Exception("Can only exponentiate a polynomial with an integer")
+            raise Exception("Can only exponentiate a polynomial with an integer")
         elif other < 0:
-            Exception("Can only exponentiate a polynomial with a positive integer")
+            raise Exception("Can only exponentiate a polynomial with a positive integer")
         elif other == 0:
             return 1
         elif other == 1:
@@ -192,9 +192,9 @@ class polynomial():
     def __truediv__(self, other):
         """ Exact division of self by other """
         if other == 0:
-            Exception("Division by 0")
+            raise Exception("Division by 0")
         if self.numVars > 1 or (isinstance(other, polynomial) and other.numVars > 1):
-            Exception("Unsupported: divide with multivariate polynomial.")
+            raise Exception("Unsupported: divide with multivariate polynomial.")
         if self==0:
             return 0
         if isinstance(other ,int):
