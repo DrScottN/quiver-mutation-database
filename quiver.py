@@ -449,10 +449,7 @@ class Quiver():
     def casalsDeterminant(self):
         """ return the mod-4 determinant of a quasi-cartan companion. This is a mutation invariant. """
         #  see arxiv: 2311.03601
-        #  uses slow det formula.
-        A = np.array(np.vectorize(abs)(self.matrix), dtype=object)
-        for i in range(self.n):
-            A[i,i] = 2
+        A = np.array([[2*(i==j)+self.matrix[i,j]*(i<j) + self.matrix[j,i]*(j<i) for j in range(self.n)] for i in range(self.n)], dtype=object)
         return int(bariessDet(A)%4)
 
     def sevenCongruence(self):
