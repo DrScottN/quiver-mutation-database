@@ -503,7 +503,7 @@ def bariessDet(M):
                 if k==0: 
                     M[i,j] = (M[i,j]*M[k,k] - M[i,k]*M[k,j])
                 else: 
-                    M[i,j] = (M[i,j]*M[k,k] - M[i,k]*M[k,j])/(M[k-1,k-1])
+                    M[i,j] = (M[i,j]*M[k,k] - M[i,k]*M[k,j])//(M[k-1,k-1])
             M[i,k] = 0
     return sign*M[n-1,n-1]
 

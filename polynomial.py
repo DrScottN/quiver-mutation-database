@@ -210,6 +210,9 @@ class polynomial():
         #print(self, " ", other, "div:", div)
         return div + (self - div*other)/other
 
+    def __floordiv__(self, other):
+        return self.__truediv__(other)
+
     def coefficientList(self):
         """ return list of coefficients for 1 variable poly.
         self is polynomial(self.coefficientList()) """

@@ -1180,9 +1180,9 @@ class SlowSurfaceTests(unittest.TestCase):
 
 class TestLinAlg(unittest.TestCase):
     def setUp(self):
-        self.quiver = Quiver(np.array([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]]))
-        self.M = np.array([[2,0],[0,3]])
-        self.N = np.array([[2,-1],[-2,2]])
+        self.quiver = Quiver(np.array([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]], dtype=object))
+        self.M = np.array([[2,0],[0,3]], dtype=object)
+        self.N = np.array([[2,-1],[-2,2]], dtype=object)
         self.vortex = Quiver([[0,1,2,3],[-1,0,2,-2],[-2,-2,0,3],[-3,2,-3,0]])
 
     def testEign(self):
