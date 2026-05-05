@@ -78,7 +78,7 @@ class Quiver():
         currently no rule against Vs=[0,0,0], which would give an isolated quiver;
         result is only a subquiver if Vs is a set of distinct elements. 
         """
-        return Quiver([[self.matrix[i,j] for i in Vs] for j in Vs]) 
+        return Quiver([[self.matrix[i,j] for j in Vs] for i in Vs]) 
 
     def subquiverRemoveOneVertex(self, v):
         """ Takes the subquiver by removing the vertex v """
@@ -107,7 +107,7 @@ class Quiver():
             if len(seen) == self.n:
                 return True
 
-        return False #len(seen) == self.n
+        return len(seen) == self.n
     
     def sources(self):
         """ Get the sources in a quiver """
@@ -493,6 +493,7 @@ def bariessDet(M):
                 if M[r,k] !=0:
                     M[[r,k]] = M[[k,r]]
                     sign = -1*sign
+                    break
                 elif r ==n-1:
                     return 0 #0 row
         for i in range(k+1,n):

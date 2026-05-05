@@ -75,7 +75,7 @@ def generateClasses(n, maxWeight, depth):
         if not matched:
             classes.append(CQ)
         else:
-            for i in remove:
+            for i in remove[::-1]:
                 del classes[i]
     return classes
 

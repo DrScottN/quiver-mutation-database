@@ -1183,6 +1183,7 @@ class TestLinAlg(unittest.TestCase):
         self.quiver = Quiver(np.array([[0,3,-3,0],[-3,0,3,0],[3,-3,0,0], [0,0,0,0]], dtype=object))
         self.M = np.array([[2,0],[0,3]], dtype=object)
         self.N = np.array([[2,-1],[-2,2]], dtype=object)
+        self.MM = np.array([[0,1,0],[1,0,0],[0,0,5]], dtype=object)
         self.vortex = Quiver([[0,1,2,3],[-1,0,2,-2],[-2,-2,0,3],[-3,2,-3,0]])
 
     def testEign(self):
@@ -1200,6 +1201,7 @@ class TestLinAlg(unittest.TestCase):
     def testDet(self):
         assert bariessDet(self.M) == 6
         assert bariessDet(self.N) == 2
+        assert bariessDet(self.MM) == -5
         assert bariessDet(self.vortex.matrix) == (3+4+6)**2, f"incorrect det {bariessDet(self.vortex.matrix)}"
         assert bariessDet(self.quiver.matrix) == 0
     
