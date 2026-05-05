@@ -43,7 +43,7 @@ def readCSVDatabase(filename, header=True):
             reader = csv.reader(f)
             parseRow = lambda r : [parseSquareMatrixToQuiver(r[0])] + r[1:]
         for row in reader:
-            yield parseMuClassHeaders(row)
+            yield parseRow(row)
 
 def lowWeightQuiverIterator(n, maxWeight):
     """ Iterator for quivers on n vertices with small weights. """
@@ -72,7 +72,6 @@ def generateClasses(n, maxWeight, depth):
                 matched=True
                 matched_index=i
                 remove = []
-                break
         if not matched:
             classes.append(CQ)
         else:

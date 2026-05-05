@@ -1,3 +1,4 @@
+import math
 
 class polynomial():
     # need to make these deal with multiple variables
@@ -78,9 +79,8 @@ class polynomial():
             if p.totalDegree != q.totalDegree:
                 return False
             
-            for c, k in zip(p.coefficients, q.coefficients):
-                if c != k:
-                    return False
+            if set(p.coefficients) != set(q.coefficients):
+                return False
                 
             return True
         else:
@@ -228,6 +228,6 @@ class polynomial():
         
         for c in self.coefficients:
             #print(f"{s}, {c * (val ** i)}")
-            s += c[0] * sum(values[i] ** j for i, j in enumerate(c[1:]))
+            s += c[0] * math.prod([values[i] ** j for i, j in enumerate(c[1:])])
 
         return s

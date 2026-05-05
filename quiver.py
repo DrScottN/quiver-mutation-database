@@ -221,7 +221,7 @@ class Quiver():
         else false (even if it is a fork with por r)
         """
         for i,j in itertools.combinations([x for x in self.vertices if x != r], 2):
-            if self.matrix[i,j] > 1:
+            if abs(self.matrix[i,j]) > 1:
                 continue
             if self.preForkWithVertices(r, i, j):
                 return True

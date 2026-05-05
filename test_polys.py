@@ -7,15 +7,23 @@ class PolynomialTestCase(unittest.TestCase):
         self.poly1 = polynomial([1,0,1,0,1,0])
         self.poly2 = polynomial([0,0,0,0,0,1])
         self.poly3 = polynomial([1,4,6,4,1])
+        self.poly4 = polynomial([0,1,0,1])
+        self.poly5 = polynomial([0,1,1,0])
+        self.poly6 = polynomial([0,0,1])
 
     def testEval(self):
         assert self.poly1.eval([0])==1
         assert self.poly2.eval([0])==0
         assert self.poly3.eval([0])==1
+        assert self.poly4.eval([0])==0
+        assert self.poly5.eval([0])==0
 
         assert self.poly1.eval([2])==1 + 2**2 + 2**4
         assert self.poly2.eval([2])==2**5
         assert self.poly3.eval([2])==(3)**4
+        assert self.poly6.eval([2])==4
+        assert self.poly5.eval([2])==2+4
+        assert self.poly4.eval([2])==2+8
 
         assert self.poly1.eval([-2])==1 + 2**2 + 2**4
         assert self.poly2.eval([-2])==-2**5
@@ -52,6 +60,19 @@ class PolynomialTestCase(unittest.TestCase):
         assert self.poly3.eval([polynomial([-1,1])]) == polynomial([0,0,0,0,1]), "Incorrectly composes polynomials"
         assert polynomial([0]) == 0, "Incorrectly misses 0 polynomial"
         assert polynomial([(0,0,0),(0,1,1),(0,2,0)], ('x','y')) == 0, "Incorrectly misses 0 polynomial"
+        assert self.poly1 != self.poly4
+        assert self.poly4 != self.poly5
+        assert self.poly5 != self.poly6
+        assert self.poly2 != self.poly6
+        assert self.poly3 != self.poly4
+        assert self.poly6 != self.poly4
+        assert self.poly4 == self.poly4
+        assert self.poly5 == self.poly5
+        assert self.poly6 == self.poly6
+        assert not self.poly4 == self.poly6
+        assert not self.poly5 == self.poly6
+        assert not self.poly4 == self.poly5
+
 
     def testSub(self):
         assert -self.poly1 == polynomial([-1,0,-1,0,-1]), "Incorrectly negates polynomials"
