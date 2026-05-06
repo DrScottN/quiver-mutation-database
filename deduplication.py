@@ -2,6 +2,9 @@ import csv
 import sys
 
 def main(read_filename, write_filename):
+    """
+    Removes duplicated records from our CSV files
+    """
     with open(read_filename, 'r', newline='') as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
