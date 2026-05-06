@@ -62,7 +62,7 @@ def main():
     # Reported: 93%
 
     # MLMA: classifying Mutation acyclic or not for 4-vertex quivers with small weights
-    AllSmall4VertexData = [(r["quiver exchange matrix"], r["mutation acyclic"]) for r in readCSVDatabase("Dedup_4vert2Max5MutationsAcyclicLabeled.csv")]
+    # AllSmall4VertexData = [(r["quiver exchange matrix"], r["mutation acyclic"]) for r in readCSVDatabase("Dedup_4vert2Max5MutationsAcyclicLabeled.csv")]
     #runBenchmarkAcyclicLocal(AllSmall4VertexData)
     #Local tests
     # data balance (a vs c): 123562 vs 106846
@@ -71,7 +71,7 @@ def main():
     # Unknown->False: 115838 (50.27516405680358%)
 
     # The same, using some training data from the dataset at random
-    runBenchmarkAcyclicWithTraining(AllSmall4VertexData)
+    # runBenchmarkAcyclicWithTraining(AllSmall4VertexData)
     # Comparing against a train set.
     # Found 123 distinct cyclic invariants and 205 distinct acyclic invariants.
     # They intersect for 1 values.
@@ -84,6 +84,35 @@ def main():
     # Unknown->incorrect: 230170 (99.89670497552169%)
     # Unknown->True: 230332 (99.9670150342002%)
     # Unknown->False: 230246 (99.92968994132148%)
+
+    def TypeAQuiver(n):
+        B = np.zeros((n,n), dtype=object)
+        for i in range(n-1):
+            B[i,i+1] = 1
+            B[i+1,i] = -1
+        return Quiver(B)
+
+    def TypeDQuiver(n):
+        assert n>=4
+        B = np.zeros((n,n), dtype=object)
+        B[:3,:3] = [[0,0,1],[0,0,1],[-1,-1,0]]
+        B[2:,2:] = TypeAQuiver(n-2).matrix
+        return Quiver(B)
+
+    def TypeEQuiver(n):
+        assert n>=6
+        B = np.zeros((n,n), dtype=object)
+        B[:5,:5] = [[0,1,0,0,0],[-1,0,0,0,1],[0,0,0,1,0],[0,0,-1,0,1],[0,-1,0,-1,0]]
+        B[4:,4:] = TypeAQuiver(n-4).matrix
+        return Quiver(B)
+        
+    #ManyTrees = [TypeAQuiver(n) for n in range(3,9)] + [TypeDQuiver(n) for n in range(4,9)] + [TypeEQuiver(n) for n in range(6,9)]
+    #runBenchmarkMatchSets(list(generateMulticlassDataset(ManyTrees, 2)), ManyTrees, useSurface=False)
+    # not run for n>8 or more mutations, as the alexander polynomial distinguishes all of these. See the thesis of Amanda Shwartz for a proof.
+    # Ignoring Alexander Polynomial for non-totally-proper reps: 3164 (100.0%)
+    # ... and uniform guessing: 3164.0 (100.0%)
+    # Using Alexander Polynomials for the cyclic examples: 3164 (100.0%)
+    # ... and uniform guessing: 3164.0 (100.0%)
 
 
 if __name__ == "__main__":
