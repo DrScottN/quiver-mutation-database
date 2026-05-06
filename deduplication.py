@@ -3,7 +3,6 @@ import sys
 from generation import parseMuClassHeaders
 
 def main(read_filename, write_filename):
-    records = []
     with open(read_filename, 'r', newline='') as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
