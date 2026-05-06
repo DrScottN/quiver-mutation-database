@@ -341,8 +341,8 @@ def runBenchmarkAcyclicLocal(dataset, useExhaustive=False):
     correct=0
     U_T_correct=0
     U_F_correct=0
-    acyclic_count+=1
-    cyclic_count+=1
+    acyclic_count=0
+    cyclic_count=0
     # benchmark 1: blind attempts. 
     print("Local tests")
     #  3 ways to round: unknown is incorrect; unknown as True, unknown takes False.
