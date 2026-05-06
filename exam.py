@@ -64,5 +64,8 @@ def main():
     # MLMA: classifying Mutation acyclic or not for 4-vertex quivers with small weights
     #todo
 
+    AllSmall4VertexData = [(r["quiver exchange matrix"], r["mutation acyclic"]) for r in readCSVDatabase("Dedup_4vert2Max5MutationsAcyclicLabeled.csv")]
+    runBenchmarkAcyclicLocal(AllSmall4VertexData)
+
 if __name__ == "__main__":
     main()
