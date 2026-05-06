@@ -352,7 +352,6 @@ def runBenchmarkAcyclicLocal(dataset, useExhaustive=False):
             assert result == l, f"Dataset and benchmark disagree; {Q.matrix} has label {l} but we find {result}."
             correct += 1
         else:
-            dataset_not_local.append((Q,l))
             if l is True:
                 U_T_correct+=1
             if l is False:
