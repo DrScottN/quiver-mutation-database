@@ -95,57 +95,40 @@ def reduceByIsomorphism(quivers):
     """
     Takes in a list of quivers and returns a list of all the distinct quivers up to isomorphism
     """
-    # Takes in a list of a quivers and returns a dictionary of all the distinct
-    # isomorphism classes with the least lexi element as the representative
-    # The value of the dict item is the number of times it appears in the list
     n = quivers[0].n
-    #perms = permutations(n)
     
-    classes = set([isomorphismRep(q) for q in quivers]) #[isomorphismClass(q, perms)[0] for q in quivers]
+    classes = set([isomorphismRep(q) for q in quivers])
 
-    return list(classes) # Counter(classes)
-
-def betterReduceByIsomorphism(quivers):
-    """
-    Takes in a list of quivers and edits the list to remove all but the least isomorphic representatives
-    """
-    n = quivers[0].n
-    perms = permutations(n)
-
-    def onePass(perms, Q, quiverList):
-        isoClass = isomorphismClass(Q, perms)
-        leastQuiver = isoClass[0]
-
-        return [P for P in quiverList if P not in isoClass], leastQuiver
-
-    Q = quivers[0]
-    newQuivers = []
-
-    while len(quivers) > 0:
-        quivers, P = onePass(perms, Q, quivers)
-        newQuivers.append(P)
-        Q = quivers[0]
-        print(len(newQuivers))
-
-    return newQuivers
+    return list(classes)
 
 def removeDisconnected(quivers):
-    # Removes all quivers which are not connected
+    """
+    Removes all quivers which are not connected
+    """
     return [q for q in quivers if q.connected()]
 
 def removeAcyclic(quivers):
-    # Removes all quivers that are acyclic
+    """
+    Removes all quivers that are acyclic
+    """
     return [q for q in quivers if not q.acyclic()]
 
 def removeVortices(quivers):
-    # Removes all quivers that have vortices
+    """
+    Removes all quivers that have vortices
+    """
     return [q for q in quivers if q.vortexFree()]
 
 def removeQuiversWithMutCyclicThreeCycle(quivers):
-    # Removes all quivers that have a mutation-cyclic 3-cycle as a subquiver
+    """
+    Removes all quivers that have a mutation-cyclic 3-cycle as a subquiver
+    """
     return [q for q in quivers if not q.hasMutCyclicThreeCycle()]
 
 def specialQuivers(n, perms):
+    """
+    Produces all the 'special' quivers that we run across and needed to deal with. Currently not implemented for rank 5
+    """
     quivers = []
 
     if n == 4:
@@ -177,6 +160,15 @@ def generateQuivers(n, maxWeight):
     return quivers, len(quivers)
 
 def isomorphismReductionFirst(n, perms, reduced):
+    """
+    Reduces the quivers given in reduced by first reducing by isomorphism
+    It then steadily throws out quivers until the only thing we are left with
+    Are quivers containing a cycle that we don't immediately know are mutation-cyclic
+    
+    Returns the reduced list and a results dictionary
+    The results are keys of the properties with values of the number of quivers satisfying that property
+    """
+
     results = dict()
     print(f"{len(reduced)} low weight quivers generated. Reducing by isomorphism")
     reduced, numIsoClasses = reduceQuivers(reduced, reduceByIsomorphism)
@@ -219,6 +211,15 @@ def isomorphismReductionFirst(n, perms, reduced):
     return reduced, results
 
 def isomorphismReductionLast(n, perms, reduced):
+    """
+    Reduces the quivers given in reduced by first steadily throwing out quivers until
+    The only thing we are left with are quivers containing a cycle that we don't immediately
+    Know are mutation-cyclic.
+    It then reduces those quivers by isomorphism.
+    
+    Returns the reduced list and a results dictionary
+    The results are keys of the properties with values of the number of quivers satisfying that property
+    """
     results = dict()
     numQuivers = len(reduced)
     print(f"{numQuivers} low weight quivers generated. Removing disconnected quivers:")
@@ -261,10 +262,14 @@ def isomorphismReductionLast(n, perms, reduced):
 
     return reduced, results
 
-
-
 def findEmpiricallyCyclicMutClasses(reduced, perms, results, mutations):
-    
+    """
+    Goes through the reduced list of quivers and mutates all of them up to the mutations number
+    It then returns the list of all mutation classes that we failed to show were mutation-acyclic or not
+    These are then 'empirically' cyclic.
+
+    Additionally, the results dictionary is added to and returned as well
+    """
     m = mutations
     print(f"Testing remaining by mutating up to {m} times.")
     print(LINEBREAK)
@@ -329,6 +334,13 @@ def findEmpiricallyCyclicMutClasses(reduced, perms, results, mutations):
 
 
 def findDistinctMutClasses(testing):
+    """
+    Takes in a list of mutation classes that are assumed to be empirically cyclic.
+    It then forms a counter of these mutation classes, and finds the number of distinct
+    Mutation classes up to mutation.
+    It then does the same for the number of mutation classes up to mutation and isomorphism.
+    Returns nothing
+    """
     print(LINEBREAK)
 
     print("Testing the Empirically Cyclic:")
@@ -344,7 +356,16 @@ def findDistinctMutClasses(testing):
 
     print("Number of distinct determinants: ", len(determinantCount))
 
-def alternateMain(n = 4, maxWeight=2, mutations=5):
+def main(n = 4, maxWeight=2, mutations=5):
+    """
+    Function to find how many distinct mutation classes of quivers that we cannot 
+    Prove mutation-acyclic or mutation-cyclic exist.
+    Takes in a number of vertices, the max arrow weight, and the number of mutations to perform.
+    Prints the results it finds along the way (Can be piped to file for saving)
+
+    Returns nothing
+    """
+
     perms = permutations(n)
     m = mutations
     
@@ -357,7 +378,7 @@ def alternateMain(n = 4, maxWeight=2, mutations=5):
     results = {"Total Quivers" : numQuivers}
 
     #reduced, reductionResults = isomorphismReductionFirst(n, perms, reduced)
-    reduced, reductionResults = isomorphismReductionLast(n, perms, reduced)
+    reduced, reductionResults = isomorphismReductionLast(n, perms, reduced) # Produces notable speedup
     
     mutClasses, mutationResults = findEmpiricallyCyclicMutClasses(reduced, perms, reductionResults, m)
 
@@ -417,148 +438,11 @@ def generateMulticlassDataset(classReps, depth, labels=False, forklessDepth=3):
             if d < depth:
                 todo.append((Qp,l,i,d+1))
 
-def main(n=4, maxWeight=2, mutations=5):
-    perms = permutations(n)
-    m = mutations
-    
-    print(LINEBREAK)
-    print(f"Generating low weight quivers with {n} vertices and weights at most {maxWeight}:")
-    print(LINEBREAK)
-    reduced, numQuivers = generateQuivers(n, maxWeight)
-    
-    #print(f"{numQuivers} low weight quivers generated. Reducing by isomorphism")
-    #reduced, numIsoClasses = reduceQuivers(reduced, reduceByIsomorphism)
-    
-    #print(f"{numIsoClasses} mutation classes up to isomorphism remaining. Removing disconnected quivers:")
-    #reduced, numConnected = reduceQuivers(reduced, removeDisconnected)
-    
-    print(f"{numQuivers} low weight quivers generated. Removing disconnected quivers:")
-    reduced, numConnected = reduceQuivers(reduced, removeDisconnected)
-
-    print(f"{numConnected} connected quivers remaining. Removing Acyclic quivers:")
-    reduced, numCyclic = reduceQuivers(reduced, removeAcyclic)
-   
-    print(f"{numCyclic} quivers containing a cycle remaining. Removing quivers that contain a mutation-cyclic 3-cycle:")
-    reduced, numNonMutCyclicThreeCycle = reduceQuivers(reduced, removeQuiversWithMutCyclicThreeCycle)
-
-    print(f"{numNonMutCyclicThreeCycle} quivers that do not have a mutation-cyclic 3-cycle remaining. Removing quivers that have a vortex:")
-    reduced, numNonVortex = reduceQuivers(reduced, removeVortices)
-    
-    print(f"{numNonVortex} non-vortices remaining. Removing the exceptional quivers:")
-    
-    for Q in specialQuivers(n, perms):
-        if Q in reduced:
-            reduced.remove(Q)
-    
-    numNonSpecial = len(reduced)
-    
-
-    print(f"{numNonSpecial} non-exceptional quivers remaining. Reducing by isomorphism")
-    reduced, numIsoClasses = reduceQuivers(reduced, reduceByIsomorphism)
-    #print(f"{numNonSpecial} quivers to test for mutation-acyclicity remaining.")
-    print(f"{numIsoClasses} isomorphism classes of quivers to test for mutation-acyclicity remaining.")
-    print(LINEBREAK)
-    
-
-    print(f"Testing remaining by mutating up to {m} times.")
-    print(LINEBREAK)
-    
-    mutClasses = [mutationClass(Q,perms) for Q in reduced]
-    mutAcyclic = 0
-    numVortex = 0
-    numFinite = 0
-    numFiniteFP = 0
-    numFinitePFP = 0
-    numMutCyclicSubquiver = 0
-    mutAcyclicClasses = []
-    mutCyclicSubquiverClasses = []
-    mutationFiniteClasses = []
-    mutationFiniteFPClasses = []
-    mutationFinitePFPClasses = []
-    mutationVortexClasses = []
-    
-    for M in mutClasses:
-        for i in range(m):
-            M.update()
-            if M.mutationAcyclic is True:
-                mutAcyclic += 1
-                mutAcyclicClasses.append(M)
-                break
-            elif M.mutationCyclicSubquiver is True:
-                numMutCyclicSubquiver += 1
-                mutCyclicSubquiverClasses.append(M)
-                break
-                #print(M.rep)
-                #print('---------')
-            elif M.finite is True:
-                numFinite += 1
-                mutationFiniteClasses.append(M)
-                break
-            elif M.hasVortex is True:
-                numVortex += 1
-                mutationVortexClasses.append(M)
-                #print(f"Found {numVortex} quivers with vortices in the mutation-class so far. Must be mutation-cyclic.")
-                break
-            elif M.finiteFP is True:
-                numFiniteFP += 1
-                mutationFiniteFPClasses.append(M)
-                #print(f"Found {numFiniteFP} quivers with Finite Forkless Part in the mutation-class so far. Must be mutation-cyclic.")
-                break
-            elif M.finitePFP is True:
-                numFinitePFP += 1
-                mutationFinitePFPClasses.append(M)
-                #print(f"Found {numFinitePFP} quivers with Finite Pre-Forkless Part in the mutation-class so far. Must be mutation-cyclic.")
-                break
-
-    numMutationCyclic = numNonSpecial - mutAcyclic
-    specialClasses = mutAcyclicClasses + mutCyclicSubquiverClasses + mutationVortexClasses
-    specialClasses = specialClasses + mutationFiniteClasses + mutationFiniteFPClasses + mutationFinitePFPClasses
-
-    testing = [M for M in mutClasses if M not in specialClasses]
-
-    print(f"Total: {numIsoClasses}")
-    print(f"Connected: {numConnected} Disconnected: {numIsoClasses-numConnected}")
-    print(f"Acyclic: {numConnected - numCyclic} Cyclic: {numCyclic}")
-    print(f"Mutation Cyclic 3-cycle: {numCyclic - numNonMutCyclicThreeCycle} Without Mutation Cyclic 3-cycle: {numNonMutCyclicThreeCycle}")
-    print(f"Vortices: {numNonMutCyclicThreeCycle - numNonVortex} Non-vortices: {numNonVortex}")
-    print(f"Special: {numNonVortex - numNonSpecial} Non-special: {numNonSpecial}")
-    print(LINEBREAK)
-    
-    print(f"Now Listing Information Found by The {m} Mutations:")
-    print(LINEBREAK)
-
-    print(f"Mutation-acyclic: {mutAcyclic} Mutation-cyclic: {numMutationCyclic}")
-    print(f"Mutation Cyclic Subquiver: {numMutCyclicSubquiver}")
-    print(f"Known Vortex Cyclic: {numVortex} Known Finite Cyclic: {numFinite}")
-    print(f"Known FFP Cyclic: {numFiniteFP} Known FPFP Cyclic: {numFinitePFP}")
-    print(f"Empirically Cyclic: {numMutationCyclic - numVortex - numFinite - numFiniteFP - numFinitePFP - numMutCyclicSubquiver}")
-    print(LINEBREAK)
-
-    print("Testing the Empirically Cyclic:")
-    print(LINEBREAK)
-
-    count = Counter(testing)
-    print(f"There are {len(count)} many mutation classes without isomorphism")
-    isoCount = Counter([M.isomorphicRepresentative() for M in testing])
-    print(f"There are {len(isoCount)} many mutation classes with isomorphism")
-
-    determinantCount = Counter([M.determinant for M in testing])
-    numWithMutCyclicSubquiver = 0
-
-    #for M in isoCount:
-    #    print(M)
-    #    print("---------")
-    #    print(M.determinant())
-    #    print("---------")
-
-    print("Number of distinct determinants: ", len(determinantCount))
-
 if __name__ == "__main__":
     startTime = time.time()
     args = [int(j) for j  in sys.argv[1:]]
     if len(args) == 3:
-        #main(*args)
-        alternateMain(*args)
+        main(*args)
     else:
         main()
     endTime = time.time()
