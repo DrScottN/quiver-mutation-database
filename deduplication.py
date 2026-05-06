@@ -1,6 +1,5 @@
 import csv
 import sys
-from generation import parseMuClassHeaders
 
 def main(read_filename, write_filename):
     with open(read_filename, 'r', newline='') as f:
