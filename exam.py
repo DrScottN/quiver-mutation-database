@@ -72,6 +72,19 @@ def main():
 
     # The same, using some training data from the dataset at random
     runBenchmarkAcyclicWithTraining(AllSmall4VertexData)
+    # Comparing against a train set.
+    # Found 123 distinct cyclic invariants and 205 distinct acyclic invariants.
+    # They intersect for 1 values.
+
+    # Ignoring Alexander Polynomial for cyclic examples:
+    # Unknown->incorrect: 230170 (99.89670497552169%)
+    # *Unknown->True: 230332 (99.9670150342002%)
+    # Unknown->False: 230246 (99.92968994132148%)
+    # Using Alexander Polynomials for the cyclic examples:
+    # Unknown->incorrect: 230170 (99.89670497552169%)
+    # Unknown->True: 230332 (99.9670150342002%)
+    # Unknown->False: 230246 (99.92968994132148%)
+
 
 if __name__ == "__main__":
     main()
