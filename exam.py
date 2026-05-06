@@ -62,7 +62,13 @@ def main():
     # Reported: 93%
 
     # MLMA: classifying Mutation acyclic or not for 4-vertex quivers with small weights
-    #todo
+    AllSmall4VertexData = [(r["quiver exchange matrix"], r["mutation acyclic"]) for r in readCSVDatabase("Dedup_4vert2Max5MutationsAcyclicLabeled.csv")]
+    runBenchmarkAcyclicLocal(AllSmall4VertexData)
+    #Local tests
+    # data balance (a vs c): 123562 vs 106846
+    # Unknown->incorrect: 57758 (25.067705982431164%)
+    # *Unknown->True: 172328 (74.79254192562759%)
+    # Unknown->False: 115838 (50.27516405680358%)
 
 if __name__ == "__main__":
     main()

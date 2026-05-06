@@ -341,6 +341,8 @@ def runBenchmarkAcyclicLocal(dataset, useExhaustive=False):
     correct=0
     U_T_correct=0
     U_F_correct=0
+    acyclic_count=0
+    cyclic_count=0
     # benchmark 1: blind attempts. 
     print("Local tests")
     #  3 ways to round: unknown is incorrect; unknown as True, unknown takes False.
@@ -350,7 +352,6 @@ def runBenchmarkAcyclicLocal(dataset, useExhaustive=False):
             assert result == l, f"Dataset and benchmark disagree; {Q.matrix} has label {l} but we find {result}."
             correct += 1
         else:
-            dataset_not_local.append((Q,l))
             if l is True:
                 U_T_correct+=1
             if l is False:
@@ -359,7 +360,7 @@ def runBenchmarkAcyclicLocal(dataset, useExhaustive=False):
             acyclic_count += 1
         else: 
             cyclic_count += 1
-
+    print(f"data balance (a vs c): {acyclic_count} vs {cyclic_count}")
     print(f" Unknown->incorrect: {correct} ({100*correct/D}%)")
     print(f"*Unknown->True: {correct+U_T_correct} ({100*(correct+U_T_correct)/D}%)")
     print(f" Unknown->False: {correct+U_F_correct} ({100*(correct+U_F_correct)/D}%)")
