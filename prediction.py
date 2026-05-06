@@ -382,6 +382,9 @@ def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, useSurface=True, tra
         # select a random selection of quivers of each label
         #  we choose to take samples of ~1/20 of the whole dataset; a bit weak if dataset contains few mutations from many classes
         #  provide a comparable train set to your model otherwise.
+
+        acyclic_count=len([d[0] for d in dataset_copy if d[1]])
+        cyclic_count=len([d[0] for d in dataset_copy if not d[1]])
         acyclic_egs = random.choices([d[0] for d in dataset_copy if d[1]], k=round(acyclic_count/20))
         cyclic_egs = random.choices([d[0] for d in dataset_copy if not d[1]], k=round(cyclic_count/20))
     else:
