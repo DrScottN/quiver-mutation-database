@@ -12,6 +12,12 @@ Unknown = unknown()
 
 
 class Quiver():
+    """
+    Class that stores our quiver object.
+    It is takes as input a skew-symmetric matrix (as a list or np.ndarray)
+
+    Also has many methods that are useful for working with quivers
+    """
     def __init__(self, matrix, validate = True):
         if validate and not isinstance(matrix, np.ndarray):
             if len(matrix) != len(matrix[0]):
@@ -58,6 +64,10 @@ class Quiver():
         return Quiver(copy.deepcopy(self.matrix), validate=False)
 
     def determinant(self):
+        """
+        Finds the determinant of our quiver's matrix.
+        Will be 0 for odd number of vertices
+        """
         if self.n % 2 == 1:
             return 0
         
@@ -166,6 +176,8 @@ class Quiver():
         elif not self.subquiverRemoveOneVertex(r).acyclic():
             return False
         
+        # Quiver now satisfies enough properties of a fork that we need to test points of return
+
         for i in range(self.n):
             if i == r:
                 continue
@@ -199,13 +211,15 @@ class Quiver():
         return True
    
     def preForkWithVertices(self, r, i, j):
-        """ returns true if pre-fork with given vertices """
+        """ Returns true if a pre-fork with given vertices, where r is the point of return """
         if self.acyclic():
             return False
         
         Q = self.subquiverRemoveOneVertex(i)
         P = self.subquiverRemoveOneVertex(j)
 
+        # The trick below is adjusting the index of the point of return in the subquivers
+        # Depending on if the removed vertex was lesser than r
         if not Q.forkWithPOR(r -(i<r)) or not P.forkWithPOR(r - (j<r)):
             return False
 
@@ -271,6 +285,7 @@ class Quiver():
         return True
 
     def oppositeQuiver(self):
+        """ Returns the quiver given by swapping the direction of all arrows"""
         return Quiver(-1*self.matrix)
     
     def mutate(self, k):
@@ -289,7 +304,7 @@ class Quiver():
 
     def matrixMutate(self, k):
         """ Gives the quiver formed by mutating at vertex k via matrix mutation """
-        # empirically slower than the mutation method above.
+        # empirically slower than the mutation method above for small size matrices
         C = np.identity(self.n, dtype='object')
         C[k,:]= np.vectorize(lambda x : max(x,0))(self.matrix[k,:])
         C[k,k]=-1
@@ -437,7 +452,8 @@ class Quiver():
         return tuple(math.gcd(*[self.matrix[i,j] for j in range(self.n)]) for i in range(self.n))
 
     def gcdTwoPath(self):
-        """Computes the gcd vector of all pairs of (not-necessarily-oriented) paths."""
+        """Computes the gcd vector of all pairs of (not-necessarily-oriented) paths.
+        Not currently used for anything, but it may appear useful some day"""
         d = 0
         for i in range(self.n):
             for j in range(i+1, self.n):
@@ -524,7 +540,7 @@ def descendFork(Q, maxSteps=-1):
     prevMutation = -1 #the last mutation performed, to prevent stutter/loops.
     while maxSteps != 0:
         foundDescent = False
-        maxSteps -= 1
+        maxSteps -= 1 # If we start with negative maxSteps, this will naturally continue until a descent is no longer found
         for r in range(Q.n):
             if r==prevMutation:
                 continue
@@ -1153,10 +1169,11 @@ class mutationClass():
         
 
     def emptyIntersection(self,other):
+        """Returns true if the other being compared has trivial intersection with the original quiver"""
         return self.intersection(other) is None
 
     def representative(self):
-        # Gets a quiver with lowest edge weights to represent the class
+        """Gets a quiver with lowest edge weights to represent the class"""
         if len(self.possibleReps) > 1:
             self.possibleReps.sort()
         
@@ -1416,11 +1433,13 @@ def headerForLabels():
     return headers
     
 def parseSquareMatrixToQuiver(arrayStr):
+    """Takes in a string of numbers and returns a quiver with those numbers arranged in a square matrix"""
     v = [int(x) for x in arrayStr[1:-1].split(' ')] #remove []'s, split by spaces, convert to python ints
     n = int(math.sqrt(len(v)))
     return Quiver(np.array(v).reshape((n,n)))
 
 def parseTernary(ternaryString):
+    """Reads the states from the given string"""
     if ternaryString == "T":
         return True
     elif ternaryString == "F":
@@ -1430,6 +1449,7 @@ def parseTernary(ternaryString):
     raise Exception(f"{ternaryString} is not ternary string")
 
 def parsePolynomial(polynomialString):
+    """Returns a polynomial given a string"""
     # We encode one var polys as np arrays of their coefficients
     coeffs = [int(x) for x in polynomialString[1:-1].split(' ')]
     return polynomial.polynomial(coeffs)
@@ -1490,11 +1510,6 @@ def parseMuClassHeaders(dictionary):
                 newDict[key] = int(value)
     return newDict
 
-
-
-
-
-
 def boxQuiver(a,b):
     """ Returns the box quiver with sides a and b """
     M = [[0 for i in range(4)] for j in range(4)]
@@ -1507,7 +1522,7 @@ def boxQuiver(a,b):
     return Quiver(M)
 
 def dreadedTorus():
-    """ Returns the box quiver with sides a and b """
+    """ Returns the dreaded torus on four vertices"""
     M = [[] for j in range(4)]
 
     M[0] = [0,1,1,-1]
@@ -1519,7 +1534,7 @@ def dreadedTorus():
 
 
 def main():
-    print("You should be using generation.py")
+    print("You should be using generation.py if you want to run a file")
 
 if __name__ == "__main__":
     #test()
