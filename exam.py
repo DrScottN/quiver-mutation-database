@@ -63,12 +63,28 @@ def main():
 
     # MLMA: classifying Mutation acyclic or not for 4-vertex quivers with small weights
     AllSmall4VertexData = [(r["quiver exchange matrix"], r["mutation acyclic"]) for r in readCSVDatabase("Dedup_4vert2Max5MutationsAcyclicLabeled.csv")]
-    runBenchmarkAcyclicLocal(AllSmall4VertexData)
+    #runBenchmarkAcyclicLocal(AllSmall4VertexData)
     #Local tests
     # data balance (a vs c): 123562 vs 106846
     # Unknown->incorrect: 57758 (25.067705982431164%)
     # *Unknown->True: 172328 (74.79254192562759%)
     # Unknown->False: 115838 (50.27516405680358%)
+
+    # The same, using some training data from the dataset at random
+    runBenchmarkAcyclicWithTraining(AllSmall4VertexData)
+    # Comparing against a train set.
+    # Found 123 distinct cyclic invariants and 205 distinct acyclic invariants.
+    # They intersect for 1 values.
+
+    # Ignoring Alexander Polynomial for cyclic examples:
+    # Unknown->incorrect: 230170 (99.89670497552169%)
+    # *Unknown->True: 230332 (99.9670150342002%)
+    # Unknown->False: 230246 (99.92968994132148%)
+    # Using Alexander Polynomials for the cyclic examples:
+    # Unknown->incorrect: 230170 (99.89670497552169%)
+    # Unknown->True: 230332 (99.9670150342002%)
+    # Unknown->False: 230246 (99.92968994132148%)
+
 
 if __name__ == "__main__":
     main()
