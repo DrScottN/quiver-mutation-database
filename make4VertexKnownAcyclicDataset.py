@@ -1,4 +1,6 @@
 from generation import *
+import deduplication
+FILENAME = "Labeled_4vertex_2MaxWeight_depth5.csv"
 M1=[[0, -4, 0, 1],
 	[4, 0, 0, -2],
 	[0, 0, 0, -2],
@@ -62,4 +64,6 @@ for QC in provenCyclic:
         QC.update()
     QC.mutationAcyclic=False #we proved this!
 S = generateClassesWithKnownAcyclicity(4, 2, depth)
-writeMutationClasses(itertools.chain(S, provenCyclic), "4vert2Max5MutationsAcyclicLabeled.csv", indexLabel=False)
+
+writeMutationClasses(itertools.chain(S, provenCyclic), FILENAME, indexLabel=False)
+deduplication.main(FILENAME, FILENAME)

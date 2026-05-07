@@ -106,6 +106,7 @@ def main():
         B[4:,4:] = TypeAQuiver(n-4).matrix
         return Quiver(B)
         
+    # He et. al. 2025
     #ManyTrees = [TypeAQuiver(n) for n in range(3,9)] + [TypeDQuiver(n) for n in range(4,9)] + [TypeEQuiver(n) for n in range(6,9)]
     #runBenchmarkMatchSets(list(generateMulticlassDataset(ManyTrees, 2)), ManyTrees, useSurface=False)
     # not run for n>8 or more mutations, as the alexander polynomial distinguishes all of these. See the thesis of Amanda Shwartz for a proof.
@@ -113,6 +114,10 @@ def main():
     # ... and uniform guessing: 3164.0 (100.0%)
     # Using Alexander Polynomials for the cyclic examples: 3164 (100.0%)
     # ... and uniform guessing: 3164.0 (100.0%)
+
+    AllSmall5VertexData = [(r["quiver exchange matrix"], r["mutation acyclic"]) for r in readCSVDatabase("dedup_5vert1Max5MutationsAcyclicLabeled.csv")]
+    runBenchmarkAcyclicLocal(AllSmall5VertexData)
+    
 
 
 if __name__ == "__main__":
