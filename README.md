@@ -1,6 +1,11 @@
-# quiver-mutation-database
-A database of small-weight quivers labeled by their mutation classes, along with heuristic algorithms. Datasets are also available on [Huggingface](https://huggingface.co/datasets/labeledquivers/LabeledQuiverMutationAcyclicity).
+# Mathematicians vs Machines: 
+## Baseline Algorithms for Mutation Equivalence and Acyclicity
+This is the code repository for our paper, of the same name.
+It provides two main things (and several minor ones):
+1. A collection of baseline algorithms for quiver mutation-equivalence and mutation-acyclicity (available through `prediction.py`);
+2. the code to generate additional mutation-equivalence and mutation-acyclicity datasets with many associated statistics and labels (available through `generation.py`).
 
+Both of these tasks rely heavily on our self-contained implementation of quiver mutation, mutation classes, and associated invariants (in `quiver.py`).
 
 
 ## Requirements
@@ -14,6 +19,15 @@ This repository uses:
 
 Optionally, for `test_croissant.py`:
 `mlcroissant`
+
+
+## Databset
+
+Our Dataset are also available on [Huggingface](https://huggingface.co/datasets/labeledquivers/LabeledQuiverMutationAcyclicity).
+
+The dataset can be generated from scratch via:
+`python `
+
 
 
 ## Testing
