@@ -1,0 +1,318 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataBiases": "cr:dataBiases",
+    "dataCollection": "cr:dataCollection",
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "dct": "http://purl.org/dc/terms/",
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileProperty": "cr:fileProperty",
+    "fileObject": "cr:fileObject",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "personalSensitiveInformation": "cr:personalSensitiveInformation",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform"
+  },
+  "@type": "sc:Dataset",
+  "name": "Small weight 4-vertex quivers labeled by mutation-acyclicity",
+  "description": "Dataset of 4-vertex quivers mutation equivalent to quivers with maximum edge multiplicity 2, including mutation-class properties (acyclicity, finiteness, surface/vortex equivalence, etc.) and invariants (Alexander polynomial, exchange-matrix determinant, gcd vector, rank, class index). Several integer-valued fields (e.g. determinant of exchange matrix, Alexander polynomial coefficients, class index) can exceed 2^64 in magnitude, so all numeric fields are typed as sc:Text to preserve arbitrary-precision values.",
+  "conformsTo": "http://mlcommons.org/croissant/1.0",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "version": "1.0.0",
+  "distribution": [
+    {
+      "@type": "cr:FileObject",
+      "@id": "csv-file",
+      "name": "Labeled_4vertex_2MaxWeight_depth5.csv",
+      "contentUrl": "Labeled_4vertex_2MaxWeight_depth5.csv",
+      "encodingFormat": "text/csv",
+      "md5": "45c62a07716766ed089773295a61303d"
+    }
+  ],
+  "recordSet": [
+    {
+      "@type": "cr:RecordSet",
+      "@id": "quivers",
+      "name": "quivers",
+      "description": "Each record describes one 4-vertex quiver and the properties of its mutation class.",
+      "field": [
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/quiver_exchange_matrix",
+          "name": "quiver exchange matrix",
+          "description": "Flattened 4x4 skew-symmetric exchange matrix B in row-major order. Source value is bracketed and space-separated, e.g. '[0 -2 -2 -2 2 0 -2 -2 2 2 0 -2 2 2 2 0]'.",
+          "dataType": "sc:Text",
+          "repeated": true,
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "quiver exchange matrix"},
+            "transform": [
+              {"regex": "^\\[(.*)\\]$"},
+              {"separator": " "}
+            ]
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/mutation_acyclic",
+          "name": "mutation acyclic",
+          "description": "Whether the mutation class contains an acyclic representative. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "mutation acyclic"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/mutation_abundant",
+          "name": "mutation abundant",
+          "description": "Whether all quivers in the the mutation class are abundant. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "mutation abundant"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/mutation_complete",
+          "name": "mutation complete",
+          "description": "Whether all quivers in the the mutation class are complete. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "mutation complete"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/mutation_connected",
+          "name": "mutation connected",
+          "description": "Whether all quivers in the the mutation class are connected. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "mutation connected"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/mutation_equivalent_mutation_cyclic_3vertex_subquiver",
+          "name": "mutation equivalent to a quiver with a mutation-cyclic 3-vertex subquiver",
+          "description": "Whether the mutation class contains a quiver with a mutation-cyclic 3-vertex subquiver. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "mutation equivalent to a quiver with a mutation-cyclic 3-vertex subquiver"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/mutation_finite",
+          "name": "mutation finite",
+          "description": "Whether the mutation class is finite. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "mutation finite"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/finite_forkless_part",
+          "name": "finite forkless part",
+          "description": "Whether the forkless part of the mutation class is finite. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "finite forkless part"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/finite_preforkless_part",
+          "name": "finite preforkless part",
+          "description": "Whether the preforkless part of the mutation class is finite. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "finite preforkless part"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/surface_quiver",
+          "name": "surface quiver",
+          "description": "Whether the quiver arises from a triangulated surface. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "surface quiver"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/mutation_equivalent_vortex_subquiver",
+          "name": "mutation equivalent to a quiver with a vortex subquiver",
+          "description": "Whether the mutation class contains a quiver with a vortex subquiver. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "mutation equivalent to a quiver with a vortex subquiver"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/totally_proper",
+          "name": "totally proper",
+          "description": "Whether every quiver in the mutation class is proper. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "totally proper"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/alexander_polynomial",
+          "name": "Alexander polynomial",
+          "description": "Coefficient list of the Alexander polynomial associated with the mutation class. Source value is bracketed and space-separated, e.g. '[1 68 -122 68 1]'.",
+          "dataType": "sc:Text",
+          "repeated": true,
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "Alexander polynomial"},
+            "transform": [
+              {"regex": "^(?:\\[(.*)\\]|F)$"},
+              {"separator": " "}
+            ]
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/number_of_vertices",
+          "name": "number of vertices",
+          "description": "Number of vertices of the quiver.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "number of vertices"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/determinant_of_exchange_matrix",
+          "name": "determinant of exchange matrix",
+          "description": "Determinant of the exchange matrix.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "determinant of exchange matrix"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/gcd_vector",
+          "name": "gcd vector",
+          "description": "Per-row gcd vector of the exchange matrix. Source value is bracketed and space-separated, e.g. '[2 2 2 2]'.",
+          "dataType": "sc:Text",
+          "repeated": true,
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "gcd vector"},
+            "transform": [
+              {"regex": "^\\[(.*)\\]$"},
+              {"separator": " "}
+            ]
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/rank_of_exchange_matrix",
+          "name": "rank of exchange matrix",
+          "description": "Rank of the exchange matrix over the integers.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "rank of exchange matrix"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/determinant_of_companion_modulo_4",
+          "name": "determinant of companion modulo 4",
+          "description": "Determinant of the companion matrix taken modulo 4.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "determinant of companion modulo 4"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/mutation_cycle_in_class",
+          "name": "mutation cycle in class",
+          "description": "Whether the mutation class contains a non-trivial mutation cycle. Tri-valued enum encoded as text matching the regex ^(T|F|NULL)$ where T=true, F=false, NULL=unknown.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "mutation cycle in class"},
+            "transform": {"regex": "^(T|F|NULL)$"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "quivers/minimum_number_of_arrows_in_class",
+          "name": "minimum number of arrows in class",
+          "description": "Minimum total number of arrows over all (observed) quivers in the mutation class. Not guaranteed to be minimal/invariant.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "csv-file"},
+            "extract": {"column": "minimum number of arrows in class"}
+          }
+        }
+      ]
+    }
+  ]
+}
