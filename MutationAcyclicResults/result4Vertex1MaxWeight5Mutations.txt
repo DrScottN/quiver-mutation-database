@@ -1,0 +1,36 @@
+################################################################################
+Generating low weight quivers with 4 vertices and weights at most 1:
+################################################################################
+729 low weight quivers generated. Reducing by isomorphism
+42 mutation classes up to isomorphism remaining. Removing disconnected quivers:
+34 connected quivers remaining. Removing Acyclic quivers:
+10 quivers containing a cycle remaining. Removing quivers that contain a mutation-cyclic 3-cycle:
+10 quivers that do not have a mutation-cyclic 3-cycle remaining. Removing quivers that have a vortex:
+8 non-vortices remaining. Removing the exceptional quivers:
+8 quivers to test for mutation-acyclicity remaining.
+################################################################################
+Testing remaining by mutating up to 5 times.
+################################################################################
+Total: 42
+Connected: 34 Disconnected: 8
+Acyclic: 24 Cyclic: 10
+Mutation Cyclic 3-cycle: 0 Without Mutation Cyclic 3-cycle: 10
+Vortices: 2 Non-vortices: 8
+Special: 0 Non-special: 8
+################################################################################
+Now Listing Information Found by The 5 Mutations:
+################################################################################
+Mutation-acyclic: 7 Mutation-cyclic: 1
+Mutation Cyclic Subquiver: 0
+Known Vortex Cyclic: 0 Known Finite Cyclic: 1
+Known FFP Cyclic: 0 Known FPFP Cyclic: 0
+Empirically Cyclic: 0
+################################################################################
+Testing the Empirically Cyclic:
+################################################################################
+There are 0 many mutation classes without isomorphism
+There are 0 many mutation classes with isomorphism
+Number of distinct determinants:  0
+################################################################################
+Program took 0.22947192192077637 seconds to run
+################################################################################
