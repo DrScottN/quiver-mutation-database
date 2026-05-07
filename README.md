@@ -23,10 +23,10 @@ Optionally, for `test_croissant.py`:
 
 ## Databset
 
-Our Dataset are also available on [Huggingface](https://huggingface.co/datasets/labeledquivers/LabeledQuiverMutationAcyclicity).
+Our Dataset is also available on [Huggingface](https://huggingface.co/datasets/labeledquivers/LabeledQuiverMutationAcyclicity).
 
 The dataset can be generated from scratch via:
-`python `
+`python make4VertexMA.py`
 
 
 
