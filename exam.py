@@ -4,14 +4,15 @@ from generation import *
 
 def main():
     """ 
-    Evaluation of several previous quiver mutation databases using the benchmarks in prediction.
+    Evaluation of several previous quiver mutation databases using the baselines in prediction.
      """
     # ML for AG: A7, X7, and the oriented cycle with weights = 2
     #  standard exchange matrices were imported using sagemath vector() on the associated B-matrix.
     A7 = Quiver(np.array((0, 1, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 1, 0), dtype=object).reshape((7,7)))
     X7 = Quiver(np.array((0, 2, -1, 0, 0, 0, 0, -2, 0, 1, 0, 0, 0, 0, 1, -1, 0, 1, -1, 1, -1, 0, 0, -1, 0, 2, 0, 0, 0, 0, 1, -2, 0, 0, 0, 0, 0, -1, 0, 0, 0, 2, 0, 0, 1, 0, 0, -2, 0), dtype=object).reshape(7,7))
     Cycle2 = Quiver(2*np.array((0, 1, 0, 0, 0, 0, -1, -1, 0, 1, 0, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 0, -1, 0, 1, 1, 0, 0, 0, 0, -1, 0), dtype=object).reshape((7,7)))
-    #runBenchmarkMatchSets(list(generateMulticlassDataset([A7, X7, Cycle2], 2)), [A7, X7, Cycle2], useSurface=False)
+    #print("baseline for A7, X7, and Cycle2")
+    #runBaselineMatchSets(list(generateMulticlassDataset([A7, X7, Cycle2], 2)), [A7, X7, Cycle2], useSurface=False)
     # Results: 
     # Ignoring Alexander Polynomial for non-totally-proper reps: 602 (66.66666666666667%)
     # ... and uniform guessing: 752.5 (83.33333333333333%)
@@ -21,16 +22,14 @@ def main():
 
     # QM, SD, and ML: A7, X7, and Affine E6
     AffineE6 = Quiver(np.array((0, 1, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0), dtype=object).reshape(7,7))
-    # runBenchmarkMatchSets(list(generateMulticlassDataset([A7, X7, AffineE6], 2)), [A7, X7, AffineE6], useSurface=False)
+    #print("baseline for A7, X7, and Affine E6")
+    # runBaselineMatchSets(list(generateMulticlassDataset([A7, X7, AffineE6], 2)), [A7, X7, AffineE6], useSurface=False)
     # Results:
     # Ignoring Alexander Polynomial for non-totally-proper reps: 301 (33.333333333333336%)
     # ... and uniform guessing: 602.0 (66.66666666666667%)
     # Using Alexander Polynomials for the cyclic examples: 903 (100.0%)
     # ... and uniform guessing: 903.0 (100.0%)
     # they reported: 31%
-
-    # QM, SD, and ML: (3,3,3) cycle, (2,2,4) cycle (acyclic), and a collection of random 3x3 skew-symm matrices.
-    #  skipped, they don't say what 'random' means. Note that markov+gcd distinguishes almost all of these.
 
     # MLMA: A4, A4Doubled, A4doubleMiddle, D4, D4DoubleOne, Box, Vortex, (Figures A1, A2, A4, A5, A6)
     A4 = A7.subquiver([0,1,2,3])
@@ -40,7 +39,8 @@ def main():
     D4DoubleOne = Quiver([[0,1,1,2],[-1,0,0,0],[-1,0,0,0],[-2,0,0,0]])
     box = Quiver([[0,2,0,-2],[-2,0,2,0],[0,-2,0,2],[2,0,-2,0]])
     lollipop = Quiver([[0,2,-2,0],[-2,0,2,2],[2,-2,0,0],[0,-2,0,0]])
-    #runBenchmarkMatchSets(list(generateMulticlassDataset([A4, A4Doubled, A4DoubleMiddle, D4, D4DoubleOne, box, lollipop], 5)), [A4, A4Doubled, A4DoubleMiddle, D4, D4DoubleOne, box, lollipop], useSurface=False)
+    #print("baseline for variations on A4, D4, as well as the box quiver and lollipop.")
+    #runBaselineMatchSets(list(generateMulticlassDataset([A4, A4Doubled, A4DoubleMiddle, D4, D4DoubleOne, box, lollipop], 5)), [A4, A4Doubled, A4DoubleMiddle, D4, D4DoubleOne, box, lollipop], useSurface=False)
     # Results:
     # Ignoring Alexander Polynomial for non-totally-proper reps: 8736 (85.71428571428571%)
     # ... and uniform guessing: 9464.0 (92.85714285714286%)
@@ -54,7 +54,8 @@ def main():
     D11 = Quiver(np.array((0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0)).reshape((11,11)))
     E11 = Quiver(np.array((0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0)).reshape((11,11)))
     DE11 = Quiver(np.array((0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0)).reshape((11,11)))
-    # runBenchmarkMatchSets(list(generateMulticlassDataset([A11, D11, E11, DE11], 1)), [A11, D11, E11, DE11], useSurface=False)
+    #print("baseline for A,D,E,DE 11")
+    # runBaselineMatchSets(list(generateMulticlassDataset([A11, D11, E11, DE11], 1)), [A11, D11, E11, DE11], useSurface=False)
     # Ignoring Alexander Polynomial for non-totally-proper reps: 484 (100.0%)
     # ... and uniform guessing: 484.0 (100.0%)  #(All acyclic, so all use Alexander)
     # Using Alexander Polynomials for the cyclic examples: 484 (100.0%)
@@ -62,8 +63,9 @@ def main():
     # Reported: 93%
 
     # MLMA: classifying Mutation acyclic or not for 4-vertex quivers with small weights
+    #print("baseline all small weight 4-vertex quivers for Mutation-acyclicity")
     # AllSmall4VertexData = [(r["quiver exchange matrix"], r["mutation acyclic"]) for r in readCSVDatabase("Dedup_4vert2Max5MutationsAcyclicLabeled.csv")]
-    #runBenchmarkAcyclicLocal(AllSmall4VertexData)
+    #runBaselineAcyclicLocal(AllSmall4VertexData)
     #Local tests
     # data balance (a vs c): 123562 vs 106846
     # Unknown->incorrect: 57758 (25.067705982431164%)
@@ -71,7 +73,7 @@ def main():
     # Unknown->False: 115838 (50.27516405680358%)
 
     # The same, using some training data from the dataset at random
-    # runBenchmarkAcyclicWithTraining(AllSmall4VertexData)
+    # runBaselineAcyclicWithTraining(AllSmall4VertexData)
     # Comparing against a train set.
     # Found 123 distinct cyclic invariants and 205 distinct acyclic invariants.
     # They intersect for 1 values.
@@ -108,7 +110,7 @@ def main():
         
     # He et. al. 2025
     #ManyTrees = [TypeAQuiver(n) for n in range(3,9)] + [TypeDQuiver(n) for n in range(4,9)] + [TypeEQuiver(n) for n in range(6,9)]
-    #runBenchmarkMatchSets(list(generateMulticlassDataset(ManyTrees, 2)), ManyTrees, useSurface=False)
+    #runBaselineMatchSets(list(generateMulticlassDataset(ManyTrees, 2)), ManyTrees, useSurface=False)
     # not run for n>8 or more mutations, as the alexander polynomial distinguishes all of these. See the thesis of Amanda Shwartz for a proof.
     # Ignoring Alexander Polynomial for non-totally-proper reps: 3164 (100.0%)
     # ... and uniform guessing: 3164.0 (100.0%)
@@ -116,7 +118,7 @@ def main():
     # ... and uniform guessing: 3164.0 (100.0%)
 
     AllSmall5VertexData = [(r["quiver exchange matrix"], r["mutation acyclic"]) for r in readCSVDatabase("dedup_5vert1Max5MutationsAcyclicLabeled.csv")]
-    runBenchmarkAcyclicLocal(AllSmall5VertexData)
+    runBaselineAcyclicLocal(AllSmall5VertexData)
     
 
 

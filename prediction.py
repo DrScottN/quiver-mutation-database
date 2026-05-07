@@ -122,11 +122,11 @@ def mutationEquivalent(Q, R, distance, upToIsomorphism=False, returnClasses=Fals
 
 
 
-def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, useSurface=True, useExhaustive=False, seed=2842026):
-    """Runs several variants of our benchmark against the given dataset, and prints the accuracies achieved.
+def runBaselineAcyclic(dataset, depthSearch=1, train=None, useSurface=True, useExhaustive=False, seed=2842026):
+    """Runs several variants of our baseline against the given dataset, and prints the accuracies achieved.
         dataset: iterable of tuples, (quiver, correct_label), quiver is a quiver object and correct_label is a bool
         train (optional): iterable of (quiver, correct_label) pairs 
-        (train may be used to guess other labels, if None then some benchmarks will sample examples from dataset)
+        (train may be used to guess other labels, if None then some baselines will sample examples from dataset)
         useSurface: if True, computes the block decomposition for invariants.
         useExhaustive: if True, enumerates all acyclic quivers with relevant size.
         seed: used for random in selecting subset of data, irrelevant if train is not None.
@@ -142,13 +142,13 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, useSurface=True, use
     correct=0
     U_T_correct=0
     U_F_correct=0
-    # benchmark 1: blind attempts. 
+    # baseline 1: blind attempts. 
     print("Local tests")
     #  3 ways to round: unknown is incorrect; unknown as True, unknown takes False.
     for Q,l in dataset_copy:
         result = mutationAcyclicLocal(Q, matchAlexander=useExhaustive)
         if result is not Unknown:
-            assert result == l, f"Dataset and benchmark disagree; {Q.matrix} has label {l} but we find {result}."
+            assert result == l, f"Dataset and baseline disagree; {Q.matrix} has label {l} but we find {result}."
             correct += 1
         else:
             dataset_not_local.append((Q,l))
@@ -165,7 +165,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, useSurface=True, use
     print(f"*Unknown->True: {correct+U_T_correct} ({100*(correct+U_T_correct)/D}%)")
     print(f" Unknown->False: {correct+U_F_correct} ({100*(correct+U_F_correct)/D}%)")
     
-    # benchmark 2: with training data.
+    # baseline 2: with training data.
     print()
     print("Comparing against a train set.")
     if train is None:
@@ -248,7 +248,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, useSurface=True, use
     print(f" Unknown->True: {c+undetermined_with_cyclic_Alexander[True]} ({100*(c+undetermined_with_cyclic_Alexander[True])/D}%)")
     print(f" Unknown->False: {c+undetermined_with_cyclic_Alexander[False]} ({100*(c+undetermined_with_cyclic_Alexander[False])/D}%)")
 
-    # benchmark 3: Apply mutations
+    # baseline 3: Apply mutations
     print()
     print("Applying mutations to our examples and checking for equivalence.")
     acyclic_eg_classes = [mutationClass(Q, perms=permutations(Q.n)) for Q in acyclic_egs]
@@ -292,7 +292,7 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, useSurface=True, use
     if not useExhaustive: #do not do the following if exhaustive search is disabled.
         return 
 
-    # benchmark 4: Exhaustively search acyclics.
+    # baseline 4: Exhaustively search acyclics.
     print()
     print("Comparing to the invariants of all connected acyclics with sufficiently small weights.")
     max_markov = 0
@@ -330,9 +330,9 @@ def runBenchmarkAcyclic(dataset, depthSearch=1, train=None, useSurface=True, use
     print(f"*Unknown->True: {c+unknown_acyclic} ({100*(c+unknown_acyclic)/D}%)")
     print(f" Unknown->False: {c+unknown_cyclic} ({100*(c+unknown_cyclic)/D}%)")
 
-def runBenchmarkAcyclicLocal(dataset, useExhaustive=False):
+def runBaselineAcyclicLocal(dataset, useExhaustive=False):
     """
-    Benchmarks the list of tuples (quiver, label) in dataset against our local-mutation-acyclicity tests.
+    baselines the list of tuples (quiver, label) in dataset against our local-mutation-acyclicity tests.
     if useExhaustive is True, generate all acyclic quivers which might have the same alexander poly (slow!).
     """
     dataset_copy = list(dataset) #could use itertool.tee(dataset, k) and run in parallel for memory savings
@@ -343,13 +343,13 @@ def runBenchmarkAcyclicLocal(dataset, useExhaustive=False):
     U_F_correct=0
     acyclic_count=0
     cyclic_count=0
-    # benchmark 1: blind attempts. 
+    # baseline 1: blind attempts. 
     print("Local tests")
     #  3 ways to round: unknown is incorrect; unknown as True, unknown takes False.
     for Q,l in dataset_copy:
         result = mutationAcyclicLocal(Q, matchAlexander=useExhaustive)
         if result is not Unknown:
-            assert result == l, f"Dataset and benchmark disagree; {Q.matrix} has label {l} but we find {result}."
+            assert result == l, f"Dataset and baseline disagree; {Q.matrix} has label {l} but we find {result}."
             correct += 1
         else:
             if l is True:
@@ -365,9 +365,9 @@ def runBenchmarkAcyclicLocal(dataset, useExhaustive=False):
     print(f"*Unknown->True: {correct+U_T_correct} ({100*(correct+U_T_correct)/D}%)")
     print(f" Unknown->False: {correct+U_F_correct} ({100*(correct+U_F_correct)/D}%)")
     
-def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, useSurface=True, train=None, seed=1052026):
+def runBaselineAcyclicWithTraining(dataset, useLocal=True, useSurface=True, train=None, seed=1052026):
     """
-    run Benchmark against dataset using optional training data.
+    run baseline against dataset using optional training data.
     If no training data is specified, randomly selects ~5% from the dataset using seed.
     May perform quite poorly if dataset is very small or has much more than 20 classes.
     useLocal = True will first use the local mutation acyclicity test. Set to False to disable.
@@ -376,7 +376,7 @@ def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, useSurface=True, tra
     dataset_copy = list(dataset) #could use itertool.tee(dataset, k) and run in parallel for memory savings
     D = len(dataset_copy)
 
-    # benchmark 2: with training data.
+    # baseline 2: with training data.
     print("Comparing against a train set.")
     if train is None:
         # select a random selection of quivers of each label
@@ -424,7 +424,7 @@ def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, useSurface=True, tra
         if useLocal:
             r = mutationAcyclicLocal(Q)
             if r is not Unknown:
-                assert r == l, f"Dataset and benchmark disagree on {Q.matrix}."
+                assert r == l, f"Dataset and baseline disagree on {Q.matrix}."
                 correct += 1
                 continue
         d = invariantsDictionary(Q, includeSurface=useSurface)
@@ -469,7 +469,7 @@ def runBenchmarkAcyclicWithTraining(dataset, useLocal=True, useSurface=True, tra
     print(f" Unknown->True: {c+undetermined_with_cyclic_Alexander[True]} ({100*(c+undetermined_with_cyclic_Alexander[True])/D}%)")
     print(f" Unknown->False: {c+undetermined_with_cyclic_Alexander[False]} ({100*(c+undetermined_with_cyclic_Alexander[False])/D}%)")
 
-def runBenchmarkMatchSets(dataset, classReps, useSurface=True):
+def runBaselineMatchSets(dataset, classReps, useSurface=True):
     """ 
     For each quiver in classReps, create a set of invariants and match the quivers in dataset accordingly.
     dataset has tuples of quivers and labels, indicating the index of the class the quiver is from.
@@ -511,7 +511,7 @@ def runBenchmarkMatchSets(dataset, classReps, useSurface=True):
             if invariantsWithAlex[i]!=da:
                 continue
             optionsWith.append(i)
-        assert l in optionsWithout, f"Dataset and benchmark disagree on {Q.matrix}, expected {l} in {optionsWithout}"
+        assert l in optionsWithout, f"Dataset and baseline disagree on {Q.matrix}, expected {l} in {optionsWithout}"
         if len(optionsWithout)==1:
             correctWith+=1
             correctWithout+=1
