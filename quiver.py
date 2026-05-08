@@ -386,12 +386,10 @@ class Quiver():
             outsetS = [(i+c)%self.n for i in outset]
             insetS = [(i+c)%self.n for i in inset]
             jp = (j+c)%self.n
-            if jp < min(outsetS) and all([min(outsetS) > k or max(outsetS) < k for k in insetS]): #bug, this is happy with reverse order
-                #mutate with outset
+            if jp < min(outsetS) and all([min(outsetS) > k or max(outsetS) < k for k in insetS]): 
                 Q = isomorphicQuiver(self, [(i+c)%self.n for i in range(self.n)])
                 Q = Q.mutate(jp)
-                print(list(range(jp)) + list(range(min(outsetS), max(outsetS)+1)) + [jp] + list(range(max(outsetS)+1,self.n)))
-                return isomorphicQuiver(Q, list(range(jp)) + list(range(min(outsetS), max(outsetS)+1)) + [jp] + list(range(max(outsetS)+1,self.n)))
+                return isomorphicQuiver(Q, list(range(jp)) + list(range(jp+1, max(outsetS)+1)) + [jp] + list(range(max(outsetS)+1,self.n)))
             elif jp > max(insetS) and all([min(insetS) > k or max(insetS) < k for k in outsetS]):
                     #mutate with inset
                 Q = isomorphicQuiver(self, [(i+c)%self.n for i in range(self.n)])
