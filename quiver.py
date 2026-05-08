@@ -354,6 +354,81 @@ class Quiver():
             winding_dict[tuple(C)] = (wind - lefts, lefts)
         return winding_dict
 
+    def bestOrder(self):
+        """ Check if identity is the best ordering """
+        W = self.windingData(list(range(self.n)))
+        for C in W.keys():
+            wind, left = W[C]
+            if left > len(C)/2:
+                wind = -wind
+                left = len(C) - left
+            if wind not in [0,1]:
+                return False
+            if wind==0 and left ==0:
+                return False
+            if wind==1 and left > 0:
+                return False
+        return True
+
+    def properMutate(self, j):
+        """ 
+        returns the quiver after proper mutation at j, or False if j is not proper
+        """
+        outset = []
+        inset = []
+        for k in range(self.n):
+            if self.matrix[j,k] > 0:
+                outset.append(k)
+            elif self.matrix[j,k] < 0:
+                inset.append(k)
+        
+        for c in range(self.n):
+            outsetS = [(i+c)%self.n for i in outset]
+            insetS = [(i+c)%self.n for i in inset]
+            jp = (j+c)%self.n
+            if all([min(outsetS) > k or max(outsetS) < k for k in insetS]): #bug, this is happy with reverse order
+                #mutate with outset
+                Q = isomorphicQuiver(self, [(i+c)%self.n for i in range(self.n)])
+                Q = Q.mutate(jp)
+                print(list(range(jp)) + list(range(min(outsetS), max(outsetS)+1)) + [jp] + list(range(max(outsetS)+1,self.n)))
+                return isomorphicQuiver(Q, list(range(jp)) + list(range(min(outsetS), max(outsetS)+1)) + [jp] + list(range(max(outsetS)+1,self.n)))
+            elif all([min(insetS) > k or max(insetS) < k for k in outsetS]):
+                    #mutate with inset
+                Q = isomorphicQuiver(self, [(i+c)%self.n for i in range(self.n)])
+                Q = Q.mutate(jp)
+                return isomorphicQuiver(Q, list(range(min(insetS)) + [jp] + list(range(min(insetS), jp)) + list(range(jp+1,self.n))))
+        #wiggle improve, recurse
+        # pick closest overlap pair
+        minDist = self.n
+        pair = 0,0
+        for u,v in itertools.product(inset, outset):
+            # u -> j -> v; say j=0, then it's bad if u < v => (v-u) is positive
+            up = (u-j)%self.n
+            vp = (v-j)%self.n
+            if vp-up > 0 and vp-up < minDist:
+                minDist = vp-up
+                pair = [u,v]
+        # find set of things above u (between u,v)
+        upset = [pair[0]]
+        for x in range(pair[0]+1,pair[1]+1 +self.n*(pair[1]<pair[0])):
+            if (0!=self.matrix[upset,x%self.n]).any():
+                upset.append(x%self.n)
+        # if reached v, hopeless
+        if pair[1] in upset:
+            return False
+        #swap upset above v
+        interval = list(range(pair[0], (pair[0]+1+self.n)))
+        posV = interval.index(pair[1]+self.n*(pair[1]<pair[0]))
+        result = [v]
+        for k in range(posV):
+            if interval[k]%self.n in upset:
+                continue
+            result.append(interval[k])
+        result += upset
+        result += interval[posV+1:]
+        result = [x%self.n for x in result]
+        return isomorphicQuiver(result, self).properMutate(j)
+
 
     def cyclicOrder(self):
         """ 
