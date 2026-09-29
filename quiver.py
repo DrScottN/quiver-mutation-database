@@ -922,6 +922,13 @@ class mutationClass():
         self.hasMutationCycle = Unknown
         self.mutationAbundant = False if not self.initialQ.abundant() else Unknown
 
+
+        if self.casalsDeterminant() != self.determinant % 4 :
+            print("Bad casals")
+            print(self.initialQ.matrix)
+            print(self.initialQ)
+            raise Exception("broken invariants")
+
     def __str__(self):
         return str(self.representative())
 
