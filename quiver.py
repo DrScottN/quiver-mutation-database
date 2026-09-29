@@ -923,7 +923,7 @@ class mutationClass():
         self.mutationAbundant = False if not self.initialQ.abundant() else Unknown
 
 
-        if self.casalsDeterminant() != self.determinant % 4 :
+        if self.casalsDeterminant != self.determinant % 4 :
             print("Bad casals")
             print(self.initialQ.matrix)
             print(self.initialQ)

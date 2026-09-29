@@ -48,7 +48,7 @@ M9 = [[0, -2, 0, 1],
 provenCyclicIso = [boxQuiver(2,2), dreadedTorus(), Quiver(M1), Quiver(M2), Quiver(M3), Quiver(M4), Quiver(M5), Quiver(M6), Quiver(M7), Quiver(M8), Quiver(M9)]
 for Q in provenCyclicIso:
     print(Q.matrix)
-    print(Q.alexander_poly())
+    print(Q.alexanderPolynomial())
     print()
 
 provenCyclic = []
