@@ -466,7 +466,7 @@ class Quiver():
         """ return the mod-4 determinant of a quasi-cartan companion. This is a mutation invariant. """
         #  see arxiv: 2311.03601
         A = np.array([[2*(i==j)+self.matrix[i,j]*(i<j) + self.matrix[j,i]*(j<i) for j in range(self.n)] for i in range(self.n)], dtype=object)
-        return int(bariessDet(A)%4)
+        return bariessDet(A)%4
 
     def sevenCongruence(self):
         """ return the 'corank' of A mod 4 up to congruence, via the dimension of a particular space """
@@ -500,7 +500,7 @@ def bariessDet(M):
     n = M.shape[0]
     assert M.shape == (n,n), "must be square matrix"
     assert M.dtype==object, "matrix type must be python 'object'"
-    M00 = 1
+    
     M = copy.deepcopy(M)
     sign = 1
     for k in range(n-1):
