@@ -1364,7 +1364,8 @@ def isomorphismRep2(Q):
     sortedRows = []
     for i in range(Q.n):
         sortedRows.append(np.sort(Q.matrix[i,:]))
-    possibleFirstRows = [x for x in range(Q.n) if sortedRows[x] == min(sortedRows)]
+
+    possibleFirstRows = [x for x in range(Q.n) if (sortedRows[x] == min(sortedRows, key=lambda r: [y for y in r.tolist()])).all()]
     
     B = Q.matrix
     def lt(perm1, perm2):
@@ -1384,56 +1385,25 @@ def isomorphismRep2(Q):
         curBlock = [0]
         for i in range(1,Q.n):
             if sortedRow[i]!=prevValue:
-                permutableColumns.append(argsorRow[curBlock])
+                permutableColumns.append(argsortRow[curBlock].tolist())
                 prevValue=sortedRow[i]
                 curBlock=[]
             curBlock.append(i)
-            
+        permutableColumns.append(argsortRow[curBlock].tolist())
+        for i in range(len(permutableColumns)):
+            if row in permutableColumns[i]:
+                permutableColumns[i].remove(row)
         #argsortRow = np.delete(argsortRow, )
-        p = [row] + [i for i in argsortRow if i!=row]
-        for pi in itertools.chain([itertools.permutations(Block) for Block in permutableColumns]):
-            yield [p[i] for i in pi]
+        for pi in itertools.product(*[itertools.permutations(Block) for Block in permutableColumns]):
+            #pi is a tuple of tuples; flatten
+            pi = itertools.chain.from_iterable(pi)
+            yield [row] + [i for i in pi]
 
     bestPermutation = tuple(range(Q.n))
     for x in possibleFirstRows:
         for p in possiblePermutations(x, sortedRows[x], np.argsort(Q.matrix[x,:])):
             if lt(p, bestPermutation):
                 bestPermutation = p
-
-    return isomorphicQuiver(Q, bestPermutation)
-
-
-
-
-
-    minEntry = 0
-    possibleFirstRow=[]
-    for i,j in itertools.combinations(range(Q.n), 2):
-        v = -abs(Q.matrix[i,j])
-        if minEntry > v:
-            minEntry = v
-            possibleFirstRow=[]
-        if minEntry == v:
-            if Q.matrix[i,j] > 0: 
-                possibleFirstRow.append(j)
-            else: 
-                possibleFirstRow.append(i)
-
-
-    def bestWithX(x):
-        """Find lex min permutation that starts with row x"""
-        a = np.array(B[x,:])
-        np.argsort(a)
-        return 
-
-    bestPermutation = tuple(range(Q.n))
-    for x in possibleFirstRow:
-        bestWithXPerm = bestWithX(Q, x)
-        if bestWithXPerm < bestPermutation:
-            bestPermutation = bestWithXPerm
-
-    bestPermutationsForFirstRow=[]
-
     return isomorphicQuiver(Q, bestPermutation)
 
 def isomorphismRep(Q):
