@@ -1359,9 +1359,85 @@ def isomorphismClass(quiver, perms):
 
     return isoClass
 
+def isomorphismRep2(Q):
+    """Returns the lex min rep of Q in its isomorphism class using try-undo"""
+    sortedRows = []
+    for i in range(Q.n):
+        sortedRows.append(np.sort(Q.matrix[i,:]))
+    possibleFirstRows = [x for x in range(Q.n) if sortedRows[x] == min(sortedRows)]
+    
+    B = Q.matrix
+    def lt(perm1, perm2):
+        for i in range(Q.n):
+            for j in range(i+1,Q.n):
+                if B[perm1[i],perm1[j]] < B[perm2[i],perm2[j]]:
+                    return True
+                elif B[perm1[i],perm1[j]] > B[perm2[i],perm2[j]]:
+                    return False
+
+        return False
+
+    def possiblePermutations(row, sortedRow, argsortRow):
+        #sortedRow = np.delete(sortedRow, np.where(sortedRow == 0)[0][0])
+        permutableColumns = []
+        prevValue = sortedRow[0]
+        curBlock = [0]
+        for i in range(1,Q.n):
+            if sortedRow[i]!=prevValue:
+                permutableColumns.append(argsorRow[curBlock])
+                prevValue=sortedRow[i]
+                curBlock=[]
+            curBlock.append(i)
+            
+        #argsortRow = np.delete(argsortRow, )
+        p = [row] + [i for i in argsortRow if i!=row]
+        for pi in itertools.chain([itertools.permutations(Block) for Block in permutableColumns]):
+            yield [p[i] for i in pi]
+
+    bestPermutation = tuple(range(Q.n))
+    for x in possibleFirstRows:
+        for p in possiblePermutations(x, sortedRows[x], np.argsort(Q.matrix[x,:])):
+            if lt(p, bestPermutation):
+                bestPermutation = p
+
+    return isomorphicQuiver(Q, bestPermutation)
+
+
+
+
+
+    minEntry = 0
+    possibleFirstRow=[]
+    for i,j in itertools.combinations(range(Q.n), 2):
+        v = -abs(Q.matrix[i,j])
+        if minEntry > v:
+            minEntry = v
+            possibleFirstRow=[]
+        if minEntry == v:
+            if Q.matrix[i,j] > 0: 
+                possibleFirstRow.append(j)
+            else: 
+                possibleFirstRow.append(i)
+
+
+    def bestWithX(x):
+        """Find lex min permutation that starts with row x"""
+        a = np.array(B[x,:])
+        np.argsort(a)
+        return 
+
+    bestPermutation = tuple(range(Q.n))
+    for x in possibleFirstRow:
+        bestWithXPerm = bestWithX(Q, x)
+        if bestWithXPerm < bestPermutation:
+            bestPermutation = bestWithXPerm
+
+    bestPermutationsForFirstRow=[]
+
+    return isomorphicQuiver(Q, bestPermutation)
+
 def isomorphismRep(Q):
     """Returns the lex min rep of Q in its isomorphism class"""
-    #assumes perms is all the permutations.
     maxWeight = 0
     opts1=[]
     opts2=[]
