@@ -1297,11 +1297,11 @@ def generateLowWeightQuivers(n, maxWeight=2):
         # Does the same with (j,i) in a skew symmetric manner
         newList = []
         for Q in l:
-            newM = copy.deepcopy(Q.matrix)
+            newM = Q.matrix
             for w in lowWeights:
                 newM[i,j] = w
                 newM[j,i] = -w
-                newQ = Quiver(copy.deepcopy(newM))
+                newQ = Quiver(newM)
                 newList.append(newQ)
 
         return newList
