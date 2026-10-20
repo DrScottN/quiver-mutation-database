@@ -197,18 +197,26 @@ class polynomial():
             raise Exception("Unsupported: divide with multivariate polynomial.")
         if self==0:
             return 0
+        
         if isinstance(other ,int):
-            otherLead = (other, 0)
+            OList = [other]
         else:
-            otherLead = [x for x in other.coefficients if x[1]==other.totalDegree][0]
-        selfLead = [x for x in self.coefficients if x[1]==self.totalDegree][0]
-        if otherLead[1] > selfLead[1]:
+            OList = other.coefficientList() #otherLead = [x for x in other.coefficients if x[1]==other.totalDegree][0]
+        SList = self.coefficientList() #selfLead = [x for x in self.coefficients if x[1]==self.totalDegree][0]
+        answerDegree = len(SList) - len(OList)
+        MidList = [0]*(answerDegree) + [j for j in OList]
+        AList = [0]*(answerDegree+1)
+        SLead = len(SList)
+        for i in range(answerDegree+1):
+            leadingPosition = len(SList) - i - 1
+            div = SList[leadingPosition] // OList[-1] 
+            for j in range(leadingPosition+1):
+                SList[j] -= div*MidList[j]
+            AList[-i-1] = div
+            MidList.pop(0)
+        if any([x!=0 for x in SList]):
             raise Exception("not exact division")
-        if selfLead[0] % otherLead[0] != 0:
-            raise Exception("Not exact division")
-        div = (selfLead[0]//otherLead[0])*(polynomial([0,1], variables=self.variables)**(self.totalDegree - otherLead[1]))
-        #print(self, " ", other, "div:", div)
-        return div + (self - div*other)/other
+        return polynomial(AList, variables=self.variables)
 
     def __floordiv__(self, other):
         return self.__truediv__(other)
