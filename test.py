@@ -577,6 +577,11 @@ class QuiverIsoClass(unittest.TestCase):
         assert isomorphismRep(self.quiver2) == self.Iso2[0]
         assert isomorphismRep(self.quiver3) == self.Iso3[0]
 
+    def testIsoRep2(self):
+        assert isomorphismRep2(self.quiver1) == self.Iso1[0]
+        assert isomorphismRep2(self.quiver2) == self.Iso2[0]
+        assert isomorphismRep2(self.quiver3) == self.Iso3[0]
+
 class QuiverHashing(unittest.TestCase):
     def setUp(self):
         self.quiver = Quiver([[0,-3,6,8], [3,0,-5,9], [-6,5,0,-11], [-8,-9,11,0]])
